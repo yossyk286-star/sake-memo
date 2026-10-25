@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Kind, RecordDraft } from "./types";
-import { KINDS, STYLES_BY_KIND } from "./glossary";
+import { CATEGORIES, KINDS, STYLES_BY_KIND } from "./glossary";
 
 /** 味の強さ。1（弱い）〜5（強い） */
 const TasteLevel = z.number().int().describe("1（弱い）〜5（強い）の整数");
@@ -81,3 +81,14 @@ export const PairingResultSchema = z.object({
 });
 
 export type PairingResult = z.infer<typeof PairingResultSchema>;
+
+/** 辞典に足す用語を調べた結果 */
+export const TermLookupSchema = z.object({
+  found: z.boolean().describe("お酒に関係する言葉として説明できれば true。関係ない・わからなければ false"),
+  term: z.string().describe("用語（表記をととのえたもの）"),
+  reading: z.string().describe("ひらがなの読み。カタカナ語や英語なら空文字"),
+  category: z.enum(CATEGORIES).describe("いちばん近い分類"),
+  description: z.string().describe("初心者向けのやさしい説明。辞典のほかの用語と同じく2文くらい、60〜100字"),
+});
+
+export type TermLookup = z.infer<typeof TermLookupSchema>;

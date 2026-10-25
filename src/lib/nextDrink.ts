@@ -65,7 +65,7 @@ export function nextIdeas(records: TastingRecord[], prefs: MyPrefs, limit = 4): 
   }
 
   // 3. まだ飲んでいない種類（「その他」は広すぎるので出さない）
-  const untriedKinds = (Object.keys(STYLES_BY_KIND) as Kind[]).filter((k) => k !== "その他" && !kinds.has(k));
+  const untriedKinds = (Object.keys(STYLES_BY_KIND) as Kind[]).filter((k) => k !== "その他" && !kinds.has(k) && !prefs.avoidKinds.includes(k));
   if (untriedKinds.length > 0 && records.length > 0) {
     const kind = untriedKinds[0];
     const style = STYLES_BY_KIND[kind][0];

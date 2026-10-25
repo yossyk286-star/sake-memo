@@ -31,11 +31,11 @@ function maskTerm(text: string, term: string) {
  * 用語の説明を見て、どの用語か4つから選ぶ問題。
  * まぎらわしいほうが勉強になるので、ほかの選択肢はなるべく同じ分類から出す
  */
-export function makeQuestion(seed: string): Question {
+export function makeQuestion(seed: string, pool: Term[] = TERMS): Question {
   const rand = seeded(seed);
-  const term = TERMS[Math.floor(rand() * TERMS.length)];
-  const same = TERMS.filter((t) => t.category === term.category && t.term !== term.term);
-  const others = TERMS.filter((t) => t.category !== term.category);
+  const term = pool[Math.floor(rand() * pool.length)];
+  const same = pool.filter((t) => t.category === term.category && t.term !== term.term);
+  const others = pool.filter((t) => t.category !== term.category);
   const wrong = [...shuffle(same, rand), ...shuffle(others, rand)].slice(0, 3).map((t) => t.term);
   const choices = shuffle([term.term, ...wrong], rand);
   return { term, hint: maskTerm(term.description, term.term), choices, answer: choices.indexOf(term.term) };

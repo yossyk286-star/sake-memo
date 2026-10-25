@@ -1,14 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import MenuScan, { PickedDrink } from "@/components/MenuScan";
 import RecordForm from "@/components/RecordForm";
-import { deleteWish, getWish } from "@/lib/db";
+import { deleteWish, getBottle, getWish, listBottles, listRecords } from "@/lib/db";
 import { loadLastScan, markRecorded } from "@/lib/lastScan";
 import { drinkToDraft, type ScannedDrink } from "@/lib/menuScan";
-import type { RecordDraft } from "@/lib/types";
+import type { Bottle, RecordDraft } from "@/lib/types";
+
+/** 家のお酒から記録する画面。お酒の情報は登録したものを入れて、感想だけ書けばよいようにする */
+function BottleRecord({ bottle, count }: { bottle: Bottle; count: number }) {
+  const router = useRouter();
+  return (
+    <>
+      <section className="tips" style={{ margin: "16px 16px 0" }}>
+        <h2>家のお酒：{bottle.name}</h2>
+        <p className="term-desc" style={{ margin: 0 }}>
+          {count + 1}回目の記録です。開けてからの味の変化も残しておくと面白いです。
+        </p>
+      </section>
+      <RecordForm
+        prefill={{
+          name: bottle.name,
+          kind: bottle.kind,
+          style: bottle.style,
+          maker: bottle.maker,
+          origin: bottle.origin,
+          menuNote: bottle.note,
+          shop: "家",
+          bottleId: bottle.id,
+        }}
+        drinkFilled
+        onSaved={() => router.replace("/bottles")}
+      />
+    </>
+  );
+}
 
 function NewRecord() {
   // メニュー確認の画面で「＋ 記録に追加」を押すと ?drink=お酒の名前 で来る
@@ -16,6 +45,10 @@ function NewRecord() {
   const drinkParam = params.get("drink");
   // 気になるお酒の一覧から「＋ 記録に追加」で来たときは ?wish=id
   const wishParam = params.get("wish");
+  // 家のお酒から「飲んだので記録する」で来たときは ?bottle=id
+  const bottleParam = params.get("bottle");
+  const [bottle, setBottle] = useState<{ bottle: Bottle; count: number } | null>(null);
+  const [openBottles, setOpenBottles] = useState(0);
   const [wishId, setWishId] = useState<string | null>(null);
   const [drinks, setDrinks] = useState<ScannedDrink[]>([]);
   const [picked, setPicked] = useState<ScannedDrink | null>(null);
@@ -51,7 +84,29 @@ function NewRecord() {
     });
   }, [wishParam]);
 
+  useEffect(() => {
+    listBottles().then((bs) => setOpenBottles(bs.filter((b) => !b.finished).length));
+    if (!bottleParam) return;
+    Promise.all([getBottle(bottleParam), listRecords()]).then(([b, rs]) => {
+      if (b) setBottle({ bottle: b, count: rs.filter((r) => r.bottleId === b.id).length });
+    });
+  }, [bottleParam]);
+
   const remaining = drinks.filter((d) => !savedNames.includes(d.name));
+
+  if (bottleParam) {
+    return (
+      <>
+        <header className="sub-header">
+          <Link href="/bottles" className="back">
+            ‹ 戻る
+          </Link>
+          <h1>家のお酒を記録</h1>
+        </header>
+        {bottle && <BottleRecord bottle={bottle.bottle} count={bottle.count} />}
+      </>
+    );
+  }
 
   return (
     <>
@@ -82,6 +137,12 @@ function NewRecord() {
             記録の一覧へ
           </Link>
         </section>
+      )}
+
+      {!picked && saveCount === 0 && openBottles > 0 && (
+        <Link href="/bottles" className="btn-secondary" style={{ margin: "16px 16px 0" }}>
+          家のお酒から記録する（{openBottles}本）
+        </Link>
       )}
 
       {picked ? (

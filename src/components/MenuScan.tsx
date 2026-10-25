@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { type MenuScanResult, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
+import { drinkToDraft, type MenuScanResult, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
 import { placeOf } from "@/lib/origins";
 import {
   deleteWish,
   listRecords,
   listWishes,
+  putBottle,
   putWish,
   type WishDrink,
 } from "@/lib/db";
-import { loadLastScan, saveLastScan } from "@/lib/lastScan";
+import { loadLastScan, saveLastScan, today } from "@/lib/lastScan";
+import { loadPasscode, PASSCODE_KEY } from "@/lib/passcode";
 import { shrinkPhoto } from "@/lib/photo";
 import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
 import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
@@ -18,7 +20,6 @@ import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
 import TasteBars, { level } from "./TasteBars";
 
-const PASSCODE_KEY = "sake-memo:passcode";
 
 /** 今日の気分。押すと、味の予想からその気分に合う順に並べ替える */
 const MOODS: { label: string; score: (d: ScannedDrink) => number }[] = [
@@ -40,14 +41,6 @@ const MOODS: { label: string; score: (d: ScannedDrink) => number }[] = [
     score: ({ taste: t }) => level(t.body) - 0.2 * level(t.acidity),
   },
 ];
-
-function loadPasscode() {
-  try {
-    return localStorage.getItem(PASSCODE_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -142,6 +135,26 @@ export default function MenuScan({
   }, []);
 
   const wishOf = (b: ScannedDrink) => wishes.find((w) => w.name === b.name);
+
+  // ラベルを撮った瓶を、家で何回かに分けて飲むお酒として登録する
+  const [bottled, setBottled] = useState<string[]>([]);
+  async function addBottle(b: ScannedDrink) {
+    const d = drinkToDraft(b);
+    await putBottle({
+      id: crypto.randomUUID(),
+      name: d.name,
+      kind: d.kind,
+      style: d.style,
+      maker: d.maker,
+      origin: d.origin,
+      note: b.explanation,
+      price: null,
+      boughtAt: today(),
+      finished: false,
+      createdAt: Date.now(),
+    });
+    setBottled((ns) => [...ns, b.name]);
+  }
 
   // 今日は飲まないけど次に試したいお酒に印を付ける（もう一度押すと外す）
   async function toggleWish(b: ScannedDrink) {
@@ -595,6 +608,16 @@ export default function MenuScan({
               {wishOf(b)
                 ? "★ 気になるお酒に入れました"
                 : "☆ 気になる（次に試す）"}
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              disabled={bottled.includes(b.name)}
+              onClick={() => addBottle(b)}
+            >
+              {bottled.includes(b.name)
+                ? "家のお酒に登録しました"
+                : "＋ 家のお酒に登録（買った瓶）"}
             </button>
           </article>
         );

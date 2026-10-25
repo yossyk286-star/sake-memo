@@ -6,7 +6,7 @@ import { drinkTitle, stars, yen } from "@/components/RecordCard";
 import TasteMap from "@/components/TasteMap";
 import { summarize, type GroupAverage } from "@/lib/analysis";
 import { collectStamps } from "@/lib/origins";
-import { listRecords, listWishes } from "@/lib/db";
+import { listBottles, listRecords, listWishes } from "@/lib/db";
 import { nextIdeas } from "@/lib/nextDrink";
 import { loadPrefs } from "@/lib/prefs";
 import { groupByShop } from "@/lib/shops";
@@ -43,7 +43,7 @@ function average(xs: number[]) {
 }
 
 /** 値段を入れた記録の平均と、安くて評価の高かったお酒 */
-function PriceCard({ records }: { records: TastingRecord[] }) {
+function PriceCard({ records, budget }: { records: TastingRecord[]; budget: number | null }) {
   const priced = records.filter((r) => r.price);
   if (priced.length === 0) return null;
   const liked = priced.filter((r) => r.overall >= 4);
@@ -61,6 +61,11 @@ function PriceCard({ records }: { records: TastingRecord[] }) {
           ★4以上だったお酒の平均 <strong>{yen(average(liked.map((r) => r.price!)))}</strong>
         </p>
       )}
+      {budget && (
+        <p style={{ margin: 0, fontSize: 14 }}>
+          予算 {yen(budget)} 以内：{priced.filter((r) => r.price! <= budget).length} / {priced.length}杯
+        </p>
+      )}
       {bargain && (
         <p style={{ margin: 0, fontSize: 14 }}>
           お値打ちだったお酒：
@@ -76,10 +81,12 @@ function PriceCard({ records }: { records: TastingRecord[] }) {
 export default function TastePage() {
   const [records, setRecords] = useState<TastingRecord[] | null>(null);
   const [wishCount, setWishCount] = useState(0);
+  const [bottleCount, setBottleCount] = useState(0);
 
   useEffect(() => {
     listRecords().then(setRecords);
     listWishes().then((ws) => setWishCount(ws.length));
+    listBottles().then((bs) => setBottleCount(bs.filter((b) => !b.finished).length));
   }, []);
 
   const stampInfo = useMemo(() => collectStamps(records ?? []), [records]);
@@ -112,6 +119,10 @@ export default function TastePage() {
             <strong>気になるお酒</strong>
             <span className="muted">{wishCount}件</span>
           </Link>
+          <Link href="/bottles" className="hub-item">
+            <strong>家のお酒</strong>
+            <span className="muted">{bottleCount}本</span>
+          </Link>
           <Link href="/prefs" className="hub-item">
             <strong>わたしの好み</strong>
             <span className="muted">自分で登録</span>
@@ -132,7 +143,7 @@ export default function TastePage() {
           </section>
         )}
         {records && records.length > 0 && <TasteMap records={records} />}
-        {records && <PriceCard records={records} />}
+        {records && <PriceCard records={records} budget={loadPrefs().budget} />}
         {records && !summary && (
           <p className="empty">
             記録が{MIN_RECORDS}件たまると、あなたの好みの傾向を表示します。

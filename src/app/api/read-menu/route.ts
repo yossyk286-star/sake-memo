@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { timingSafeEqual } from "node:crypto";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
-import { MenuScanResultSchema, PairingResultSchema } from "@/lib/menuScan";
+import { MenuScanResultSchema, PairingResultSchema, TermLookupSchema } from "@/lib/menuScan";
 
 // 名前で調べてネット検索までしたときは時間がかかるので、待ち時間の上限を長めにする
 export const maxDuration = 60;
@@ -97,6 +97,28 @@ export async function POST(req: Request) {
   if (!passcodeOK(body?.passcode)) return error(401, "合言葉が違います");
 
   const client = new Anthropic();
+
+  // 辞典に足したい言葉を調べる（文字だけなので安い）
+  if (typeof body?.term === "string") {
+    const term = body.term.trim();
+    if (!term || term.length > MAX_QUERY) return error(400, "調べたい言葉を入れてください");
+    try {
+      const response = await client.messages.parse({
+        model: MODEL,
+        max_tokens: 2000,
+        system: `あなたはお酒の初心者向け辞典の編集者です。次の用語集と同じ書き方で、やさしい日本語で説明してください。\n\n${TERMS.slice(0, 12)
+          .map((t) => `- ${t.term}（${t.category}）: ${t.description}`)
+          .join("\n")}`,
+        output_config: { effort: "low", format: zodOutputFormat(TermLookupSchema) },
+        messages: [{ role: "user", content: `「${term}」という言葉を辞典に足したいです。説明してください。` }],
+      });
+      const out = response.parsed_output;
+      if (!out?.found) return error(404, "お酒の言葉として見つかりませんでした。書き方を変えて試してみてください");
+      return Response.json(out);
+    } catch (e) {
+      return apiError(e);
+    }
+  }
 
   // 食べている料理と、読み取り済みのお酒の相性（文字だけなので安い）
   if (typeof body?.dish === "string") {

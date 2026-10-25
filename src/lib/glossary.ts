@@ -1,6 +1,7 @@
 import type { Kind } from "./types";
 
-export type GlossaryCategory = "日本酒" | "ワイン" | "ビール" | "ウイスキー" | "焼酎" | "その他" | "飲み方" | "味の表現";
+export const CATEGORIES = ["日本酒", "ワイン", "ビール", "ウイスキー", "焼酎", "その他", "飲み方", "味の表現"] as const;
+export type GlossaryCategory = (typeof CATEGORIES)[number];
 
 export interface Term {
   category: GlossaryCategory;

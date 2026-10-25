@@ -47,7 +47,7 @@ const TABS = [
 const HIDDEN_ON = ["/new", "/edit"];
 
 // 好みのタブから開くまとめの画面
-const TASTE_PAGES = ["/taste", "/stamps", "/shops", "/shop", "/prefs"];
+const TASTE_PAGES = ["/taste", "/stamps", "/shops", "/shop", "/prefs", "/bottles"];
 
 export default function TabBar() {
   const pathname = usePathname();
