@@ -1,0 +1,164 @@
+.box {
+  margin: 16px 16px 0;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--accent-dark);
+}
+
+.shoot {
+  cursor: pointer;
+  gap: 8px;
+}
+
+.shoot[aria-disabled="true"] {
+  opacity: 0.6;
+}
+
+.drink {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drink h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.best {
+  outline: 2px solid var(--accent);
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: -2px 0 2px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--accent-dark);
+}
+
+.pick strong {
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.pick strong::before {
+  content: "★ ";
+}
+
+.taste {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+
+.tasteRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.dots {
+  display: flex;
+  gap: 3px;
+}
+
+.dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  opacity: 0.35;
+}
+
+.dots i.on {
+  background: var(--accent);
+  opacity: 1;
+}
+
+.tasteNote {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.moods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.moods span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+}
+
+.methods {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.methods summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.methods dl {
+  margin: 6px 0 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+}
+
+.methods dt {
+  font-weight: 700;
+}
+
+.methods dd {
+  margin: 0;
+}

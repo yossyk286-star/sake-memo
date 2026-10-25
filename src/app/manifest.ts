@@ -1,0 +1,19 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "さけメモ",
+    short_name: "さけメモ",
+    description: "飲んだお酒を記録して、だんだん詳しくなるアプリ",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#f4f4f7",
+    theme_color: "#f4f4f7",
+    lang: "ja",
+    icons: [
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+    ],
+  };
+}
