@@ -19,6 +19,33 @@ import type { Kind, RecordDraft, Score, TastingRecord } from "@/lib/types";
 
 const SCORES: Score[] = [1, 2, 3, 4, 5];
 
+/** 味の評価の項目と、1・5 がそれぞれどちら寄りか */
+const RATINGS: [
+  "sweetness" | "acidity" | "body" | "aroma" | "finish",
+  string,
+  string,
+  string,
+][] = [
+  ["sweetness", "甘さ", "辛口", "甘口"],
+  ["acidity", "酸味", "穏やか", "強い"],
+  ["body", "コク", "軽い", "濃い"],
+  ["aroma", "香り", "控えめ", "華やか"],
+  ["finish", "キレ", "まろやか", "すっと切れる"],
+];
+
+/** 入力の量。かんたん＝名前と★だけ、くわしく＝全部 */
+type FormMode = "かんたん" | "くわしく";
+const MODE_KEY = "sake-memo:form-mode";
+
+function loadMode(): FormMode | null {
+  try {
+    const m = localStorage.getItem(MODE_KEY);
+    return m === "かんたん" || m === "くわしく" ? m : null;
+  } catch {
+    return null;
+  }
+}
+
 function emptyDraft(): RecordDraft {
   return {
     date: today(),
@@ -34,6 +61,8 @@ function emptyDraft(): RecordDraft {
     sweetness: null,
     acidity: null,
     body: null,
+    aroma: null,
+    finish: null,
     overall: null,
     pairing: "",
     price: null,
@@ -61,34 +90,72 @@ function HelpButton({
   );
 }
 
+/** 1〜5 のボタン。下に「1 がどういう意味か・5 がどういう意味か」を出す */
 function RatingRow({
   label,
+  low,
+  high,
   value,
   onChange,
-  required,
 }: {
   label: string;
-  value: Score | null;
+  low: string;
+  high: string;
+  value: Score | null | undefined;
   onChange: (v: Score | null) => void;
-  required?: boolean;
 }) {
   return (
-    <div className="rating-row" role="group" aria-label={label}>
-      <span className="label">
-        {label}
-        {required && <span className="req">必須</span>}
+    <div className="rating-row" role="group" aria-label={`${label}（1=${low}、5=${high}）`}>
+      <span className="label">{label}</span>
+      <div className="rating-scale">
+        <div className="rating-btns">
+          {SCORES.map((n) => (
+            <button
+              type="button"
+              key={n}
+              className="chip"
+              aria-pressed={value === n}
+              aria-label={`${label} ${n}`}
+              onClick={() => onChange(value === n ? null : n)}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+        <div className="rating-ends" aria-hidden="true">
+          <span>{low}</span>
+          <span>{high}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** 総合の評価。★をタップして選ぶ */
+function StarRating({
+  value,
+  onChange,
+}: {
+  value: Score | null;
+  onChange: (v: Score) => void;
+}) {
+  return (
+    <div className="field">
+      <span className="label" id="f-overall">
+        総合 <span className="req">必須</span>
       </span>
-      <div className="rating-btns">
+      <div className="star-rating" role="radiogroup" aria-labelledby="f-overall">
         {SCORES.map((n) => (
           <button
             type="button"
             key={n}
-            className="chip"
-            aria-pressed={value === n}
-            aria-label={`${label} ${n}`}
-            onClick={() => onChange(value === n && !required ? null : n)}
+            role="radio"
+            aria-checked={value === n}
+            aria-label={`★${n}`}
+            className={value && n <= value ? "on" : ""}
+            onClick={() => onChange(n)}
           >
-            {n}
+            ★
           </button>
         ))}
       </div>
@@ -119,6 +186,17 @@ export default function RecordForm({
   const [shopNames, setShopNames] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  // 編集はふだん全部の項目を見たいので「くわしく」から。新規は前に選んだほう
+  const [mode, setModeState] = useState<FormMode>("くわしく");
+  useEffect(() => {
+    if (!initial) setModeState(loadMode() ?? "くわしく");
+  }, [initial]);
+  function setMode(m: FormMode) {
+    setModeState(m);
+    try {
+      localStorage.setItem(MODE_KEY, m);
+    } catch {}
+  }
 
   const set = <K extends keyof RecordDraft>(key: K, value: RecordDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -202,6 +280,25 @@ export default function RecordForm({
     router.replace(initial ? `/record?id=${record.id}` : "/");
   }
 
+  const overallField = (
+    <StarRating value={draft.overall} onChange={(v) => set("overall", v)} />
+  );
+
+  const nameField = (
+    <div className="field">
+      <label className="label" htmlFor="f-name">
+        銘柄・名前
+      </label>
+      <input
+        id="f-name"
+        className="input"
+        placeholder="例：獺祭 純米大吟醸45"
+        value={draft.name}
+        onChange={(e) => set("name", e.target.value)}
+      />
+    </div>
+  );
+
   const drinkFields = (
     <>
       <fieldset className="field">
@@ -224,18 +321,7 @@ export default function RecordForm({
           />
         </fieldset>
       )}
-      <div className="field">
-        <label className="label" htmlFor="f-name">
-          銘柄・名前
-        </label>
-        <input
-          id="f-name"
-          className="input"
-          placeholder="例：獺祭 純米大吟醸45"
-          value={draft.name}
-          onChange={(e) => set("name", e.target.value)}
-        />
-      </div>
+      {nameField}
       <div className="field">
         <label className="label" htmlFor="f-maker">
           蔵元・醸造所
@@ -277,6 +363,7 @@ export default function RecordForm({
 
   const tasteFields = (
     <>
+      {overallField}
       <fieldset className="field">
         <legend className="label">
           飲み方{" "}
@@ -326,27 +413,16 @@ export default function RecordForm({
       </fieldset>
 
       <div className="ratings">
-        <RatingRow
-          label="甘さ"
-          value={draft.sweetness}
-          onChange={(v) => set("sweetness", v)}
-        />
-        <RatingRow
-          label="酸味"
-          value={draft.acidity}
-          onChange={(v) => set("acidity", v)}
-        />
-        <RatingRow
-          label="コク"
-          value={draft.body}
-          onChange={(v) => set("body", v)}
-        />
-        <RatingRow
-          label="総合"
-          value={draft.overall}
-          onChange={(v) => set("overall", v)}
-          required
-        />
+        {RATINGS.map(([key, label, low, high]) => (
+          <RatingRow
+            key={key}
+            label={label}
+            low={low}
+            high={high}
+            value={draft[key]}
+            onChange={(v) => set(key, v)}
+          />
+        ))}
       </div>
       <div className="field">
         <label className="label" htmlFor="f-pairing">
@@ -420,7 +496,33 @@ export default function RecordForm({
             ))}
           </datalist>
         </div>
-        {drinkFilled ? (
+        <div className="mode-switch" role="group" aria-label="入力の量">
+          {(["かんたん", "くわしく"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={mode === m}
+              onClick={() => setMode(m)}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        {mode === "かんたん" ? (
+          <>
+            <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+              名前と★だけで保存できます。味や飲み方はあとから編集で足せます。
+            </p>
+            {!drinkFilled && nameField}
+            {!drinkFilled && (
+              <fieldset className="field">
+                <legend className="label">種類</legend>
+                <SingleChips options={KINDS} value={draft.kind} onChange={setKind} />
+              </fieldset>
+            )}
+            {overallField}
+          </>
+        ) : drinkFilled ? (
           <>
             {tasteFields}
             {/* 読み取り済みのお酒の情報は、直したいときだけ開く */}

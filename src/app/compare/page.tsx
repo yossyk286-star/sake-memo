@@ -1,0 +1,172 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import RadarChart, { SERIES_COLORS } from "@/components/RadarChart";
+import { drinkTitle, stars, yen } from "@/components/RecordCard";
+import { listRecords } from "@/lib/db";
+import type { TastingRecord } from "@/lib/types";
+
+/** グラフの軸。古い記録には香り・キレがないので未入力として扱う */
+const AXES: [string, (r: TastingRecord) => number | null | undefined][] = [
+  ["甘さ", (r) => r.sweetness],
+  ["酸味", (r) => r.acidity],
+  ["コク", (r) => r.body],
+  ["香り", (r) => r.aroma],
+  ["キレ", (r) => r.finish],
+  ["総合", (r) => r.overall],
+];
+
+/** 表で並べる項目 */
+const ROWS: [string, (r: TastingRecord) => string][] = [
+  ["種類", (r) => [r.kind, r.style].filter(Boolean).join("・")],
+  ["飲み方", (r) => r.serve ?? ""],
+  ["産地", (r) => r.origin],
+  ["蔵元", (r) => r.maker],
+  ["店・日付", (r) => `${r.shop} ${r.date.slice(5).replace("-", "/")}`],
+  ["感じた味", (r) => r.flavors.join("・")],
+  ["値段", (r) => (r.price ? yen(r.price) : "")],
+  ["合わせた料理", (r) => r.pairing],
+];
+
+function Picker({
+  records,
+  exclude,
+  onPick,
+}: {
+  records: TastingRecord[];
+  exclude: string;
+  onPick: (id: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const list = records.filter(
+    (r) =>
+      r.id !== exclude &&
+      (!q || [r.name, r.maker, r.shop, r.kind ?? "", r.style ?? ""].some((s) => s.toLowerCase().includes(q))),
+  );
+  return (
+    <>
+      <label htmlFor="cmp-search" className="visually-hidden">
+        記録を検索
+      </label>
+      <input
+        id="cmp-search"
+        type="search"
+        className="input"
+        placeholder="名前・店・種類で探す"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      {list.map((r) => (
+        <button key={r.id} type="button" className="card pick-row" onClick={() => onPick(r.id)}>
+          <div className="card-top">
+            <strong>{drinkTitle(r)}</strong>
+            <span className="stars" style={{ fontSize: 12 }}>
+              {stars(r.overall)}
+            </span>
+          </div>
+          <span className="muted" style={{ fontSize: 12 }}>
+            {[r.kind, r.style, r.shop, r.date].filter(Boolean).join("・")}
+          </span>
+        </button>
+      ))}
+      {list.length === 0 && <p className="empty">比べられる記録がありません。</p>}
+    </>
+  );
+}
+
+function CompareBody() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const aId = params.get("a") ?? "";
+  const bId = params.get("b") ?? "";
+  const [records, setRecords] = useState<TastingRecord[] | null>(null);
+
+  useEffect(() => {
+    listRecords().then(setRecords);
+  }, []);
+
+  const a = useMemo(() => records?.find((r) => r.id === aId), [records, aId]);
+  const b = useMemo(() => records?.find((r) => r.id === bId), [records, bId]);
+  const pair = a && b ? [a, b] : null;
+
+  return (
+    <>
+      <header className="sub-header">
+        <Link href={aId ? `/record?id=${aId}` : "/"} className="back">
+          ‹ 戻る
+        </Link>
+        <h1>くらべる</h1>
+      </header>
+      <main className="content" style={{ paddingTop: 16 }}>
+        {records && !a && <p className="empty">記録が見つかりませんでした。</p>}
+        {a && !b && (
+          <>
+            <p style={{ margin: 0, fontSize: 14 }}>「{drinkTitle(a)}」と比べる記録を選んでください。</p>
+            <Picker
+              records={records ?? []}
+              exclude={a.id}
+              onPick={(id) => router.replace(`/compare?a=${a.id}&b=${id}`)}
+            />
+          </>
+        )}
+        {pair && (
+          <>
+            <div className="compare-legend">
+              {pair.map((r, i) => (
+                <Link key={r.id} href={`/record?id=${r.id}`} className="compare-name">
+                  <i style={{ background: SERIES_COLORS[i] }} aria-hidden="true" />
+                  <span>
+                    <strong>{drinkTitle(r)}</strong>
+                    <span className="stars">{stars(r.overall)}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+            <section className="card">
+              <RadarChart
+                axes={AXES.map(([label]) => label)}
+                series={pair.map((r) => ({ label: drinkTitle(r), values: AXES.map(([, get]) => get(r) ?? null) }))}
+              />
+              {pair.some((r) => AXES.some(([, get]) => !get(r))) && (
+                <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+                  入れていない項目は中心にしています。記録を編集すると足せます。
+                </p>
+              )}
+            </section>
+            <section className="card">
+              <table className="compare-table">
+                <tbody>
+                  {ROWS.map(([label, get]) => {
+                    const [x, y] = pair.map(get);
+                    if (!x && !y) return null;
+                    return (
+                      <tr key={label}>
+                        <th>{label}</th>
+                        <td>{x || "—"}</td>
+                        <td>{y || "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </section>
+            <button type="button" className="btn-secondary" onClick={() => router.replace(`/compare?a=${aId}`)}>
+              比べる相手を変える
+            </button>
+          </>
+        )}
+      </main>
+    </>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense>
+      <CompareBody />
+    </Suspense>
+  );
+}

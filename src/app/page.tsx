@@ -1,20 +1,56 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { kindColor } from "@/components/RecordCard";
 import SwipeRecord from "@/components/SwipeRecord";
 import { listRecords } from "@/lib/db";
-import { loadLastScan } from "@/lib/lastScan";
-import type { TastingRecord } from "@/lib/types";
+import { KINDS } from "@/lib/glossary";
+import type { Kind, TastingRecord } from "@/lib/types";
+
+const WEEKDAYS = "日月火水木金土";
+
+/** 「2026-10-25」→「10月25日（日）」。今年以外は年も出す */
+function dateHead(date: string) {
+  const [y, m, d] = date.split("-").map(Number);
+  const w = WEEKDAYS[new Date(y, m - 1, d).getDay()];
+  const md = `${m}月${d}日（${w}）`;
+  return y === new Date().getFullYear() ? md : `${y}年${md}`;
+}
 
 export default function RecordsPage() {
   const [records, setRecords] = useState<TastingRecord[] | null>(null);
-  const [todayDrinks, setTodayDrinks] = useState(0);
+  const [query, setQuery] = useState("");
+  const [kind, setKind] = useState<Kind | null>(null);
+  const [goodOnly, setGoodOnly] = useState(false);
 
   useEffect(() => {
-    setTodayDrinks(loadLastScan()?.drinks.length ?? 0);
     listRecords().then(setRecords);
   }, []);
+
+  // 種類・★4以上・名前などで絞り込み、日付ごとにまとめる（記録は新しい順に並んでいる）
+  const days = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const hit = (records ?? []).filter(
+      (r) =>
+        (!kind || r.kind === kind) &&
+        (!goodOnly || r.overall >= 4) &&
+        (!q ||
+          [r.name, r.maker, r.shop, r.origin, r.style ?? "", r.memo, ...r.flavors].some((s) =>
+            s.toLowerCase().includes(q),
+          )),
+    );
+    const out: { date: string; records: TastingRecord[] }[] = [];
+    for (const r of hit) {
+      const last = out[out.length - 1];
+      if (last?.date === r.date) last.records.push(r);
+      else out.push({ date: r.date, records: [r] });
+    }
+    return out;
+  }, [records, query, kind, goodOnly]);
+
+  const filtering = !!query.trim() || !!kind || goodOnly;
+  const kindsUsed = KINDS.filter((k) => records?.some((r) => r.kind === k));
 
   return (
     <>
@@ -33,27 +69,60 @@ export default function RecordsPage() {
       )}
 
       <main className="content" style={{ paddingBottom: 96 }}>
-        {/* お店でメニューを見たらすぐ撮って確認できるように、一覧のいちばん上に置く */}
-        <Link href="/scan" className="btn-primary scan-link">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
-            <circle cx="12" cy="13" r="3.5" />
-          </svg>
-          {todayDrinks > 0 ? `今日調べたお酒を見る（${todayDrinks}種類）` : "メニュー・ラベルを撮る／名前で調べる"}
-        </Link>
+        {records && records.length > 0 && (
+          <div className="filter-bar">
+            <label htmlFor="r-search" className="visually-hidden">
+              記録を検索
+            </label>
+            <input
+              id="r-search"
+              type="search"
+              className="input"
+              placeholder="名前・店・味で探す"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <div className="scroll-row" role="group" aria-label="絞り込み">
+              <button type="button" className="chip" aria-pressed={goodOnly} onClick={() => setGoodOnly(!goodOnly)}>
+                ★4以上
+              </button>
+              {kindsUsed.map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  className="chip kind-chip"
+                  style={{ "--kc": kindColor(k) } as React.CSSProperties}
+                  aria-pressed={kind === k}
+                  onClick={() => setKind(kind === k ? null : k)}
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {records?.length === 0 && (
           <p className="empty">
             まだ記録がありません。
             <br />
-            お店で飲んだら「記録する」から残してみましょう。
+            下の「調べる」でお酒を調べるか、「記録する」から残してみましょう。
           </p>
         )}
-        {records?.map((r) => (
-          <SwipeRecord
-            key={r.id}
-            record={r}
-            onDeleted={(id) => setRecords((rs) => rs?.filter((x) => x.id !== id) ?? null)}
-          />
+        {records && records.length > 0 && filtering && days.length === 0 && (
+          <p className="empty">当てはまる記録がありません。</p>
+        )}
+        {days.map((day) => (
+          <section key={day.date} className="content" style={{ padding: 0, gap: 8 }}>
+            <h2 className="date-head">{dateHead(day.date)}</h2>
+            {day.records.map((r) => (
+              <SwipeRecord
+                key={r.id}
+                record={r}
+                showDate={false}
+                onDeleted={(id) => setRecords((rs) => rs?.filter((x) => x.id !== id) ?? null)}
+              />
+            ))}
+          </section>
         ))}
       </main>
 

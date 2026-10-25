@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { loadLastScan } from "@/lib/lastScan";
 
 const TABS = [
   {
@@ -20,6 +22,21 @@ const TABS = [
     ),
   },
   {
+    href: "/scan",
+    label: "調べる",
+    icon: (
+      <>
+        <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+        <circle cx="12" cy="13" r="3.5" />
+      </>
+    ),
+  },
+  {
+    href: "/wishlist",
+    label: "気になる",
+    icon: <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />,
+  },
+  {
     href: "/taste",
     label: "好み",
     icon: <path d="M5 20v-7M12 20V5M19 20v-10M3 20h18" />,
@@ -30,10 +47,13 @@ const TABS = [
 const HIDDEN_ON = ["/new", "/edit"];
 
 // 好みのタブから開くまとめの画面
-const TASTE_PAGES = ["/taste", "/stamps", "/shops", "/shop", "/wishlist", "/prefs"];
+const TASTE_PAGES = ["/taste", "/stamps", "/shops", "/shop", "/prefs"];
 
 export default function TabBar() {
   const pathname = usePathname();
+  // 今日調べたお酒の数。画面を移るたびに読み直す
+  const [scanned, setScanned] = useState(0);
+  useEffect(() => setScanned(loadLastScan()?.drinks.length ?? 0), [pathname]);
   if (HIDDEN_ON.includes(pathname)) return null;
 
   return (
@@ -42,10 +62,28 @@ export default function TabBar() {
         {TABS.map((t) => {
           const active =
             t.href === "/"
-              ? pathname === "/" || pathname === "/record"
+              ? pathname === "/" || pathname === "/record" || pathname === "/compare"
               : t.href === "/taste"
                 ? TASTE_PAGES.includes(pathname)
                 : pathname.startsWith(t.href);
+          // 真ん中の「調べる」はお店で片手で押しやすいよう大きな丸ボタンにする
+          if (t.href === "/scan") {
+            return (
+              <Link key={t.href} href={t.href} className="tab tab-scan" aria-current={active ? "page" : undefined}>
+                <span className="tab-scan-btn">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    {t.icon}
+                  </svg>
+                  {scanned > 0 && (
+                    <span className="tab-badge" aria-label={`今日調べたお酒 ${scanned}種類`}>
+                      {scanned}
+                    </span>
+                  )}
+                </span>
+                {t.label}
+              </Link>
+            );
+          }
           return (
             <Link key={t.href} href={t.href} className="tab" aria-current={active ? "page" : undefined}>
               <svg
