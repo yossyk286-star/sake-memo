@@ -184,19 +184,32 @@ export default function MenuScan({
     if (file) await scan(file);
   }
 
+  // 写真の代わりに、お酒の名前やメニューの文面を入れて調べる
+  const [text, setText] = useState("");
+
   async function scan(photo: Blob) {
+    // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
+    await request(async () => ({
+      image: await blobToBase64(await shrinkPhoto(photo, 1000)),
+    }));
+  }
+
+  async function lookUp() {
+    if (!text.trim()) return setError("お酒の名前かメニューの文字を入れてください");
+    await request(async () => ({ text: text.trim() }));
+  }
+
+  async function request(input: () => Promise<{ image: string } | { text: string }>) {
     if (!passcode) return setError("先に合言葉を入れてください");
 
     setError("");
     setStatus("reading");
     try {
-      // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
-      const image = await blobToBase64(await shrinkPhoto(photo, 1000));
       const res = await fetch("/api/read-menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image,
+          ...(await input()),
           passcode: passcode.trim().normalize("NFKC"),
         }),
       });
@@ -225,7 +238,7 @@ export default function MenuScan({
       <p className={styles.lead}>
         {status === "done"
           ? "「＋ 記録に追加」を押すと、お酒の情報が入った状態で感想を書けます。"
-          : "お酒のメニューを撮ると、1つずつ解説とおすすめの飲み方を出して、記録の項目に入れます。"}
+          : "お酒のメニューを撮るか、名前やメニューの文字を入れると、1つずつ解説とおすすめの飲み方を出して、記録の項目に入れます。"}
       </p>
       {!savedPasscode && (
         <div className="field">
@@ -299,6 +312,26 @@ export default function MenuScan({
         >
           保存した写真から読み取る
         </button>
+      )}
+
+      {status !== "reading" && (
+        <div className={styles.textBox}>
+          <label className="label" htmlFor="scan-text">
+            または文字で調べる
+          </label>
+          <textarea
+            id="scan-text"
+            className="input"
+            rows={3}
+            placeholder="例：獺祭 純米大吟醸45（メニューの文字をそのまま貼ってもOK）"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            maxLength={2000}
+          />
+          <button type="button" className="btn-secondary" onClick={lookUp}>
+            この文字で調べる
+          </button>
+        </div>
       )}
 
       {error && (

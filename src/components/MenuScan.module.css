@@ -162,3 +162,14 @@
 .methods dd {
   margin: 0;
 }
+
+.textBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.textBox textarea {
+  resize: vertical;
+  font: inherit;
+}
