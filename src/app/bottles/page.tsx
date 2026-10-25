@@ -7,6 +7,7 @@ import { kindColor, stars, yen } from "@/components/RecordCard";
 import { deleteBottle, listBottles, listRecords, putBottle } from "@/lib/db";
 import { KINDS, STYLES_BY_KIND } from "@/lib/glossary";
 import { today } from "@/lib/lastScan";
+import { bestServeNote, serveNoteText } from "@/lib/serveNote";
 import type { Bottle, Kind, TastingRecord } from "@/lib/types";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
@@ -122,6 +123,7 @@ function BottleCard({
 }) {
   const mine = records.filter((r) => r.bottleId === b.id);
   const avg = mine.length ? mine.reduce((a, r) => a + r.overall, 0) / mine.length : 0;
+  const best = bestServeNote(mine);
   return (
     <article className="card" style={{ gap: 6, opacity: b.finished ? 0.7 : 1 }}>
       <div className="card-top">
@@ -145,12 +147,19 @@ function BottleCard({
           <span className="muted">まだ記録していません</span>
         )}
       </p>
+      {best?.serveNote && (
+        <p className="best-recipe">
+          <strong>いちばん良かった飲み方</strong>（{stars(best.overall)}・{best.serve ?? "飲み方未入力"}）
+          <br />
+          {serveNoteText(best.serveNote)}
+        </p>
+      )}
       {mine.length > 0 && (
         <details className="bottle-history">
           <summary>記録を見る</summary>
           {mine.map((r) => (
             <Link key={r.id} href={`/record?id=${r.id}`}>
-              {r.date.slice(5).replace("-", "/")} {stars(r.overall)} {r.serve ?? ""} {r.memo.slice(0, 20)}
+              {r.date.slice(5).replace("-", "/")} {stars(r.overall)} {r.serve ?? ""} {r.serveNote ? serveNoteText(r.serveNote) : r.memo.slice(0, 20)}
             </Link>
           ))}
         </details>

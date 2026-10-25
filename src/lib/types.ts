@@ -1,5 +1,24 @@
 export type Kind = "日本酒" | "ワイン" | "ビール" | "ウイスキー" | "焼酎" | "その他";
 
+/** 家で飲んだときの飲み方メモ。どれも入れなくてよい */
+export interface ServeNote {
+  /** 割り方（例：ソーダ 1:3） */
+  ratio: string;
+  /** 温度（例：45℃（上燗）） */
+  temp: string;
+  /** 酒器・グラス */
+  glass: string | null;
+  /** うまくいったコツ */
+  tip: string;
+}
+
+/** 記録の画面で AI に聞いたことと答え */
+export interface QA {
+  q: string;
+  a: string;
+  at: number;
+}
+
 /** 1〜5 の評価。未入力は null */
 export type Score = 1 | 2 | 3 | 4 | 5;
 
@@ -29,6 +48,10 @@ export interface TastingRecord {
   price?: number | null;
   /** 家のお酒（買った瓶）から記録したときの、その瓶の id */
   bottleId?: string;
+  /** 家で飲んだときの飲み方メモ。後から増やした項目なので古い記録にはない */
+  serveNote?: ServeNote;
+  /** この記録について AI に聞いたこと */
+  qa?: QA[];
   memo: string;
   photo: Blob | null;
   createdAt: number;

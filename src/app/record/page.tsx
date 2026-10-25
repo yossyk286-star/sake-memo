@@ -2,13 +2,18 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Suspense, useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import AskAI from "@/components/AskAI";
 import { drinkTitle, stars, yen } from "@/components/RecordCard";
 import { TASTE_AXES } from "@/lib/axes";
-import { deleteRecord } from "@/lib/db";
+import { deleteRecord, putRecord } from "@/lib/db";
+import { hasServeNote, serveNoteText } from "@/lib/serveNote";
 import { recordImage, shareImage } from "@/lib/shareImage";
 import { useRecordFromQuery } from "@/lib/useRecord";
-import type { Score } from "@/lib/types";
+import type { QA, Score } from "@/lib/types";
+
+/** AI に聞くときにタップで入る質問 */
+const SUGGESTIONS = ["おいしい飲み方は？", "合う料理は？", "似た味のお酒は？", "どんな造りのお酒？"];
 
 function scoreText(s: Score | null) {
   return s ? `${s} / 5` : "—";
@@ -16,8 +21,12 @@ function scoreText(s: Score | null) {
 
 function DetailBody() {
   const router = useRouter();
-  const r = useRecordFromQuery();
-  const photoURL = useMemo(() => (r?.photo ? URL.createObjectURL(r.photo) : null), [r]);
+  const loaded = useRecordFromQuery();
+  // AI に聞いた答えを足したらその場で表示を変える
+  const [r, setR] = useState(loaded);
+  useEffect(() => setR(loaded), [loaded]);
+  const photo = r?.photo;
+  const photoURL = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo]);
   useEffect(() => () => void (photoURL && URL.revokeObjectURL(photoURL)), [photoURL]);
 
   async function remove() {
@@ -42,6 +51,13 @@ function DetailBody() {
     await shareImage(blob, drinkTitle(r)).catch(() => alert("共有できませんでした"));
   }
 
+  async function addQA(qa: QA) {
+    if (!r) return;
+    const next = { ...r, qa: [...(r.qa ?? []), qa] };
+    await putRecord(next);
+    setR(next);
+  }
+
   const rows: [string, string][] = r
     ? [
         ["日付", r.date],
@@ -51,6 +67,7 @@ function DetailBody() {
         ["蔵元・醸造所", r.maker || "—"],
         ["産地", r.origin || "—"],
         ["飲み方", r.serve ?? "—"],
+        ...(hasServeNote(r.serveNote) ? [["飲み方メモ", serveNoteText(r.serveNote)] as [string, string]] : []),
         ["お店の説明", r.menuNote || "—"],
         ["感じた味", r.flavors.join("・") || "—"],
         ["甘さ", scoreText(r.sweetness)],
@@ -94,6 +111,12 @@ function DetailBody() {
               ))}
             </dl>
           </div>
+          <AskAI
+            context={[`お酒：${drinkTitle(r)}`, `総合：${r.overall} / 5`, ...rows.filter(([, v]) => v !== "—").map(([k, v]) => `${k}：${v}`)].join("\n")}
+            suggestions={SUGGESTIONS}
+            history={r.qa ?? []}
+            onAnswered={addQA}
+          />
           <button type="button" className="btn-secondary" onClick={share}>
             画像にして送る
           </button>

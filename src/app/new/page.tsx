@@ -5,13 +5,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import MenuScan, { PickedDrink } from "@/components/MenuScan";
 import RecordForm from "@/components/RecordForm";
+import { stars } from "@/components/RecordCard";
 import { deleteWish, getBottle, getWish, listBottles, listRecords } from "@/lib/db";
 import { loadLastScan, markRecorded } from "@/lib/lastScan";
 import { drinkToDraft, type ScannedDrink } from "@/lib/menuScan";
-import type { Bottle, RecordDraft } from "@/lib/types";
+import { bestServeNote, serveNoteText } from "@/lib/serveNote";
+import type { Bottle, RecordDraft, TastingRecord } from "@/lib/types";
 
 /** 家のお酒から記録する画面。お酒の情報は登録したものを入れて、感想だけ書けばよいようにする */
-function BottleRecord({ bottle, count }: { bottle: Bottle; count: number }) {
+function BottleRecord({ bottle, count, best }: { bottle: Bottle; count: number; best?: TastingRecord }) {
   const router = useRouter();
   return (
     <>
@@ -20,6 +22,12 @@ function BottleRecord({ bottle, count }: { bottle: Bottle; count: number }) {
         <p className="term-desc" style={{ margin: 0 }}>
           {count + 1}回目の記録です。開けてからの味の変化も残しておくと面白いです。
         </p>
+        {best?.serveNote && (
+          <p className="term-desc" style={{ margin: 0 }}>
+            このお酒でいちばん良かった回（{stars(best.overall)}・{best.serve ?? "飲み方未入力"}）の飲み方を入れています：
+            {serveNoteText(best.serveNote)}
+          </p>
+        )}
       </section>
       <RecordForm
         prefill={{
@@ -31,6 +39,8 @@ function BottleRecord({ bottle, count }: { bottle: Bottle; count: number }) {
           menuNote: bottle.note,
           shop: "家",
           bottleId: bottle.id,
+          serve: best?.serve ?? null,
+          serveNote: best?.serveNote,
         }}
         drinkFilled
         onSaved={() => router.replace("/bottles")}
@@ -47,7 +57,7 @@ function NewRecord() {
   const wishParam = params.get("wish");
   // 家のお酒から「飲んだので記録する」で来たときは ?bottle=id
   const bottleParam = params.get("bottle");
-  const [bottle, setBottle] = useState<{ bottle: Bottle; count: number } | null>(null);
+  const [bottle, setBottle] = useState<{ bottle: Bottle; count: number; best?: TastingRecord } | null>(null);
   const [openBottles, setOpenBottles] = useState(0);
   const [wishId, setWishId] = useState<string | null>(null);
   const [drinks, setDrinks] = useState<ScannedDrink[]>([]);
@@ -88,7 +98,9 @@ function NewRecord() {
     listBottles().then((bs) => setOpenBottles(bs.filter((b) => !b.finished).length));
     if (!bottleParam) return;
     Promise.all([getBottle(bottleParam), listRecords()]).then(([b, rs]) => {
-      if (b) setBottle({ bottle: b, count: rs.filter((r) => r.bottleId === b.id).length });
+      if (!b) return;
+      const mine = rs.filter((r) => r.bottleId === b.id);
+      setBottle({ bottle: b, count: mine.length, best: bestServeNote(mine) });
     });
   }, [bottleParam]);
 
@@ -103,7 +115,7 @@ function NewRecord() {
           </Link>
           <h1>家のお酒を記録</h1>
         </header>
-        {bottle && <BottleRecord bottle={bottle.bottle} count={bottle.count} />}
+        {bottle && <BottleRecord bottle={bottle.bottle} count={bottle.count} best={bottle.best} />}
       </>
     );
   }
