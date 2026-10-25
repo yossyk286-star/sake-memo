@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo } from "react";
-import { drinkTitle, stars } from "@/components/RecordCard";
+import { drinkTitle, stars, yen } from "@/components/RecordCard";
 import { deleteRecord } from "@/lib/db";
 import { useRecordFromQuery } from "@/lib/useRecord";
 import type { Score } from "@/lib/types";
@@ -39,6 +39,7 @@ function DetailBody() {
         ["酸味", scoreText(r.acidity)],
         ["コク", scoreText(r.body)],
         ["合わせた料理", r.pairing || "—"],
+        ["値段", r.price ? yen(r.price) : "—"],
         ["メモ", r.memo || "—"],
       ]
     : [];

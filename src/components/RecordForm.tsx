@@ -36,6 +36,7 @@ function emptyDraft(): RecordDraft {
     body: null,
     overall: null,
     pairing: "",
+    price: null,
     memo: "",
     photo: null,
   };
@@ -357,6 +358,23 @@ export default function RecordForm({
           placeholder="例：お刺身、焼き鳥（塩）"
           value={draft.pairing}
           onChange={(e) => set("pairing", e.target.value)}
+        />
+      </div>
+      <div className="field">
+        <label className="label" htmlFor="f-price">
+          値段（1杯・円）
+        </label>
+        <input
+          id="f-price"
+          className="input"
+          inputMode="numeric"
+          placeholder="例：800"
+          value={draft.price ?? ""}
+          onChange={(e) => {
+            // 全角数字やカンマ入りでも数字だけ取り出す
+            const digits = e.target.value.normalize("NFKC").replace(/\D/g, "");
+            set("price", digits ? Number(digits) : null);
+          }}
         />
       </div>
     </>

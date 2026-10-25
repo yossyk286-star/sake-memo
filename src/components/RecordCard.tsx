@@ -10,6 +10,10 @@ export function drinkTitle(r: Pick<TastingRecord, "name" | "maker" | "kind" | "s
   return r.name || r.maker || [r.kind, r.style].filter(Boolean).join(" ") || "（名前なし）";
 }
 
+export function yen(n: number) {
+  return `${Math.round(n).toLocaleString("ja-JP")}円`;
+}
+
 /** 「2026-10-25」→「10/25」。今年以外は年も出す */
 function shortDate(date: string) {
   const [y, m, d] = date.split("-");
@@ -25,7 +29,7 @@ export default function RecordCard({ record: r }: { record: TastingRecord }) {
         <h2>{drinkTitle(r)}</h2>
         <span className="muted">{shortDate(r.date)}</span>
       </div>
-      <p className="muted">{[r.shop, r.name && r.maker].filter(Boolean).join("・")}</p>
+      <p className="muted">{[r.shop, r.name && r.maker, r.price && yen(r.price)].filter(Boolean).join("・")}</p>
       {tags.length > 0 && (
         <div className="tags">
           {tags.map((t) => (
