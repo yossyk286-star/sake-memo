@@ -5,18 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import RadarChart, { SERIES_COLORS } from "@/components/RadarChart";
 import { drinkTitle, stars, yen } from "@/components/RecordCard";
+import { TASTE_AXES } from "@/lib/axes";
 import { listRecords } from "@/lib/db";
+import { compareImage, shareImage } from "@/lib/shareImage";
 import type { TastingRecord } from "@/lib/types";
-
-/** グラフの軸。古い記録には香り・キレがないので未入力として扱う */
-const AXES: [string, (r: TastingRecord) => number | null | undefined][] = [
-  ["甘さ", (r) => r.sweetness],
-  ["酸味", (r) => r.acidity],
-  ["コク", (r) => r.body],
-  ["香り", (r) => r.aroma],
-  ["キレ", (r) => r.finish],
-  ["総合", (r) => r.overall],
-];
 
 /** 表で並べる項目 */
 const ROWS: [string, (r: TastingRecord) => string][] = [
@@ -127,10 +119,10 @@ function CompareBody() {
             </div>
             <section className="card">
               <RadarChart
-                axes={AXES.map(([label]) => label)}
-                series={pair.map((r) => ({ label: drinkTitle(r), values: AXES.map(([, get]) => get(r) ?? null) }))}
+                axes={TASTE_AXES.map(([label]) => label)}
+                series={pair.map((r) => ({ label: drinkTitle(r), values: TASTE_AXES.map(([, get]) => get(r) ?? null) }))}
               />
-              {pair.some((r) => AXES.some(([, get]) => !get(r))) && (
+              {pair.some((r) => TASTE_AXES.some(([, get]) => !get(r))) && (
                 <p className="muted" style={{ margin: 0, fontSize: 12 }}>
                   入れていない項目は中心にしています。記録を編集すると足せます。
                 </p>
@@ -153,6 +145,23 @@ function CompareBody() {
                 </tbody>
               </table>
             </section>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={async () => {
+                const blob = await compareImage(
+                  TASTE_AXES.map(([label]) => label),
+                  pair.map((r) => ({
+                    label: drinkTitle(r),
+                    sub: [r.kind, r.style, r.origin].filter(Boolean).join("・"),
+                    values: TASTE_AXES.map(([, get]) => get(r)),
+                  })),
+                );
+                await shareImage(blob, "くらべる").catch(() => alert("共有できませんでした"));
+              }}
+            >
+              画像にして送る
+            </button>
             <button type="button" className="btn-secondary" onClick={() => router.replace(`/compare?a=${aId}`)}>
               比べる相手を変える
             </button>

@@ -1,7 +1,8 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { ScannedDrink } from "./menuScan";
+import { loadMyTerms, saveMyTerms, type MyTerm } from "./myTerms";
 import { loadPrefs, savePrefs } from "./prefs";
-import type { TastingRecord } from "./types";
+import type { Bottle, TastingRecord } from "./types";
 
 /** メニューで見て「次に試したい」と印を付けたお酒 */
 export type WishDrink = ScannedDrink & { id: string; savedAt: number };
@@ -18,19 +19,24 @@ interface SakeDB extends DBSchema {
     key: string;
     value: WishDrink;
   };
+  bottles: {
+    key: string;
+    value: Bottle;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<SakeDB>> | null = null;
 
 function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB<SakeDB>("sake-memo", 1, {
+    dbPromise = openDB<SakeDB>("sake-memo", 2, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const store = db.createObjectStore("records", { keyPath: "id" });
           store.createIndex("byDate", "date");
           db.createObjectStore("wishes", { keyPath: "id" });
         }
+        if (oldVersion < 2) db.createObjectStore("bottles", { keyPath: "id" });
       },
     });
     // ブラウザに「消さないで」と依頼する（対応ブラウザのみ）
@@ -75,6 +81,24 @@ export async function deleteWish(id: string) {
   await (await getDB()).delete("wishes", id);
 }
 
+/** 家のお酒。飲みかけを先に、新しく買った順 */
+export async function listBottles(): Promise<Bottle[]> {
+  const all = await (await getDB()).getAll("bottles");
+  return all.sort((a, b) => Number(a.finished) - Number(b.finished) || b.createdAt - a.createdAt);
+}
+
+export async function getBottle(id: string) {
+  return (await getDB()).get("bottles", id);
+}
+
+export async function putBottle(bottle: Bottle) {
+  await (await getDB()).put("bottles", bottle);
+}
+
+export async function deleteBottle(id: string) {
+  await (await getDB()).delete("bottles", id);
+}
+
 // --- 書き出し / 読み込み（バックアップ用） ---
 
 type ExportedRecord = Omit<TastingRecord, "photo"> & { photo: string | null };
@@ -93,7 +117,7 @@ export async function exportJSON(): Promise<string> {
   const out: ExportedRecord[] = await Promise.all(
     records.map(async (r) => ({ ...r, photo: r.photo ? await blobToDataURL(r.photo) : null })),
   );
-  return JSON.stringify({ app: "sake-memo", version: 1, records: out, wishes: await listWishes(), prefs: loadPrefs() });
+  return JSON.stringify({ app: "sake-memo", version: 1, records: out, wishes: await listWishes(), bottles: await listBottles(), prefs: loadPrefs(), myTerms: loadMyTerms() });
 }
 
 /** 同じ id の記録は上書きする。読み込んだ件数を返す */
@@ -110,10 +134,16 @@ export async function importJSON(text: string): Promise<number> {
       photo: r.photo ? await (await fetch(r.photo)).blob() : null,
     })),
   );
-  const tx = db.transaction(["records", "wishes"], "readwrite");
+  const tx = db.transaction(["records", "wishes", "bottles"], "readwrite");
   for (const r of records) await tx.objectStore("records").put(r);
   for (const w of (data.wishes ?? []) as WishDrink[]) await tx.objectStore("wishes").put(w);
+  for (const b of (data.bottles ?? []) as Bottle[]) await tx.objectStore("bottles").put(b);
   await tx.done;
   if (data.prefs) savePrefs({ ...loadPrefs(), ...data.prefs });
+  if (Array.isArray(data.myTerms)) {
+    const mine = loadMyTerms();
+    const added = (data.myTerms as MyTerm[]).filter((t) => !mine.some((m) => m.term === t.term));
+    saveMyTerms([...mine, ...added]);
+  }
   return data.records.length;
 }

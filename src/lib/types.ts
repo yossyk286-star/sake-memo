@@ -27,6 +27,8 @@ export interface TastingRecord {
   pairing: string; // 合わせた料理
   /** 1杯の値段（円）。入れていない記録や、値段の欄ができる前の記録は null か undefined */
   price?: number | null;
+  /** 家のお酒（買った瓶）から記録したときの、その瓶の id */
+  bottleId?: string;
   memo: string;
   photo: Blob | null;
   createdAt: number;
@@ -36,3 +38,22 @@ export interface TastingRecord {
 export type RecordDraft = Omit<TastingRecord, "id" | "createdAt" | "updatedAt" | "overall"> & {
   overall: Score | null;
 };
+
+/** 家で飲むために買ったお酒（瓶・缶）。何回かに分けて記録できる */
+export interface Bottle {
+  id: string;
+  name: string;
+  kind: Kind | null;
+  style: string | null;
+  maker: string;
+  origin: string;
+  /** ラベルや AI の説明など */
+  note: string;
+  /** 買った値段（円） */
+  price: number | null;
+  /** 買った日 YYYY-MM-DD */
+  boughtAt: string;
+  /** 飲みきったら true */
+  finished: boolean;
+  createdAt: number;
+}

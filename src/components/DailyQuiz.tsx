@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { today } from "@/lib/lastScan";
+import { TERMS } from "@/lib/glossary";
+import { loadMyTerms } from "@/lib/myTerms";
 import { makeQuestion, type Question } from "@/lib/quiz";
 
 const STATS_KEY = "sake-memo:quiz";
@@ -25,7 +27,8 @@ export default function DailyQuiz() {
 
   // 日付はブラウザの時計で決めるので、表示後に作る
   useEffect(() => {
-    setQuestion(makeQuestion(`${today()}#${round}`));
+    // 自分で辞典に足した言葉も出す
+    setQuestion(makeQuestion(`${today()}#${round}`, [...loadMyTerms(), ...TERMS]));
     setChosen(null);
   }, [round]);
   useEffect(() => setStats(loadStats()), []);

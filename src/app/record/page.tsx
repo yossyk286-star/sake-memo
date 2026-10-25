@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo } from "react";
 import { drinkTitle, stars, yen } from "@/components/RecordCard";
+import { TASTE_AXES } from "@/lib/axes";
 import { deleteRecord } from "@/lib/db";
+import { recordImage, shareImage } from "@/lib/shareImage";
 import { useRecordFromQuery } from "@/lib/useRecord";
 import type { Score } from "@/lib/types";
 
@@ -22,6 +24,22 @@ function DetailBody() {
     if (!r || !confirm("この記録を削除しますか？")) return;
     await deleteRecord(r.id);
     router.replace("/");
+  }
+
+  async function share() {
+    if (!r) return;
+    const blob = await recordImage({
+      title: drinkTitle(r),
+      overall: r.overall,
+      tags: [r.kind, r.style, r.serve, r.origin].filter((t): t is string => !!t),
+      axes: TASTE_AXES.map(([label]) => label),
+      values: TASTE_AXES.map(([, get]) => get(r)),
+      flavors: r.flavors,
+      memo: r.memo,
+      footer: [r.shop, r.date.replaceAll("-", "/")].filter(Boolean).join("・"),
+      photo: r.photo,
+    });
+    await shareImage(blob, drinkTitle(r)).catch(() => alert("共有できませんでした"));
   }
 
   const rows: [string, string][] = r
@@ -76,6 +94,9 @@ function DetailBody() {
               ))}
             </dl>
           </div>
+          <button type="button" className="btn-secondary" onClick={share}>
+            画像にして送る
+          </button>
           <Link href={`/compare?a=${r.id}`} className="btn-secondary">
             ほかの記録とくらべる
           </Link>

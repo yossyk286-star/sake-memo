@@ -1,4 +1,5 @@
 import type { ScannedDrink } from "./menuScan";
+import { placeOf } from "./origins";
 import { hasPrefs, type MyPrefs } from "./prefs";
 import type { TastingRecord } from "./types";
 
@@ -71,6 +72,25 @@ export function scoreDrinks(drinks: ScannedDrink[], records: TastingRecord[], pr
       score += 0.6;
       reasons.push(`好きな${d.style}`);
     }
+    if (d.kind && prefs.avoidKinds.includes(d.kind)) score -= 0.8;
+    if (d.recommendedServe && prefs.serves.includes(d.recommendedServe)) {
+      score += 0.3;
+      reasons.push(`好きな飲み方（${d.recommendedServe}）`);
+    }
+    const place = placeOf(d) ?? d.origin;
+    if (place && prefs.origins.some((o) => o === place || d.origin.includes(o))) {
+      score += 0.4;
+      reasons.push(`好きな産地（${place}）`);
+    }
+    // 甘さ・コク・香りの好みに、味の予想が近いほど上げ、離れているほど下げる
+    const near = (["sweetness", "body", "aroma"] as const).filter((k) => {
+      const want = prefs[k];
+      if (want === null) return false;
+      const gap = Math.abs(d.taste[k] - want);
+      score += gap <= 1 ? 0.3 : gap >= 3 ? -0.3 : 0;
+      return gap <= 1;
+    });
+    if (near.length >= 2) reasons.push("好みの味の寄り方に近い");
     const prefLiked = flavors.filter((f) => prefs.likes.includes(f));
     const prefDisliked = flavors.filter((f) => prefs.dislikes.includes(f));
     score += 0.5 * prefLiked.length - 0.6 * prefDisliked.length;
