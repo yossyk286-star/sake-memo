@@ -4,7 +4,7 @@ import { timingSafeEqual } from "node:crypto";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
 import { MenuScanResultSchema } from "@/lib/menuScan";
 
-// 名前で調べるときはネット検索のぶん時間がかかるので、待ち時間の上限を長めにする
+// 名前で調べてネット検索までしたときは時間がかかるので、待ち時間の上限を長めにする
 export const maxDuration = 60;
 
 // 料金を抑えるため一番安いモデルを使う。変えたいときは環境変数 MENU_MODEL で上書き
@@ -14,6 +14,9 @@ const MAX_IMAGE_BASE64 = 1_500_000;
 // 名前で調べるときの文字数の上限
 const MAX_QUERY = 60;
 
+/** 名前で調べたお酒をよく知らないとき、解説の先頭に付けさせる言葉。「名前からの推測」が入っていたらネットで調べ直す */
+const GUESS_MARK = "詳しい情報が見つからなかったので、名前からの推測です。";
+
 const SYSTEM = `あなたはお酒の初心者に、お酒を解説するアシスタントです。
 渡されるのは次のどれかです。
 - 居酒屋・バー・レストランのお酒のメニュー写真：載っているお酒ごとに情報を取り出す。料理やソフトドリンクは含めない
@@ -21,7 +24,7 @@ const SYSTEM = `あなたはお酒の初心者に、お酒を解説するアシ�
 - お酒の名前：そのお酒1つについて答える。「ネットで調べた情報」が付いていれば、それを優先して使う
 蔵元・産地・タイプは、写真に書かれていなくても、有名な銘柄で確かにわかる場合だけ入れてください。自信がなければ空文字か null にしてください。
 「味の予想」「おすすめの飲み方」「合う料理」「飲み方ごとの違い」は、説明・種類・タイプ・銘柄から推定して必ず埋めてください。複数あるときは違いがわかるよう、相対的に付けてください。
-名前で調べたお酒が、調べた情報にもなく、よく知らないときは、名前から推測できる範囲で答え、解説の最初に「詳しい情報が見つからなかったので、名前からの推測です。」と書いてください。名前がお酒でなければ空配列にしてください。
+名前で調べたお酒が、調べた情報にもなく、よく知らないときは、名前から推測できる範囲で答え、解説の最初に「${GUESS_MARK}」と書いてください。名前がお酒でなければ空配列にしてください。
 解説とおすすめは、次の用語集と選び方の目安に沿って、やさしい日本語で書いてください。
 
 ## 用語集
@@ -94,26 +97,13 @@ export async function POST(req: Request) {
   // 写真（メニューやラベル）か、お酒の名前のどちらかを受け取る
   const image = body?.image;
   const query = typeof body?.query === "string" ? body.query.trim() : "";
-  let content: Anthropic.ContentBlockParam[];
-  if (query) {
-    if (query.length > MAX_QUERY) return error(413, "名前が長すぎます");
-    const notes = await searchNotes(client, query);
-    content = [
-      {
-        type: "text",
-        text: `「${query}」というお酒について解説してください。${notes ? `\n\n## ネットで調べた情報\n${notes}` : ""}`,
-      },
-    ];
-  } else {
+  if (query && query.length > MAX_QUERY) return error(413, "名前が長すぎます");
+  if (!query) {
     if (typeof image !== "string" || image.length === 0) return error(400, "写真がありません");
     if (image.length > MAX_IMAGE_BASE64) return error(413, "写真が大きすぎます");
-    content = [
-      { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
-      { type: "text", text: "この写真（メニューまたはラベル）のお酒を読み取って解説してください。" },
-    ];
   }
 
-  try {
+  const ask = async (content: Anthropic.ContentBlockParam[]) => {
     const response = await client.messages.parse({
       model: MODEL,
       max_tokens: 8000,
@@ -121,11 +111,34 @@ export async function POST(req: Request) {
       output_config: { effort: "low", format: zodOutputFormat(MenuScanResultSchema) },
       messages: [{ role: "user", content }],
     });
+    return response.stop_reason === "refusal" ? null : response.parsed_output;
+  };
 
-    if (response.stop_reason === "refusal" || !response.parsed_output) {
-      return error(422, "うまく読み取れませんでした。もう一度撮ってみてください");
+  try {
+    let result;
+    if (query) {
+      const askAbout = (notes = "") =>
+        ask([
+          {
+            type: "text",
+            text: `「${query}」というお酒について解説してください。${notes ? `\n\n## ネットで調べた情報\n${notes}` : ""}`,
+          },
+        ]);
+      // まず AI の知識だけで答えさせ（安い）、知らないお酒のときだけネットで調べ直す（1回数円）
+      result = await askAbout();
+      if (result?.drinks.some((d) => d.explanation.includes("名前からの推測"))) {
+        const notes = await searchNotes(client, query);
+        if (notes) result = (await askAbout(notes)) ?? result;
+      }
+    } else {
+      result = await ask([
+        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
+        { type: "text", text: "この写真（メニューまたはラベル）のお酒を読み取って解説してください。" },
+      ]);
     }
-    return Response.json(response.parsed_output);
+
+    if (!result) return error(422, "うまく読み取れませんでした。もう一度撮ってみてください");
+    return Response.json(result);
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return error(429, "混み合っています。少し待ってからもう一度お試しください");
     if (e instanceof Anthropic.AuthenticationError) return error(503, "API キーが正しくないようです");
