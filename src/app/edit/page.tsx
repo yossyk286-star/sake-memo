@@ -28,7 +28,7 @@ function EditBody() {
           {!picked && !scanOpen && (
             <div style={{ padding: "16px 16px 0" }}>
               <button type="button" className="btn-secondary" style={{ width: "100%" }} onClick={() => setScanOpen(true)}>
-                メニューから読み取る
+                メニュー・ラベル・名前から入れる
               </button>
             </div>
           )}

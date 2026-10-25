@@ -39,7 +39,7 @@ export default function RecordsPage() {
             <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
             <circle cx="12" cy="13" r="3.5" />
           </svg>
-          {todayDrinks > 0 ? `今日のメニューを見る（${todayDrinks}種類）` : "メニューを撮って選ぶ"}
+          {todayDrinks > 0 ? `今日調べたお酒を見る（${todayDrinks}種類）` : "メニュー・ラベルを撮る／名前で調べる"}
         </Link>
         {records?.length === 0 && (
           <p className="empty">

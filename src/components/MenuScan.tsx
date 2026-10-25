@@ -10,7 +10,7 @@ import {
   putWish,
   type WishDrink,
 } from "@/lib/db";
-import { saveLastScan } from "@/lib/lastScan";
+import { loadLastScan, saveLastScan } from "@/lib/lastScan";
 import { shrinkPhoto } from "@/lib/photo";
 import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
 import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
@@ -96,7 +96,7 @@ export function PickedDrink({
   );
 }
 
-/** メニューを撮影してお酒の情報を読み取り、選んだお酒を記録フォームに渡す */
+/** メニューやラベルを撮影するか名前で調べてお酒の情報を出し、選んだお酒を記録フォームに渡す */
 export default function MenuScan({
   onPick,
   savedPhoto,
@@ -118,6 +118,7 @@ export default function MenuScan({
   );
   const [drinks, setDrinks] = useState<ScannedDrink[]>(initialDrinks);
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
   const [records, setRecords] = useState<TastingRecord[]>([]);
   const [wishes, setWishes] = useState<WishDrink[]>([]);
   const [prefs, setPrefs] = useState(EMPTY_PREFS);
@@ -186,17 +187,35 @@ export default function MenuScan({
 
   async function scan(photo: Blob) {
     if (!passcode) return setError("先に合言葉を入れてください");
-
-    setError("");
     setStatus("reading");
     try {
       // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
       const image = await blobToBase64(await shrinkPhoto(photo, 1000));
+      await request({ image });
+    } catch {
+      setError("写真を読み込めませんでした");
+      setStatus(drinks.length ? "done" : "idle");
+    }
+  }
+
+  async function lookup() {
+    const q = query.trim();
+    if (!q) return;
+    if (!passcode) return setError("先に合言葉を入れてください");
+    // 見つからなかったときは直して調べ直せるよう、入れた名前を残す
+    if (await request({ query: q })) setQuery("");
+  }
+
+  /** 写真（メニュー・ラベル）か名前を送って、お酒の解説を受け取る */
+  async function request(payload: { image: string } | { query: string }) {
+    setError("");
+    setStatus("reading");
+    try {
       const res = await fetch("/api/read-menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image,
+          ...payload,
           passcode: passcode.trim().normalize("NFKC"),
         }),
       });
@@ -207,25 +226,38 @@ export default function MenuScan({
         localStorage.setItem(PASSCODE_KEY, passcode.trim().normalize("NFKC"));
       } catch {}
       setSavedPasscode(true);
-      const result = data as MenuScanResult;
-      if (result.drinks.length === 0)
-        throw new Error("お酒のメニューが見つかりませんでした");
-      setDrinks(result.drinks);
-      saveLastScan(result.drinks);
-      onScanned?.(result.drinks);
+      const found = (data as MenuScanResult).drinks;
+      if (found.length === 0)
+        throw new Error(
+          "query" in payload
+            ? "そのお酒が見つかりませんでした。名前を変えて試してみてください"
+            : "お酒が見つかりませんでした。メニューやラベルが写るように撮ってみてください",
+        );
+      // 1本だけ（ラベルや名前で調べたとき）は今の一覧の先頭に足す。メニューなら一覧を入れ替える
+      let next = found;
+      if (found.length === 1) {
+        next = [found[0], ...drinks.filter((d) => d.name !== found[0].name)];
+        saveLastScan(next, loadLastScan()?.recorded ?? []);
+      } else {
+        saveLastScan(next);
+      }
+      setDrinks(next);
+      onScanned?.(next);
       setStatus("done");
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "読み取りに失敗しました");
-      setStatus("idle");
+      setStatus(drinks.length ? "done" : "idle");
+      return false;
     }
   }
 
   return (
-    <section className={styles.box} aria-label="メニューを撮って入力">
+    <section className={styles.box} aria-label="メニューやラベルを撮るか、名前で調べて入力">
       <p className={styles.lead}>
         {status === "done"
           ? "「＋ 記録に追加」を押すと、お酒の情報が入った状態で感想を書けます。"
-          : "お酒のメニューを撮ると、1つずつ解説とおすすめの飲み方を出して、記録の項目に入れます。"}
+          : "お酒のメニューや瓶・缶のラベルを撮るか、名前を入れて調べると、解説とおすすめの飲み方を出して、記録の項目に入れます。"}
       </p>
       {!savedPasscode && (
         <div className="field">
@@ -266,8 +298,8 @@ export default function MenuScan({
         {status === "reading"
           ? "読み取り中…"
           : status === "done"
-            ? "撮り直す"
-            : "メニューを撮って読み取る"}
+            ? "別のメニューやラベルを撮る"
+            : "メニューやラベルを撮って読み取る"}
         <input
           type="file"
           accept="image/*"
@@ -299,6 +331,39 @@ export default function MenuScan({
         >
           保存した写真から読み取る
         </button>
+      )}
+
+      {status !== "reading" && (
+        <form
+          className="row"
+          style={{ flexWrap: "nowrap" }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            lookup();
+          }}
+        >
+          <label htmlFor="scan-query" className="visually-hidden">
+            お酒の名前で調べる
+          </label>
+          <input
+            id="scan-query"
+            className="input"
+            type="search"
+            enterKeyHint="search"
+            maxLength={60}
+            placeholder="名前で調べる（例：獺祭）"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="btn-secondary"
+            style={{ flexShrink: 0 }}
+            disabled={!query.trim()}
+          >
+            調べる
+          </button>
+        </form>
       )}
 
       {error && (

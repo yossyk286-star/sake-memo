@@ -5,18 +5,18 @@ import { KINDS, STYLES_BY_KIND } from "./glossary";
 /** 味の強さ。1（弱い）〜5（強い） */
 const TasteLevel = z.number().int().describe("1（弱い）〜5（強い）の整数");
 
-/** メニュー写真から読み取ったお酒1つ分 */
+/** メニューやラベルの写真、または名前から調べたお酒1つ分 */
 export const ScannedDrinkSchema = z.object({
-  name: z.string().describe("メニューに書かれているお酒の名前・銘柄（例：獺祭 純米大吟醸45、シャブリ）"),
+  name: z.string().describe("お酒の名前・銘柄（例：獺祭 純米大吟醸45、シャブリ）"),
   kind: z.enum(KINDS).nullable().describe("お酒の種類。判断できなければ null"),
   style: z
     .string()
     .describe(
       `タイプ。種類ごとに次から選ぶ：${KINDS.map((k) => `${k}=${STYLES_BY_KIND[k].join("/")}`).join("、")}。書かれていない・判断できなければ空文字`,
     ),
-  maker: z.string().describe("蔵元・醸造所・ワイナリー・蒸溜所の名前。書かれていなければ空文字"),
-  origin: z.string().describe("産地（日本なら都道府県名、海外なら国名）。書かれていなければ空文字"),
-  menuNote: z.string().describe("メニューに書かれている味や香りの説明をそのまま。なければ空文字"),
+  maker: z.string().describe("蔵元・醸造所・ワイナリー・蒸溜所の名前。わからなければ空文字"),
+  origin: z.string().describe("産地（日本なら都道府県名、海外なら国名）。わからなければ空文字"),
+  menuNote: z.string().describe("メニューやラベルに書かれている味や香りの説明をそのまま。なければ空文字"),
   explanation: z.string().describe("このお酒がどんな味か、初心者向けに2〜3文で"),
   recommendedServe: z.string().describe("いちばんおすすめの飲み方（冷酒、ぬる燗、ロック、ハイボール、よく冷やして など）"),
   recommendation: z.string().describe("おすすめの飲み方を理由つきで1〜2文"),
@@ -41,7 +41,7 @@ export const ScannedDrinkSchema = z.object({
 });
 
 export const MenuScanResultSchema = z.object({
-  drinks: z.array(ScannedDrinkSchema).describe("写真に載っているお酒。お酒のメニューでなければ空配列"),
+  drinks: z.array(ScannedDrinkSchema).describe("見つかったお酒。お酒が写っていない・お酒の名前でなければ空配列"),
 });
 
 export type ScannedDrink = z.infer<typeof ScannedDrinkSchema>;

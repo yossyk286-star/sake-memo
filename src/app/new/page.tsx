@@ -109,7 +109,7 @@ function NewRecord() {
             style={{ width: "100%" }}
             onClick={() => setManual(true)}
           >
-            メニューにないお酒を記録する
+            一覧にないお酒を手で記録する
           </button>
         </div>
       ) : (
