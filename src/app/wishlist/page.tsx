@@ -19,10 +19,7 @@ export default function WishlistPage() {
 
   return (
     <>
-      <header className="sub-header">
-        <Link href="/taste" className="back">
-          ‹ 戻る
-        </Link>
+      <header className="page-header">
         <h1>気になるお酒</h1>
       </header>
 

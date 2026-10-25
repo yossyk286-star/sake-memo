@@ -15,9 +15,11 @@ type Drag = { x: number; y: number; base: number; axis: "x" | "y" | null };
 export default function SwipeRecord({
   record,
   onDeleted,
+  showDate,
 }: {
   record: TastingRecord;
   onDeleted: (id: string) => void;
+  showDate?: boolean;
 }) {
   const router = useRouter();
   const [dx, setDx] = useState(0);
@@ -119,7 +121,7 @@ export default function SwipeRecord({
         // リンクを掴んで引っぱる動き（ブラウザ標準のドラッグ）を止めて、スライドとして扱う
         onDragStart={(e) => e.preventDefault()}
       >
-        <RecordCard record={record} />
+        <RecordCard record={record} showDate={showDate} />
       </div>
     </div>
   );

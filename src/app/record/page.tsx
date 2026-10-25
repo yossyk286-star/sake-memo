@@ -38,6 +38,8 @@ function DetailBody() {
         ["甘さ", scoreText(r.sweetness)],
         ["酸味", scoreText(r.acidity)],
         ["コク", scoreText(r.body)],
+        ["香り", scoreText(r.aroma ?? null)],
+        ["キレ", scoreText(r.finish ?? null)],
         ["合わせた料理", r.pairing || "—"],
         ["値段", r.price ? yen(r.price) : "—"],
         ["メモ", r.memo || "—"],
@@ -74,6 +76,9 @@ function DetailBody() {
               ))}
             </dl>
           </div>
+          <Link href={`/compare?a=${r.id}`} className="btn-secondary">
+            ほかの記録とくらべる
+          </Link>
           <div className="row">
             <Link href={`/edit?id=${r.id}`} className="btn-secondary" style={{ flex: 1 }}>
               編集する

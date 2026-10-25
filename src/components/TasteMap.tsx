@@ -15,8 +15,8 @@ function average(xs: number[]) {
 
 /** 平均の評価が高いマスほど濃く塗る */
 function cellColor(avg: number) {
-  const alpha = 0.15 + ((avg - 1) / 4) * 0.85;
-  return `rgba(47, 63, 122, ${alpha.toFixed(2)})`;
+  const pct = Math.round(15 + ((avg - 1) / 4) * 85);
+  return `color-mix(in srgb, var(--accent) ${pct}%, transparent)`;
 }
 
 /**
@@ -79,7 +79,7 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
                   disabled={rs.length === 0}
                   aria-pressed={selected === key}
                   aria-label={`甘さ${sweet}・コク${body}：${rs.length}杯${rs.length ? `、平均★${avg.toFixed(1)}` : ""}`}
-                  style={rs.length ? { background: cellColor(avg), color: avg >= 3 ? "#fff" : undefined } : undefined}
+                  style={rs.length ? { background: cellColor(avg), color: avg >= 3 ? "var(--on-accent)" : undefined } : undefined}
                   onClick={() => setSelected(selected === key ? null : key)}
                 >
                   {rs.length || ""}

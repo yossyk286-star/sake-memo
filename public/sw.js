@@ -1,13 +1,13 @@
 // オフラインでも記録・辞典・好みを開けるようにするサービスワーカー。
 // 画面（HTML）は電波があれば最新を取りに行き、なければ前に保存したものを出す。
 // /_next/static のファイルは名前に版が入っていて中身が変わらないので、保存したものを優先する。
-const VERSION = "v1";
+const VERSION = "v2";
 const PAGES = `pages-${VERSION}`;
 const STATIC = `static-${VERSION}`;
 const RSC = `rsc-${VERSION}`;
 
 // 最初に保存しておく画面。ほかの画面も一度開けば保存される
-const PRECACHE = ["/", "/new", "/edit", "/record", "/scan", "/glossary", "/taste", "/stamps", "/shops", "/shop", "/wishlist", "/prefs", "/settings"];
+const PRECACHE = ["/", "/new", "/edit", "/record", "/compare", "/scan", "/glossary", "/taste", "/stamps", "/shops", "/shop", "/wishlist", "/prefs", "/settings"];
 
 /** HTML に書かれた /_next/static のファイルも一緒に保存する（開いたことのない画面も動くように） */
 async function precache() {

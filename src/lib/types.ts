@@ -20,6 +20,9 @@ export interface TastingRecord {
   sweetness: Score | null;
   acidity: Score | null;
   body: Score | null;
+  /** 香りの華やかさ・キレ（後味の切れ）。後から増やした項目なので古い記録にはない */
+  aroma?: Score | null;
+  finish?: Score | null;
   overall: Score;
   pairing: string; // 合わせた料理
   /** 1杯の値段（円）。入れていない記録や、値段の欄ができる前の記録は null か undefined */
