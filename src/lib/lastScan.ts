@@ -1,6 +1,6 @@
 import type { ScannedDrink } from "./menuScan";
 
-/** 最後に読み取ったメニュー。お店で確認だけして、あとから記録するときに撮り直さずに使う */
+/** 最後に読み取ったメニュー（とラベルや名前で調べたお酒）。お店で確認だけして、あとから記録するときに撮り直さずに使う */
 export type LastScan = {
   date: string;
   drinks: ScannedDrink[];
@@ -32,8 +32,9 @@ function store(scan: LastScan) {
   } catch {}
 }
 
-export function saveLastScan(drinks: ScannedDrink[]) {
-  store({ date: today(), drinks, recorded: [] });
+/** recorded はラベルや名前で1本足したときに、すでに記録した分を引き継ぐのに使う */
+export function saveLastScan(drinks: ScannedDrink[], recorded: string[] = []) {
+  store({ date: today(), drinks, recorded });
 }
 
 export function markRecorded(name: string) {

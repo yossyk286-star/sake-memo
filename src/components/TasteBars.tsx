@@ -30,7 +30,7 @@ export default function TasteBars({ taste }: { taste: DrinkTaste }) {
           </div>
         );
       })}
-      <span className={styles.tasteNote}>メニューからの予想</span>
+      <span className={styles.tasteNote}>味の予想</span>
     </div>
   );
 }

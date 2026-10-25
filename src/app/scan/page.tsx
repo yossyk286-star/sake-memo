@@ -7,7 +7,7 @@ import MenuScan from "@/components/MenuScan";
 import { loadLastScan } from "@/lib/lastScan";
 import type { ScannedDrink } from "@/lib/menuScan";
 
-/** お店でメニューを撮って、注文を決めるために確認するだけの画面。記録はあとからでもできる */
+/** お店でメニューやラベルを撮ったり名前で調べたりして、注文を決めるために確認するだけの画面。記録はあとからでもできる */
 export default function ScanPage() {
   const router = useRouter();
   const [drinks, setDrinks] = useState<ScannedDrink[] | null>(null);
@@ -22,11 +22,11 @@ export default function ScanPage() {
         <Link href="/" className="back">
           ‹ 戻る
         </Link>
-        <h1>メニューを見る</h1>
+        <h1>お酒を調べる</h1>
       </header>
 
       <p className="lead">
-        撮った結果は今日のあいだ残るので、あとから「記録する」でも同じお酒から選べます。
+        撮ったり調べたりした結果は今日のあいだ残るので、あとから「記録する」でも同じお酒から選べます。
         次に試したいお酒は「☆ 気になる」で<Link href="/wishlist">気になるお酒</Link>に残せます。
       </p>
 
