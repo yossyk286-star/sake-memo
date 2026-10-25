@@ -250,6 +250,15 @@ textarea {
   font-size: 16px;
   background: var(--surface);
 }
+/* iPhone の日付欄は中身の幅が最小になり、画面からはみ出すので抑える */
+input[type="date"].input {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: left;
+}
 textarea.input {
   height: 96px;
   padding: 10px 12px;
