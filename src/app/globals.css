@@ -1113,3 +1113,8 @@ button.stamp {
   line-height: 1.7;
   white-space: pre-wrap;
 }
+.ask-ai-bare {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+}

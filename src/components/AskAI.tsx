@@ -1,24 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 import type { QA } from "@/lib/types";
 
 /**
- * 記録の画面から AI に質問する。答えは記録に残して、あとから読み返せる。
- * context は記録の要約（AI に渡す文）、suggestions はタップで入る質問の例
+ * 記録の画面や調べた結果から AI に質問する。
+ * history と onAnswered を渡すと答えを記録に残せる。渡さなければ画面を閉じるまでだけ覚えておく。
+ * context は見ているものの要約（AI に渡す文）、suggestions はタップで入る質問の例。
+ * bare は枠と見出しなし（カードの中に入れるとき）
  */
 export default function AskAI({
   context,
   suggestions,
   history,
   onAnswered,
+  bare = false,
 }: {
   context: string;
   suggestions: string[];
-  history: QA[];
-  onAnswered: (qa: QA) => Promise<void>;
+  history?: QA[];
+  onAnswered?: (qa: QA) => Promise<void>;
+  bare?: boolean;
 }) {
+  const inputId = useId();
+  const [local, setLocal] = useState<QA[]>([]);
+  const shown = history ?? local;
   const [question, setQuestion] = useState("");
   const [passcode, setPasscode] = useState("");
   const [saved, setSaved] = useState(false);
@@ -45,7 +52,7 @@ export default function AskAI({
         body: JSON.stringify({
           ask: q,
           context,
-          history: history.map(({ q, a }) => ({ q, a })),
+          history: shown.map(({ q, a }) => ({ q, a })),
           passcode: normalizePasscode(passcode),
         }),
       });
@@ -53,7 +60,9 @@ export default function AskAI({
       if (res.status === 401) setSaved(false);
       if (!res.ok) throw new Error(data.error ?? "答えをもらえませんでした");
       savePasscode(normalizePasscode(passcode));
-      await onAnswered({ q, a: data.answer, at: Date.now() });
+      const qa = { q, a: data.answer, at: Date.now() };
+      if (onAnswered) await onAnswered(qa);
+      if (!history) setLocal((l) => [...l, qa]);
       setQuestion("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "答えをもらえませんでした");
@@ -63,9 +72,9 @@ export default function AskAI({
   }
 
   return (
-    <section className="card ask-ai">
-      <h2 style={{ fontSize: 16 }}>AI に聞く</h2>
-      {history.map((h) => (
+    <section className={bare ? "ask-ai ask-ai-bare" : "card ask-ai"}>
+      {!bare && <h2 style={{ fontSize: 16 }}>AI に聞く</h2>}
+      {shown.map((h) => (
         <div key={h.at} className="ask-qa">
           <p className="ask-q">{h.q}</p>
           <p className="ask-a">{h.a}</p>
@@ -97,13 +106,13 @@ export default function AskAI({
           ask(question);
         }}
       >
-        <label htmlFor="ask-input" className="visually-hidden">
+        <label htmlFor={inputId} className="visually-hidden">
           質問
         </label>
         <input
-          id="ask-input"
+          id={inputId}
           className="input"
-          placeholder={history.length ? "続けて聞く" : "この記録について聞く"}
+          placeholder={shown.length ? "続けて聞く" : "この記録について聞く"}
           maxLength={300}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
