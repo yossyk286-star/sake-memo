@@ -68,3 +68,16 @@ export function drinkToDraft(
     menuNote: d.menuNote,
   };
 }
+
+/** 食べている料理との相性。お酒は送った順の番号で返す */
+export const PairingResultSchema = z.object({
+  ranks: z.array(
+    z.object({
+      index: z.number().int().describe("お酒の番号（0から）"),
+      score: z.number().int().describe("料理との相性。1（合わない）〜5（とても合う）"),
+      reason: z.string().describe("なぜ合う・合わないか、20〜40字くらいで"),
+    }),
+  ),
+});
+
+export type PairingResult = z.infer<typeof PairingResultSchema>;

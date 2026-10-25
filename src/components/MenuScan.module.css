@@ -162,3 +162,19 @@
 .methods dd {
   margin: 0;
 }
+
+.match {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.match strong {
+  color: var(--accent-dark);
+}

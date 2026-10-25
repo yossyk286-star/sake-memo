@@ -687,3 +687,90 @@ button.stamp {
   grid-column: 1 / -1;
   font-size: 12px;
 }
+
+/* --- 今日の1問 --- */
+.quiz {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.quiz h2 {
+  margin: 0;
+}
+.quiz-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.quiz-choices .chip[data-result="right"] {
+  background: #1f7a4d;
+  border-color: #1f7a4d;
+  color: #fff;
+}
+.quiz-choices .chip[data-result="wrong"] {
+  background: #a83a3a;
+  border-color: #a83a3a;
+  color: #fff;
+}
+
+/* --- 味マップ --- */
+.taste-map {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.taste-map-y {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.taste-map-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+}
+.taste-map-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+.taste-map-cell:disabled {
+  cursor: default;
+}
+.taste-map-cell[aria-pressed="true"] {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+.taste-map-x {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+}
+.next-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.next-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.next-list strong {
+  font-size: 15px;
+}

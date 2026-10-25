@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { type MenuScanResult, type ScannedDrink } from "@/lib/menuScan";
+import { type MenuScanResult, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
 import { placeOf } from "@/lib/origins";
 import {
   deleteWish,
@@ -122,6 +122,13 @@ export default function MenuScan({
   const [records, setRecords] = useState<TastingRecord[]>([]);
   const [wishes, setWishes] = useState<WishDrink[]>([]);
   const [prefs, setPrefs] = useState(EMPTY_PREFS);
+  // 食べている料理との相性（お酒の名前ごと）
+  const [dish, setDish] = useState("");
+  const [pairing, setPairing] = useState<{
+    dish: string;
+    byName: Map<string, { score: number; reason: string }>;
+  } | null>(null);
+  const [pairingBusy, setPairingBusy] = useState(false);
 
   // localStorage はブラウザでしか読めないので、表示後に読み込む
   useEffect(() => {
@@ -157,11 +164,16 @@ export default function MenuScan({
 
   // 気分を選んだら、その順に並べる（番号はおすすめの計算と同じ、元の並びのまま持つ）
   const [mood, setMood] = useState<string | null>(null);
+  // 料理との相性を出したときは、その順を優先する
   const order = useMemo(() => {
     const idx = drinks.map((_, i) => i);
+    if (pairing) {
+      const s = (i: number) => pairing.byName.get(drinks[i].name)?.score ?? 0;
+      return idx.sort((a, b) => s(b) - s(a));
+    }
     const m = MOODS.find((x) => x.label === mood);
     return m ? idx.sort((a, b) => m.score(drinks[b]) - m.score(drinks[a])) : idx;
-  }, [drinks, mood]);
+  }, [drinks, mood, pairing]);
 
   // 前に飲んだお酒と、まだ飲んだことのない産地
   const drunkPlaces = useMemo(
@@ -206,26 +218,64 @@ export default function MenuScan({
     if (await request({ query: q })) setQuery("");
   }
 
+  /** 合言葉を付けて送る。うまくいったら合言葉を覚えておく */
+  async function post(payload: object) {
+    if (!navigator.onLine)
+      throw new Error("オフラインのため調べられません。電波のあるところでもう一度お試しください");
+    const res = await fetch("/api/read-menu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...payload,
+        passcode: passcode.trim().normalize("NFKC"),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) setSavedPasscode(false);
+    if (!res.ok) throw new Error(data.error ?? "読み取りに失敗しました");
+    try {
+      localStorage.setItem(PASSCODE_KEY, passcode.trim().normalize("NFKC"));
+    } catch {}
+    setSavedPasscode(true);
+    return data;
+  }
+
+  /** いま食べている料理に合う順に並べる */
+  async function pairWith() {
+    const d = dish.trim();
+    if (!d) return;
+    if (!passcode) return setError("先に合言葉を入れてください");
+    setError("");
+    setPairingBusy(true);
+    try {
+      const data = (await post({
+        dish: d,
+        drinks: drinks.map(({ name, kind, style }) => ({ name, kind, style })),
+      })) as PairingResult;
+      const byName = new Map<string, { score: number; reason: string }>();
+      for (const r of data.ranks) {
+        const drink = drinks[r.index];
+        if (drink)
+          byName.set(drink.name, {
+            score: Math.min(5, Math.max(1, r.score)),
+            reason: r.reason,
+          });
+      }
+      setPairing({ dish: d, byName });
+      setMood(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "相性を調べられませんでした");
+    } finally {
+      setPairingBusy(false);
+    }
+  }
+
   /** 写真（メニュー・ラベル）か名前を送って、お酒の解説を受け取る */
   async function request(payload: { image: string } | { query: string }) {
     setError("");
     setStatus("reading");
     try {
-      const res = await fetch("/api/read-menu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...payload,
-          passcode: passcode.trim().normalize("NFKC"),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.status === 401) setSavedPasscode(false);
-      if (!res.ok) throw new Error(data.error ?? "読み取りに失敗しました");
-      try {
-        localStorage.setItem(PASSCODE_KEY, passcode.trim().normalize("NFKC"));
-      } catch {}
-      setSavedPasscode(true);
+      const data = await post(payload);
       const found = (data as MenuScanResult).drinks;
       if (found.length === 0)
         throw new Error(
@@ -240,6 +290,7 @@ export default function MenuScan({
         saveLastScan(next, loadLastScan()?.recorded ?? []);
       } else {
         saveLastScan(next);
+        setPairing(null);
       }
       setDrinks(next);
       onScanned?.(next);
@@ -397,7 +448,10 @@ export default function MenuScan({
               key={m.label}
               className="chip"
               aria-pressed={mood === m.label}
-              onClick={() => setMood(mood === m.label ? null : m.label)}
+              onClick={() => {
+                setMood(mood === m.label ? null : m.label);
+                setPairing(null);
+              }}
             >
               {m.label}
             </button>
@@ -405,9 +459,61 @@ export default function MenuScan({
         </div>
       )}
 
+      {drinks.length > 1 && (
+        <form
+          className="row"
+          style={{ flexWrap: "nowrap" }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            pairWith();
+          }}
+        >
+          <label htmlFor="scan-dish" className="visually-hidden">
+            いま食べている料理
+          </label>
+          <input
+            id="scan-dish"
+            className="input"
+            type="search"
+            enterKeyHint="go"
+            maxLength={40}
+            placeholder="料理に合う順（例：焼き鳥）"
+            value={dish}
+            onChange={(e) => setDish(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="btn-secondary"
+            style={{ flexShrink: 0 }}
+            disabled={!dish.trim() || pairingBusy}
+          >
+            {pairingBusy ? "調べ中…" : "並べる"}
+          </button>
+        </form>
+      )}
+      {pairing && (
+        <div
+          className="row"
+          style={{ alignItems: "center", flexWrap: "nowrap" }}
+        >
+          <p className={styles.lead} style={{ flex: 1 }}>
+            「{pairing.dish}」に合う順に並べました。
+          </p>
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ height: 36, padding: "0 12px", flexShrink: 0 }}
+            onClick={() => setPairing(null)}
+          >
+            元の順に戻す
+          </button>
+        </div>
+      )}
+
       {order.map((i) => {
         const b = drinks[i];
         const badges = badgesOf(b);
+        const match = pairing?.byName.get(b.name);
         return (
           <article
             key={i}
@@ -420,6 +526,15 @@ export default function MenuScan({
               </div>
             )}
             <h3>{b.name}</h3>
+            {match && (
+              <p className={styles.match}>
+                <strong>
+                  {pairing?.dish}との相性{" "}
+                  {"●".repeat(match.score) + "○".repeat(5 - match.score)}
+                </strong>
+                {match.reason}
+              </p>
+            )}
             {badges.length > 0 && (
               <div className={styles.badges}>
                 {badges.map((t) => (

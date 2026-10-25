@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import DailyQuiz from "@/components/DailyQuiz";
 import { CHOOSING_TIPS, TERMS, type GlossaryCategory } from "@/lib/glossary";
 
 const CATEGORIES: ("すべて" | GlossaryCategory)[] = [
@@ -52,6 +53,7 @@ export default function GlossaryPage() {
         </div>
       </div>
       <main className="content" style={{ gap: 10 }}>
+        {!q && category === "すべて" && <DailyQuiz />}
         {!q && (category === "すべて" || category === "飲み方") && (
           <section className="tips">
             <h2>選び方の目安</h2>

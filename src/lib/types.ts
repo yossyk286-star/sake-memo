@@ -22,6 +22,8 @@ export interface TastingRecord {
   body: Score | null;
   overall: Score;
   pairing: string; // 合わせた料理
+  /** 1杯の値段（円）。入れていない記録や、値段の欄ができる前の記録は null か undefined */
+  price?: number | null;
   memo: string;
   photo: Blob | null;
   createdAt: number;

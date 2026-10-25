@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import RecordCard, { drinkTitle, stars } from "@/components/RecordCard";
+import RecordCard, { drinkTitle, stars, yen } from "@/components/RecordCard";
 import { listRecords } from "@/lib/db";
 import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
+
+/** 値段を入れた記録があれば「・平均 800円」 */
+function priceNote(records: TastingRecord[]) {
+  const prices = records.flatMap((r) => (r.price ? [r.price] : []));
+  return prices.length ? `・1杯 平均 ${yen(prices.reduce((a, b) => a + b, 0) / prices.length)}` : "";
+}
 
 function ShopBody() {
   const name = useSearchParams().get("name") ?? "";
@@ -38,6 +44,7 @@ function ShopBody() {
             </section>
             <p className="muted" style={{ margin: 0 }}>
               {shop.records.length}杯の記録
+              {priceNote(shop.records)}
             </p>
             {shop.records.map((r) => (
               <RecordCard key={r.id} record={r} />

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import ServiceWorker from "@/components/ServiceWorker";
 import TabBar from "@/components/TabBar";
 import "./globals.css";
 
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body>
         <div className="app">{children}</div>
         <TabBar />
+        <ServiceWorker />
       </body>
     </html>
   );

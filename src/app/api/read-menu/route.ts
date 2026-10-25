@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { timingSafeEqual } from "node:crypto";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
-import { MenuScanResultSchema } from "@/lib/menuScan";
+import { MenuScanResultSchema, PairingResultSchema } from "@/lib/menuScan";
 
 // 名前で調べてネット検索までしたときは時間がかかるので、待ち時間の上限を長めにする
 export const maxDuration = 60;
@@ -13,6 +13,9 @@ const MODEL = process.env.MENU_MODEL || "claude-haiku-5-5";
 const MAX_IMAGE_BASE64 = 1_500_000;
 // 名前で調べるときの文字数の上限
 const MAX_QUERY = 60;
+// 料理との相性を見るときの、料理名の文字数とお酒の数の上限
+const MAX_DISH = 40;
+const MAX_PAIRING_DRINKS = 40;
 
 /** 名前で調べたお酒をよく知らないとき、解説の先頭に付けさせる言葉。「名前からの推測」が入っていたらネットで調べ直す */
 const GUESS_MARK = "詳しい情報が見つからなかったので、名前からの推測です。";
@@ -94,6 +97,38 @@ export async function POST(req: Request) {
   if (!passcodeOK(body?.passcode)) return error(401, "合言葉が違います");
 
   const client = new Anthropic();
+
+  // 食べている料理と、読み取り済みのお酒の相性（文字だけなので安い）
+  if (typeof body?.dish === "string") {
+    const dish = body.dish.trim();
+    const drinks = Array.isArray(body.drinks) ? body.drinks.slice(0, MAX_PAIRING_DRINKS) : [];
+    if (!dish || dish.length > MAX_DISH) return error(400, "料理の名前を入れてください");
+    if (drinks.length === 0) return error(400, "お酒がありません");
+    const list = drinks
+      .map((d: Record<string, unknown>, i: number) =>
+        `${i}. ${[d.name, d.kind, d.style].filter((x) => typeof x === "string" && x).join(" / ")}`.slice(0, 120),
+      )
+      .join("\n");
+    try {
+      const response = await client.messages.parse({
+        model: MODEL,
+        max_tokens: 4000,
+        system: "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。",
+        output_config: { effort: "low", format: zodOutputFormat(PairingResultSchema) },
+        messages: [
+          {
+            role: "user",
+            content: `いま「${dish}」を食べています。次のお酒それぞれについて、この料理との相性を付けてください。全部のお酒に付け、違いがわかるよう相対的に付けてください。\n\n${list}`,
+          },
+        ],
+      });
+      if (!response.parsed_output) return error(422, "うまく判断できませんでした");
+      return Response.json(response.parsed_output);
+    } catch (e) {
+      return apiError(e);
+    }
+  }
+
   // 写真（メニューやラベル）か、お酒の名前のどちらかを受け取る
   const image = body?.image;
   const query = typeof body?.query === "string" ? body.query.trim() : "";
@@ -140,12 +175,16 @@ export async function POST(req: Request) {
     if (!result) return error(422, "うまく読み取れませんでした。もう一度撮ってみてください");
     return Response.json(result);
   } catch (e) {
-    if (e instanceof Anthropic.RateLimitError) return error(429, "混み合っています。少し待ってからもう一度お試しください");
-    if (e instanceof Anthropic.AuthenticationError) return error(503, "API キーが正しくないようです");
-    if (e instanceof Anthropic.APIError) {
-      console.error("read-menu API error", e.status, e.message);
-      return error(502, "読み取りに失敗しました（利用上限に達した可能性があります）");
-    }
-    throw e;
+    return apiError(e);
   }
+}
+
+function apiError(e: unknown) {
+  if (e instanceof Anthropic.RateLimitError) return error(429, "混み合っています。少し待ってからもう一度お試しください");
+  if (e instanceof Anthropic.AuthenticationError) return error(503, "API キーが正しくないようです");
+  if (e instanceof Anthropic.APIError) {
+    console.error("read-menu API error", e.status, e.message);
+    return error(502, "読み取りに失敗しました（利用上限に達した可能性があります）");
+  }
+  throw e;
 }
