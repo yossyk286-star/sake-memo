@@ -15,7 +15,8 @@ import {
 } from "@/lib/glossary";
 import { today } from "@/lib/lastScan";
 import { shrinkPhoto } from "@/lib/photo";
-import type { Kind, RecordDraft, Score, TastingRecord } from "@/lib/types";
+import { emptyServeNote, GLASSES, hasServeNote, TEMP_NAMES } from "@/lib/serveNote";
+import type { Kind, RecordDraft, Score, ServeNote, TastingRecord } from "@/lib/types";
 
 const SCORES: Score[] = [1, 2, 3, 4, 5];
 
@@ -126,6 +127,51 @@ function RatingRow({
           <span>{low}</span>
           <span>{high}</span>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** 家で飲んだときの割り方・温度・酒器・コツ */
+function ServeNoteFields({ value, onChange }: { value: ServeNote; onChange: (n: ServeNote) => void }) {
+  const set = <K extends keyof ServeNote>(key: K, v: ServeNote[K]) => onChange({ ...value, [key]: v });
+  return (
+    <div className="recipe-fields">
+      <div className="row" style={{ flexWrap: "nowrap" }}>
+        <div className="field" style={{ flex: 1, minWidth: 0 }}>
+          <label className="label" htmlFor="f-ratio">
+            割り方
+          </label>
+          <input id="f-ratio" className="input" placeholder="例：ソーダ 1:3" value={value.ratio} onChange={(e) => set("ratio", e.target.value)} />
+        </div>
+        <div className="field" style={{ flex: 1, minWidth: 0 }}>
+          <label className="label" htmlFor="f-temp">
+            温度
+          </label>
+          <input
+            id="f-temp"
+            className="input"
+            list="temp-names"
+            placeholder="例：上燗（45℃）"
+            value={value.temp}
+            onChange={(e) => set("temp", e.target.value)}
+          />
+          <datalist id="temp-names">
+            {TEMP_NAMES.map((t) => (
+              <option key={t} value={t} />
+            ))}
+          </datalist>
+        </div>
+      </div>
+      <fieldset className="field">
+        <legend className="label">酒器・グラス</legend>
+        <SingleChips options={GLASSES} value={value.glass} onChange={(v) => set("glass", v)} />
+      </fieldset>
+      <div className="field">
+        <label className="label" htmlFor="f-tip">
+          コツ
+        </label>
+        <input id="f-tip" className="input" placeholder="例：氷は大きめ、グラスを冷やしておく" value={value.tip} onChange={(e) => set("tip", e.target.value)} />
       </div>
     </div>
   );
@@ -269,6 +315,7 @@ export default function RecordForm({
     const now = Date.now();
     const record: TastingRecord = {
       ...draft,
+      serveNote: hasServeNote(draft.serveNote) ? draft.serveNote : undefined,
       shop: draft.shop.trim(),
       overall: draft.overall,
       id: initial?.id ?? crypto.randomUUID(),
@@ -375,6 +422,11 @@ export default function RecordForm({
           onChange={(v) => set("serve", v)}
         />
       </fieldset>
+      {/* 家で飲むときだけ使うので、店で飲んだ記録ではたたんでおく */}
+      <details className="drink-details" open={draft.shop.trim() === "家" || hasServeNote(draft.serveNote)}>
+        <summary>飲み方メモ（割り方・温度・グラス）</summary>
+        <ServeNoteFields value={draft.serveNote ?? emptyServeNote()} onChange={(n) => set("serveNote", n)} />
+      </details>
 
       <fieldset className="field">
         <legend className="label">

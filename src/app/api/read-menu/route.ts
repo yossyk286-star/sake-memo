@@ -75,6 +75,15 @@ async function searchNotes(client: Anthropic, query: string) {
   }
 }
 
+// 記録について AI に聞くときの、質問・記録の要約の文字数と、続けて聞くときに渡す前の質問の数
+const MAX_ASK = 300;
+const MAX_CONTEXT = 1500;
+const MAX_HISTORY = 4;
+
+const ASK_SYSTEM = `あなたはお酒にくわしい、やさしい案内役です。利用者が自分の記録（飲んだお酒の感想）を見ながら質問します。
+記録の内容をふまえて、初心者にもわかる日本語で、3〜6文くらいで具体的に答えてください。飲み方の質問には温度や割り方の比率などの数字も入れてください。
+見出しや箇条書きの記号（#、*、-）は使わず、ふつうの文章で答えてください。わからないことは推測だと言ってください。`;
+
 function passcodeOK(given: unknown) {
   const expected = process.env.APP_PASSCODE;
   if (!expected || typeof given !== "string") return false;
@@ -97,6 +106,44 @@ export async function POST(req: Request) {
   if (!passcodeOK(body?.passcode)) return error(401, "合言葉が違います");
 
   const client = new Anthropic();
+
+  // 記録を見ながら AI に質問する（文字だけなので安い）
+  if (typeof body?.ask === "string") {
+    const ask = body.ask.trim();
+    const context = typeof body.context === "string" ? body.context.slice(0, MAX_CONTEXT) : "";
+    if (!ask || ask.length > MAX_ASK) return error(400, `質問は${MAX_ASK}文字までで入れてください`);
+    const history: { q: string; a: string }[] = Array.isArray(body.history)
+      ? body.history
+          .filter((h: unknown): h is { q: string; a: string } => {
+            const x = h as Record<string, unknown>;
+            return typeof x?.q === "string" && typeof x?.a === "string";
+          })
+          .slice(-MAX_HISTORY)
+          .map((h: { q: string; a: string }) => ({ q: h.q.slice(0, MAX_ASK), a: h.a.slice(0, 1500) }))
+      : [];
+    const turns = [...history, { q: ask, a: "" }];
+    const messages: Anthropic.MessageParam[] = turns.flatMap((t, i) => {
+      const q = i === 0 ? `## わたしの記録\n${context}\n\n## 質問\n${t.q}` : t.q;
+      return t.a ? [{ role: "user" as const, content: q }, { role: "assistant" as const, content: t.a }] : [{ role: "user" as const, content: q }];
+    });
+    try {
+      const response = await client.messages.create({
+        model: MODEL,
+        max_tokens: 1500,
+        system: ASK_SYSTEM,
+        output_config: { effort: "low" },
+        messages,
+      });
+      const answer = response.content
+        .flatMap((b) => (b.type === "text" ? [b.text] : []))
+        .join("")
+        .trim();
+      if (!answer) return error(422, "うまく答えられませんでした。聞き方を変えてみてください");
+      return Response.json({ answer });
+    } catch (e) {
+      return apiError(e);
+    }
+  }
 
   // 辞典に足したい言葉を調べる（文字だけなので安い）
   if (typeof body?.term === "string") {

@@ -1070,3 +1070,46 @@ button.stamp {
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* 家で飲んだときの飲み方メモ */
+.recipe-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.best-recipe {
+  margin: 0;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--accent-soft, var(--bg));
+}
+
+/* 記録の画面で AI に聞く */
+.ask-ai {
+  gap: 10px;
+}
+.ask-qa {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ask-q {
+  margin: 0;
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 14px 14px 4px 14px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 14px;
+}
+.ask-a {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px 14px 14px 4px;
+  background: var(--accent-soft);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
