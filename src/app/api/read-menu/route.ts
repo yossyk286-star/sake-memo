@@ -4,10 +4,10 @@ import { timingSafeEqual } from "node:crypto";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
 import { MenuScanResultSchema } from "@/lib/menuScan";
 
-// 料金を抑えるため一番安いモデルを使う。変えたいときは環境変数 MENU_MODEL で上書き
 // 名前で調べるときはネット検索のぶん時間がかかるので、待ち時間の上限を長めにする
 export const maxDuration = 60;
 
+// 料金を抑えるため一番安いモデルを使う。変えたいときは環境変数 MENU_MODEL で上書き
 const MODEL = process.env.MENU_MODEL || "claude-haiku-5-5";
 // 端末側で縮小済みの JPEG を想定。大きすぎる画像は課金がかさむので断る
 const MAX_IMAGE_BASE64 = 1_500_000;
