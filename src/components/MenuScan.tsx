@@ -20,6 +20,7 @@ import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
 import { abvText } from "@/lib/abv";
 import { findCocktail } from "@/lib/cocktails";
+import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { findSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
 import TasteBars, { level } from "./TasteBars";
@@ -33,8 +34,12 @@ const MOODS: { label: string; score: (d: ScannedDrink) => number }[] = [
       level(t.acidity) - 0.7 * level(t.sweetness) - 0.6 * level(t.body),
   },
   {
-    label: "甘め",
+    label: "甘口",
     score: ({ taste: t }) => level(t.sweetness) + 0.2 * level(t.aroma),
+  },
+  {
+    label: "辛口",
+    score: ({ taste: t }) => -level(t.sweetness) + 0.1 * level(t.acidity),
   },
   {
     label: "香り華やか",
@@ -208,16 +213,20 @@ export default function MenuScan({
 
   // 気分を選んだら、その順に並べる（番号はおすすめの計算と同じ、元の並びのまま持つ）
   const [mood, setMood] = useState<string | null>(null);
+  const [genre, setGenre] = useState<Genre | null>(null);
+  const genresHere = GENRES.filter((g) => drinks.some((d) => genreOf(d) === g));
+  // 調べ直してそのジャンルがなくなったときは絞り込みを外す
+  const activeGenre = genre && genresHere.length > 1 && genresHere.includes(genre) ? genre : null;
   // 料理との相性を出したときは、その順を優先する
   const order = useMemo(() => {
-    const idx = drinks.map((_, i) => i);
+    const idx = drinks.map((_, i) => i).filter((i) => !activeGenre || genreOf(drinks[i]) === activeGenre);
     if (pairing) {
       const s = (i: number) => pairing.byName.get(drinks[i].name)?.score ?? 0;
       return idx.sort((a, b) => s(b) - s(a));
     }
     const m = MOODS.find((x) => x.label === mood);
     return m ? idx.sort((a, b) => m.score(drinks[b]) - m.score(drinks[a])) : idx;
-  }, [drinks, mood, pairing]);
+  }, [drinks, mood, pairing, activeGenre]);
 
   // 前に飲んだお酒と、まだ飲んだことのない産地
   const drunkPlaces = useMemo(
@@ -519,6 +528,23 @@ export default function MenuScan({
         <p className={styles.lead}>
           今回は、これまでの好みとはっきり合うお酒が見つかりませんでした。新しい味を試すチャンスです。
         </p>
+      )}
+
+      {genresHere.length > 1 && (
+        <div className="scroll-row" role="group" aria-label="ジャンルで絞り込み">
+          {genresHere.map((g) => (
+            <button
+              key={g}
+              type="button"
+              className="chip kind-chip"
+              style={{ "--kc": genreColor(g) } as React.CSSProperties}
+              aria-pressed={activeGenre === g}
+              onClick={() => setGenre(activeGenre === g ? null : g)}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
       )}
 
       {drinks.length > 1 && (
