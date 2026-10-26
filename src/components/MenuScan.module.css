@@ -109,19 +109,6 @@
   text-align: right;
 }
 
-.moods {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.moods span {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent-dark);
-}
-
 .badges {
   display: flex;
   flex-wrap: wrap;

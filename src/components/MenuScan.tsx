@@ -21,35 +21,12 @@ import styles from "./MenuScan.module.css";
 import { abvText } from "@/lib/abv";
 import { findCocktail } from "@/lib/cocktails";
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
+import { MOODS, moodFromText, type Mood } from "@/lib/moods";
+import MoodPicker from "./MoodPicker";
 import { findSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
-import TasteBars, { level } from "./TasteBars";
+import TasteBars from "./TasteBars";
 
-
-/** 今日の気分。押すと、味の予想からその気分に合う順に並べ替える */
-const MOODS: { label: string; score: (d: ScannedDrink) => number }[] = [
-  {
-    label: "すっきり",
-    score: ({ taste: t }) =>
-      level(t.acidity) - 0.7 * level(t.sweetness) - 0.6 * level(t.body),
-  },
-  {
-    label: "甘口",
-    score: ({ taste: t }) => level(t.sweetness) + 0.2 * level(t.aroma),
-  },
-  {
-    label: "辛口",
-    score: ({ taste: t }) => -level(t.sweetness) + 0.1 * level(t.acidity),
-  },
-  {
-    label: "香り華やか",
-    score: ({ taste: t }) => level(t.aroma) + 0.2 * level(t.sweetness),
-  },
-  {
-    label: "しっかり",
-    score: ({ taste: t }) => level(t.body) - 0.2 * level(t.acidity),
-  },
-];
 
 /** 調べたお酒について AI に聞くときの質問の例 */
 const ASK_SUGGESTIONS = ["どんな味？", "初心者でも飲みやすい？", "どの飲み方がいい？", "合う料理は？"];
@@ -153,6 +130,8 @@ export default function MenuScan({
   const [dish, setDish] = useState("");
   const [pairing, setPairing] = useState<{
     dish: string;
+    /** 料理ではなく、文字で入れた気分を AI に聞いたとき */
+    mood?: boolean;
     byName: Map<string, { score: number; reason: string }>;
   } | null>(null);
   const [pairingBusy, setPairingBusy] = useState(false);
@@ -212,7 +191,7 @@ export default function MenuScan({
   const best = picks ? bestPick(picks) : -1;
 
   // 気分を選んだら、その順に並べる（番号はおすすめの計算と同じ、元の並びのまま持つ）
-  const [mood, setMood] = useState<string | null>(null);
+  const [mood, setMood] = useState<Mood | null>(null);
   const [genre, setGenre] = useState<Genre | null>(null);
   const genresHere = GENRES.filter((g) => drinks.some((d) => genreOf(d) === g));
   // 調べ直してそのジャンルがなくなったときは絞り込みを外す
@@ -224,8 +203,7 @@ export default function MenuScan({
       const s = (i: number) => pairing.byName.get(drinks[i].name)?.score ?? 0;
       return idx.sort((a, b) => s(b) - s(a));
     }
-    const m = MOODS.find((x) => x.label === mood);
-    return m ? idx.sort((a, b) => m.score(drinks[b]) - m.score(drinks[a])) : idx;
+    return mood ? idx.sort((a, b) => mood.score(drinks[b]) - mood.score(drinks[a])) : idx;
   }, [drinks, mood, pairing, activeGenre]);
 
   // 前に飲んだお酒と、まだ飲んだことのない産地
@@ -313,15 +291,15 @@ export default function MenuScan({
   }
 
   /** いま食べている料理に合う順に並べる */
-  async function pairWith() {
-    const d = dish.trim();
+  /** 料理か、文字で入れた気分に合う順を AI に聞く */
+  async function pairWith(d = dish.trim(), asMood = false) {
     if (!d) return;
     if (!passcode) return setError("先に合言葉を入れてください");
     setError("");
     setPairingBusy(true);
     try {
       const data = (await post({
-        dish: d,
+        [asMood ? "mood" : "dish"]: d,
         drinks: drinks.map(({ name, kind, style }) => ({ name, kind, style })),
       })) as PairingResult;
       const byName = new Map<string, { score: number; reason: string }>();
@@ -333,7 +311,7 @@ export default function MenuScan({
             reason: r.reason,
           });
       }
-      setPairing({ dish: d, byName });
+      setPairing({ dish: d, mood: asMood, byName });
       setMood(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "相性を調べられませんでした");
@@ -548,27 +526,26 @@ export default function MenuScan({
       )}
 
       {drinks.length > 1 && (
-        <div
-          className={styles.moods}
-          role="group"
-          aria-label="今日の気分で並べ替え"
-        >
-          <span>今日の気分：</span>
-          {MOODS.map((m) => (
-            <button
-              type="button"
-              key={m.label}
-              className="chip"
-              aria-pressed={mood === m.label}
-              onClick={() => {
-                setMood(mood === m.label ? null : m.label);
-                setPairing(null);
-              }}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
+        <MoodPicker
+          labels={MOODS.map((m) => m.label)}
+          suggest={(q) => MOODS.filter((m) => m.label.includes(q) || m.words.test(q)).map((m) => m.label)}
+          value={mood?.label ?? (pairing?.mood ? pairing.dish : null)}
+          busy={pairingBusy}
+          onPick={(label) => {
+            setMood(MOODS.find((m) => m.label === label) ?? null);
+            setPairing((p) => (label || p?.mood ? null : p));
+          }}
+          onText={(t) => {
+            const m = moodFromText(t);
+            if (m) {
+              setMood(m);
+              setPairing(null);
+            } else pairWith(t, true);
+          }}
+        />
+      )}
+      {mood && !MOODS.some((m) => m.label === mood.label) && (
+        <p className={styles.lead}>「{mood.label}」に合いそうな順に並べました（AI は使っていません）。</p>
       )}
 
       {drinks.length > 1 && (
@@ -609,7 +586,9 @@ export default function MenuScan({
           style={{ alignItems: "center", flexWrap: "nowrap" }}
         >
           <p className={styles.lead} style={{ flex: 1 }}>
-            「{pairing.dish}」に合う順に並べました。
+            {pairing.mood
+              ? `「${pairing.dish}」の気分に合う順に並べました。`
+              : `「${pairing.dish}」に合う順に並べました。`}
           </p>
           <button
             type="button"
@@ -641,7 +620,7 @@ export default function MenuScan({
             {match && (
               <p className={styles.match}>
                 <strong>
-                  {pairing?.dish}との相性{" "}
+                  {pairing?.mood ? "気分に合う度" : `${pairing?.dish}との相性`}{" "}
                   {"●".repeat(match.score) + "○".repeat(5 - match.score)}
                 </strong>
                 {match.reason}
