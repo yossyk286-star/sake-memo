@@ -18,6 +18,7 @@ import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
 import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
 import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
+import AskAI from "./AskAI";
 import TasteBars, { level } from "./TasteBars";
 
 
@@ -41,6 +42,25 @@ const MOODS: { label: string; score: (d: ScannedDrink) => number }[] = [
     score: ({ taste: t }) => level(t.body) - 0.2 * level(t.acidity),
   },
 ];
+
+/** 調べたお酒について AI に聞くときの質問の例 */
+const ASK_SUGGESTIONS = ["どんな味？", "初心者でも飲みやすい？", "どの飲み方がいい？", "合う料理は？"];
+
+/** 調べたお酒の情報を、AI に渡す文にする */
+function drinkContext(d: ScannedDrink) {
+  return [
+    "メニューやラベルで見つけたお酒（まだ飲んでいません）",
+    `お酒：${d.name}`,
+    d.kind && `種類：${[d.kind, d.style].filter(Boolean).join("・")}`,
+    d.maker && `蔵元・醸造所：${d.maker}`,
+    d.origin && `産地：${d.origin}`,
+    d.menuNote && `メニューの説明：${d.menuNote}`,
+    `解説：${d.explanation}`,
+    `おすすめの飲み方：${d.recommendation}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -592,6 +612,10 @@ export default function MenuScan({
                 </dl>
               </details>
             )}
+            <details className={styles.methods}>
+              <summary>AI に聞く</summary>
+              <AskAI bare context={drinkContext(b)} suggestions={ASK_SUGGESTIONS} />
+            </details>
             <button
               type="button"
               className="btn-primary"

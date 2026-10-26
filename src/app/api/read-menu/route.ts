@@ -80,8 +80,8 @@ const MAX_ASK = 300;
 const MAX_CONTEXT = 1500;
 const MAX_HISTORY = 4;
 
-const ASK_SYSTEM = `あなたはお酒にくわしい、やさしい案内役です。利用者が自分の記録（飲んだお酒の感想）を見ながら質問します。
-記録の内容をふまえて、初心者にもわかる日本語で、3〜6文くらいで具体的に答えてください。飲み方の質問には温度や割り方の比率などの数字も入れてください。
+const ASK_SYSTEM = `あなたはお酒にくわしい、やさしい案内役です。利用者が自分の記録（飲んだお酒の感想）や、メニュー・ラベルで見つけたお酒の情報を見ながら質問します。
+その内容をふまえて、初心者にもわかる日本語で、3〜6文くらいで具体的に答えてください。飲み方の質問には温度や割り方の比率などの数字も入れてください。
 見出しや箇条書きの記号（#、*、-）は使わず、ふつうの文章で答えてください。わからないことは推測だと言ってください。`;
 
 function passcodeOK(given: unknown) {
@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       : [];
     const turns = [...history, { q: ask, a: "" }];
     const messages: Anthropic.MessageParam[] = turns.flatMap((t, i) => {
-      const q = i === 0 ? `## わたしの記録\n${context}\n\n## 質問\n${t.q}` : t.q;
+      const q = i === 0 ? `## 見ているもの\n${context}\n\n## 質問\n${t.q}` : t.q;
       return t.a ? [{ role: "user" as const, content: q }, { role: "assistant" as const, content: t.a }] : [{ role: "user" as const, content: q }];
     });
     try {
