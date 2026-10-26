@@ -18,6 +18,7 @@
   --k-whisky: #8a5a2b;
   --k-shochu: #3f8a62;
   --k-other: #7a5aa6;
+  --k-cocktail: #1f8794;
   --tabbar-h: 64px;
   color-scheme: light;
 }
@@ -43,6 +44,7 @@
     --k-whisky: #b07a48;
     --k-shochu: #5aa880;
     --k-other: #9a7cc6;
+    --k-cocktail: #45b3c2;
     color-scheme: dark;
   }
 }
