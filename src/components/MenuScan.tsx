@@ -18,6 +18,9 @@ import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
 import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
 import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
+import { abvText } from "@/lib/abv";
+import { findCocktail } from "@/lib/cocktails";
+import { findSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
 import TasteBars, { level } from "./TasteBars";
 
@@ -94,7 +97,10 @@ export function PickedDrink({
           </button>
         )}
       </div>
-      <p className="term-desc">{drink.explanation}</p>
+      <p className="term-desc">
+        {drink.abv != null && <strong>{abvText(drink.abv, drink.abvStated)}・</strong>}
+        {drink.explanation}
+      </p>
       <p className="term-desc">
         <strong>おすすめの飲み方：</strong>
         {drink.recommendation}
@@ -132,6 +138,9 @@ export default function MenuScan({
   const [drinks, setDrinks] = useState<ScannedDrink[]>(initialDrinks);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  // AI を使わずに出したとき、どこから出したか（調べ直すボタン用）
+  const [localHit, setLocalHit] = useState<{ name: string; how: string; query: string } | null>(null);
+  const [recent, setRecent] = useState<ScannedDrink[]>([]);
   const [records, setRecords] = useState<TastingRecord[]>([]);
   const [wishes, setWishes] = useState<WishDrink[]>([]);
   const [prefs, setPrefs] = useState(EMPTY_PREFS);
@@ -152,6 +161,7 @@ export default function MenuScan({
     listRecords().then(setRecords);
     listWishes().then(setWishes);
     setPrefs(loadPrefs());
+    setRecent(recentSaved(8));
   }, []);
 
   const wishOf = (b: ScannedDrink) => wishes.find((w) => w.name === b.name);
@@ -167,6 +177,7 @@ export default function MenuScan({
       style: d.style,
       maker: d.maker,
       origin: d.origin,
+      abv: d.abv,
       note: b.explanation,
       price: null,
       boughtAt: today(),
@@ -243,9 +254,28 @@ export default function MenuScan({
     }
   }
 
-  async function lookup() {
-    const q = query.trim();
+  /** 調べ済みのお酒を一覧の先頭に出す（AI は使わない） */
+  function showLocal(d: ScannedDrink, how: string, q: string) {
+    const next = [d, ...drinks.filter((x) => x.name !== d.name)];
+    saveLastScan(next, loadLastScan()?.recorded ?? []);
+    setDrinks(next);
+    onScanned?.(next);
+    setStatus("done");
+    setError("");
+    setLocalHit({ name: d.name, how, query: q });
+  }
+
+  async function lookup(fresh = false, text = query) {
+    const q = text.trim();
     if (!q) return;
+    setLocalHit(null);
+    // アプリに入っているカクテルと、前に調べたお酒は AI を呼ばずに出す（無料・オフラインでも出る）
+    if (!fresh) {
+      const cocktail = findCocktail(q);
+      if (cocktail) return (showLocal(cocktail, "アプリに入っている情報", q), setQuery(""));
+      const saved = findSaved(q);
+      if (saved) return (showLocal(saved, "前に調べた情報", q), setQuery(""));
+    }
     if (!passcode) return setError("先に合言葉を入れてください");
     // 見つからなかったときは直して調べ直せるよう、入れた名前を残す
     if (await request({ query: q })) setQuery("");
@@ -306,6 +336,7 @@ export default function MenuScan({
   /** 写真（メニュー・ラベル）か名前を送って、お酒の解説を受け取る */
   async function request(payload: { image: string } | { query: string }) {
     setError("");
+    setLocalHit(null);
     setStatus("reading");
     try {
       const data = await post(payload);
@@ -316,6 +347,9 @@ export default function MenuScan({
             ? "そのお酒が見つかりませんでした。名前を変えて試してみてください"
             : "お酒が見つかりませんでした。メニューやラベルが写るように撮ってみてください",
         );
+      // 次からは AI を呼ばずに出せるよう保存しておく
+      saveLookups(found, "query" in payload ? payload.query : undefined);
+      setRecent(recentSaved(8));
       // 1本だけ（ラベルや名前で調べたとき）は今の一覧の先頭に足す。メニューなら一覧を入れ替える
       let next = found;
       if (found.length === 1) {
@@ -450,6 +484,25 @@ export default function MenuScan({
         </form>
       )}
 
+      {status !== "reading" && recent.length > 0 && (
+        <div className="scroll-row" aria-label="前に調べたお酒">
+          {recent.map((d) => (
+            <button key={d.name} type="button" className="chip" onClick={() => lookup(false, d.name)}>
+              {d.name}
+            </button>
+          ))}
+        </div>
+      )}
+      {localHit && (
+        <p className={styles.lead} style={{ margin: 0 }}>
+          「{localHit.name}」は{localHit.how}から出しました（AI は使っていません）。{" "}
+          {passcode && (
+            <button type="button" className="btn-ghost" style={{ height: 28, padding: "0 8px", fontSize: 12 }} onClick={() => lookup(true, localHit.query)}>
+              AI で調べ直す
+            </button>
+          )}
+        </p>
+      )}
       {error && (
         <p className="error" role="alert">
           {error}
@@ -578,7 +631,7 @@ export default function MenuScan({
               </div>
             )}
             <div className="tags">
-              {[b.kind, b.style, b.origin].filter(Boolean).map((t) => (
+              {[b.kind, b.style, b.origin, b.abv != null ? abvText(b.abv, b.abvStated) : null].filter((t): t is string => !!t).map((t) => (
                 <span key={t} className="tag">
                   {t}
                 </span>

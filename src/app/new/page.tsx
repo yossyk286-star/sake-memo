@@ -36,6 +36,7 @@ function BottleRecord({ bottle, count, best }: { bottle: Bottle; count: number; 
           style: bottle.style,
           maker: bottle.maker,
           origin: bottle.origin,
+          abv: bottle.abv ?? null,
           menuNote: bottle.note,
           shop: "家",
           bottleId: bottle.id,

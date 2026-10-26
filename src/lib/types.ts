@@ -48,6 +48,8 @@ export interface TastingRecord {
   price?: number | null;
   /** 家のお酒（買った瓶）から記録したときの、その瓶の id */
   bottleId?: string;
+  /** アルコール度数（%）。後から増やした項目なので古い記録にはない */
+  abv?: number | null;
   /** 家で飲んだときの飲み方メモ。後から増やした項目なので古い記録にはない */
   serveNote?: ServeNote;
   /** この記録について AI に聞いたこと */
@@ -74,6 +76,8 @@ export interface Bottle {
   note: string;
   /** 買った値段（円） */
   price: number | null;
+  /** アルコール度数（%）。後から増やした項目なので古い瓶にはない */
+  abv?: number | null;
   /** 買った日 YYYY-MM-DD */
   boughtAt: string;
   /** 飲みきったら true */

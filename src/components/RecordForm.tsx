@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MultiChips, SingleChips } from "./ChipGroup";
+import AbvInput from "./AbvInput";
 import GlossarySheet from "./GlossarySheet";
 import { putRecord, listRecords } from "@/lib/db";
 import {
@@ -488,7 +489,14 @@ export default function RecordForm({
           onChange={(e) => set("pairing", e.target.value)}
         />
       </div>
-      <div className="field">
+      <div className="row" style={{ flexWrap: "nowrap", alignItems: "flex-start" }}>
+      <div className="field" style={{ flex: 1, minWidth: 0 }}>
+        <label className="label" htmlFor="f-abv">
+          度数（%）
+        </label>
+        <AbvInput id="f-abv" value={draft.abv} onChange={(v) => set("abv", v)} />
+      </div>
+      <div className="field" style={{ flex: 1, minWidth: 0 }}>
         <label className="label" htmlFor="f-price">
           値段（1杯・円）
         </label>
@@ -504,6 +512,7 @@ export default function RecordForm({
             set("price", digits ? Number(digits) : null);
           }}
         />
+      </div>
       </div>
     </>
   );

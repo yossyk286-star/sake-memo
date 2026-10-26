@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import RadarChart, { SERIES_COLORS } from "@/components/RadarChart";
 import { drinkTitle, stars, yen } from "@/components/RecordCard";
+import { abvText } from "@/lib/abv";
 import { TASTE_AXES } from "@/lib/axes";
 import { listRecords } from "@/lib/db";
 import { compareImage, shareImage } from "@/lib/shareImage";
@@ -18,6 +19,7 @@ const ROWS: [string, (r: TastingRecord) => string][] = [
   ["蔵元", (r) => r.maker],
   ["店・日付", (r) => `${r.shop} ${r.date.slice(5).replace("-", "/")}`],
   ["感じた味", (r) => r.flavors.join("・")],
+  ["度数", (r) => (r.abv ? abvText(r.abv) : "")],
   ["値段", (r) => (r.price ? yen(r.price) : "")],
   ["合わせた料理", (r) => r.pairing],
 ];

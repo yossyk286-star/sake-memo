@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import DailyQuiz from "@/components/DailyQuiz";
 import { CATEGORIES, CHOOSING_TIPS, TERMS, type GlossaryCategory } from "@/lib/glossary";
 import type { TermLookup } from "@/lib/menuScan";
+import { COCKTAIL_LIST, findCocktail } from "@/lib/cocktails";
 import { loadMyTerms, saveMyTerms, type MyTerm } from "@/lib/myTerms";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 
-const FILTERS: ("すべて" | "自分で追加" | GlossaryCategory)[] = ["すべて", "自分で追加", ...CATEGORIES];
+const FILTERS: ("すべて" | "自分で追加" | "カクテル" | GlossaryCategory)[] = ["すべて", "自分で追加", "カクテル", ...CATEGORIES];
 
 /** 辞典にない言葉を AI に調べてもらい、自分の辞典に足す */
 function AddTerm({ query, onAdded }: { query: string; onAdded: (t: MyTerm) => void }) {
@@ -113,8 +114,14 @@ export default function GlossaryPage() {
       (filter === "すべて" || (filter === "自分で追加" ? t.mine : t.category === filter)) &&
       (!q || [t.term, t.reading ?? "", t.description].some((s) => s.toLowerCase().includes(q))),
   );
+  // カクテルはベースや作り方でも探せるようにする
+  const cocktails = COCKTAIL_LIST.filter(
+    (c) =>
+      (filter === "カクテル" || (filter === "すべて" && q)) &&
+      (!q || [c.name, ...c.aliases, c.base, c.recipe].some((s) => s.toLowerCase().includes(q))),
+  );
   // 言葉そのものが辞典にないときだけ、調べて足すボタンを出す
-  const exact = all.some((t) => t.term.toLowerCase() === q || t.reading === q);
+  const exact = all.some((t) => t.term.toLowerCase() === q || t.reading === q) || !!findCocktail(q);
 
   return (
     <>
@@ -157,6 +164,21 @@ export default function GlossaryPage() {
           </section>
         )}
         {q && !exact && <AddTerm key={q} query={query} onAdded={add} />}
+        {cocktails.map((c) => (
+          <article key={`c-${c.name}`} className="card" style={{ gap: 4, padding: "12px 16px" }}>
+            <div className="card-top">
+              <h3 style={{ fontSize: 15 }}>{c.name}</h3>
+              <span className="muted" style={{ fontSize: 11 }}>
+                カクテル・{c.base}・約{c.abv}%
+              </span>
+            </div>
+            <p className="term-desc">{c.explanation}</p>
+            <p className="term-desc">
+              <strong>作り方：</strong>
+              {c.recipe}
+            </p>
+          </article>
+        ))}
         {terms.map((t) => (
           <article
             key={`${t.mine}-${t.term}`}
@@ -185,7 +207,7 @@ export default function GlossaryPage() {
             )}
           </article>
         ))}
-        {terms.length === 0 && !q && <p className="empty">まだありません。</p>}
+        {terms.length === 0 && cocktails.length === 0 && !q && <p className="empty">まだありません。</p>}
       </main>
     </>
   );
