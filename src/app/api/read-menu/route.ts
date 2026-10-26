@@ -171,11 +171,12 @@ export async function POST(req: Request) {
     }
   }
 
-  // 食べている料理と、読み取り済みのお酒の相性（文字だけなので安い）
-  if (typeof body?.dish === "string") {
-    const dish = body.dish.trim();
+  // 食べている料理か今日の気分と、読み取り済みのお酒の相性（文字だけなので安い）
+  if (typeof body?.dish === "string" || typeof body?.mood === "string") {
+    const isMood = typeof body?.mood === "string";
+    const dish = String(isMood ? body.mood : body.dish).trim();
     const drinks = Array.isArray(body.drinks) ? body.drinks.slice(0, MAX_PAIRING_DRINKS) : [];
-    if (!dish || dish.length > MAX_DISH) return error(400, "料理の名前を入れてください");
+    if (!dish || dish.length > MAX_DISH) return error(400, isMood ? "気分を入れてください" : "料理の名前を入れてください");
     if (drinks.length === 0) return error(400, "お酒がありません");
     const list = drinks
       .map((d: Record<string, unknown>, i: number) =>
@@ -191,7 +192,9 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "user",
-            content: `いま「${dish}」を食べています。次のお酒それぞれについて、この料理との相性を付けてください。全部のお酒に付け、違いがわかるよう相対的に付けてください。\n\n${list}`,
+            content: isMood
+              ? `今日の気分は「${dish}」です。次のお酒それぞれについて、この気分にどれくらい合うかを付けてください（score は相性と同じ1〜5、reason はなぜ合う・合わないか）。全部のお酒に付け、違いがわかるよう相対的に付けてください。\n\n${list}`
+              : `いま「${dish}」を食べています。次のお酒それぞれについて、この料理との相性を付けてください。全部のお酒に付け、違いがわかるよう相対的に付けてください。\n\n${list}`,
           },
         ],
       });

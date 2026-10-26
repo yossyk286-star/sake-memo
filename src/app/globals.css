@@ -1120,3 +1120,51 @@ button.stamp {
   display: flex;
   flex-direction: column;
 }
+
+/* --- 今日の気分のプルダウン --- */
+.mood-box {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.mood-box .input {
+  width: 100%;
+  padding-right: 40px;
+}
+.mood-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 100%;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+.mood-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--input-line);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
+}
+.mood-list li {
+  padding: 11px 14px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.mood-list li:hover,
+.mood-list li[aria-selected="true"] {
+  background: var(--input-line);
+}
