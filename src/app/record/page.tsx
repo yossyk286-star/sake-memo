@@ -7,6 +7,7 @@ import AskAI from "@/components/AskAI";
 import { drinkTitle, stars, yen } from "@/components/RecordCard";
 import { TASTE_AXES } from "@/lib/axes";
 import { deleteRecord, putRecord } from "@/lib/db";
+import { abvText } from "@/lib/abv";
 import { hasServeNote, serveNoteText } from "@/lib/serveNote";
 import { recordImage, shareImage } from "@/lib/shareImage";
 import { useRecordFromQuery } from "@/lib/useRecord";
@@ -76,6 +77,7 @@ function DetailBody() {
         ["香り", scoreText(r.aroma ?? null)],
         ["キレ", scoreText(r.finish ?? null)],
         ["合わせた料理", r.pairing || "—"],
+        ["度数", r.abv ? abvText(r.abv) : "—"],
         ["値段", r.price ? yen(r.price) : "—"],
         ["メモ", r.memo || "—"],
       ]

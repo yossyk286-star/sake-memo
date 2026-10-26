@@ -1,6 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { ScannedDrink } from "./menuScan";
 import { loadMyTerms, saveMyTerms, type MyTerm } from "./myTerms";
+import { exportSaved, importSaved } from "./savedLookups";
 import { loadPrefs, savePrefs } from "./prefs";
 import type { Bottle, TastingRecord } from "./types";
 
@@ -117,7 +118,7 @@ export async function exportJSON(): Promise<string> {
   const out: ExportedRecord[] = await Promise.all(
     records.map(async (r) => ({ ...r, photo: r.photo ? await blobToDataURL(r.photo) : null })),
   );
-  return JSON.stringify({ app: "sake-memo", version: 1, records: out, wishes: await listWishes(), bottles: await listBottles(), prefs: loadPrefs(), myTerms: loadMyTerms() });
+  return JSON.stringify({ app: "sake-memo", version: 1, records: out, wishes: await listWishes(), bottles: await listBottles(), prefs: loadPrefs(), myTerms: loadMyTerms(), lookups: exportSaved() });
 }
 
 /** 同じ id の記録は上書きする。読み込んだ件数を返す */
@@ -140,6 +141,7 @@ export async function importJSON(text: string): Promise<number> {
   for (const b of (data.bottles ?? []) as Bottle[]) await tx.objectStore("bottles").put(b);
   await tx.done;
   if (data.prefs) savePrefs({ ...loadPrefs(), ...data.prefs });
+  importSaved(data.lookups);
   if (Array.isArray(data.myTerms)) {
     const mine = loadMyTerms();
     const added = (data.myTerms as MyTerm[]).filter((t) => !mine.some((m) => m.term === t.term));

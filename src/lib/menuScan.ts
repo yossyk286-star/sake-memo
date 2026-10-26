@@ -21,6 +21,13 @@ export const ScannedDrinkSchema = z.object({
   recommendedServe: z.string().describe("いちばんおすすめの飲み方（冷酒、ぬる燗、ロック、ハイボール、よく冷やして など）"),
   recommendation: z.string().describe("おすすめの飲み方を理由つきで1〜2文"),
   pairing: z.string().describe("合いそうな料理・おつまみを1文で"),
+  abv: z
+    .number()
+    .nullable()
+    .describe(
+      "アルコール度数（%）。ラベルやメニューに書いてあればその値、なければ種類・タイプ・銘柄から推定したおおよその値（例：日本酒15、ビール5、ワイン12、ウイスキー40、焼酎25）",
+    ),
+  abvStated: z.boolean().describe("度数がラベルやメニューに書かれていれば true、推定なら false"),
   taste: z
     .object({
       sweetness: TasteLevel.describe("甘さ（1=辛口、5=甘口）"),
@@ -57,7 +64,7 @@ function styleOf(kind: Kind | null, style: string) {
 /** 読み取ったお酒を記録フォームの値に変換する */
 export function drinkToDraft(
   d: ScannedDrink,
-): Pick<RecordDraft, "name" | "maker" | "origin" | "kind" | "style" | "serve" | "menuNote"> {
+): Pick<RecordDraft, "name" | "maker" | "origin" | "kind" | "style" | "serve" | "menuNote" | "abv"> {
   return {
     name: d.name,
     maker: d.maker,
@@ -66,6 +73,8 @@ export function drinkToDraft(
     style: styleOf(d.kind, d.style),
     serve: d.recommendedServe || null,
     menuNote: d.menuNote,
+    // 前の版で調べた結果には度数がない
+    abv: d.abv ?? null,
   };
 }
 

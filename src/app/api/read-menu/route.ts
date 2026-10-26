@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { timingSafeEqual } from "node:crypto";
+import { COCKTAIL_REFERENCE } from "@/lib/cocktails";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
 import { MenuScanResultSchema, PairingResultSchema, TermLookupSchema } from "@/lib/menuScan";
 
@@ -26,7 +27,7 @@ const SYSTEM = `あなたはお酒の初心者に、お酒を解説するアシ�
 - 瓶・缶・箱のラベル写真：写っているお酒（ふつうは1本）の情報をラベルから読み取る。裏ラベルの原材料・精米歩合・アルコール度数・蔵元・産地も手がかりにする
 - お酒の名前：そのお酒1つについて答える。「ネットで調べた情報」が付いていれば、それを優先して使う
 蔵元・産地・タイプは、写真に書かれていなくても、有名な銘柄で確かにわかる場合だけ入れてください。自信がなければ空文字か null にしてください。
-「味の予想」「おすすめの飲み方」「合う料理」「飲み方ごとの違い」は、説明・種類・タイプ・銘柄から推定して必ず埋めてください。複数あるときは違いがわかるよう、相対的に付けてください。
+「味の予想」「おすすめの飲み方」「合う料理」「飲み方ごとの違い」「度数」は、説明・種類・タイプ・銘柄から推定して必ず埋めてください。複数あるときは違いがわかるよう、相対的に付けてください。度数は書いてあればその値（abvStated=true）、なければおおよその値（abvStated=false）にしてください。
 名前で調べたお酒が、調べた情報にもなく、よく知らないときは、名前から推測できる範囲で答え、解説の最初に「${GUESS_MARK}」と書いてください。名前がお酒でなければ空配列にしてください。
 解説とおすすめは、次の用語集と選び方の目安に沿って、やさしい日本語で書いてください。
 
@@ -34,7 +35,10 @@ const SYSTEM = `あなたはお酒の初心者に、お酒を解説するアシ�
 ${TERMS.map((t) => `- ${t.term}（${t.category}）: ${t.description}`).join("\n")}
 
 ## 選び方の目安
-${CHOOSING_TIPS.map((t) => `- ${t}`).join("\n")}`;
+${CHOOSING_TIPS.map((t) => `- ${t}`).join("\n")}
+
+## よくあるカクテル（度数と作り方の目安。メニューにあれば参考にする）
+${COCKTAIL_REFERENCE}`;
 
 /**
  * お酒の名前をネットで調べて、わかったことをメモにする。

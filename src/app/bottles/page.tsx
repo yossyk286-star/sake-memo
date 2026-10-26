@@ -6,12 +6,14 @@ import { SingleChips } from "@/components/ChipGroup";
 import { kindColor, stars, yen } from "@/components/RecordCard";
 import { deleteBottle, listBottles, listRecords, putBottle } from "@/lib/db";
 import { KINDS, STYLES_BY_KIND } from "@/lib/glossary";
+import AbvInput from "@/components/AbvInput";
+import { abvText } from "@/lib/abv";
 import { today } from "@/lib/lastScan";
 import { bestServeNote, serveNoteText } from "@/lib/serveNote";
 import type { Bottle, Kind, TastingRecord } from "@/lib/types";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
-  return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, boughtAt: today(), finished: false };
+  return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, abv: null, boughtAt: today(), finished: false };
 }
 
 /** 買ったお酒を登録するフォーム */
@@ -80,6 +82,12 @@ function AddBottle({ onAdded }: { onAdded: (b: Bottle) => void }) {
         </div>
       </div>
       <div className="field">
+        <label className="label" htmlFor="b-abv">
+          度数（%）
+        </label>
+        <AbvInput id="b-abv" value={draft.abv} onChange={(v) => set("abv", v)} />
+      </div>
+      <div className="field">
         <label className="label" htmlFor="b-price">
           買った値段（円）
         </label>
@@ -134,7 +142,7 @@ function BottleCard({
         {b.finished && <span className="muted">飲みきった</span>}
       </div>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-        {[[b.kind, b.style].filter(Boolean).join("・"), b.maker, b.origin, b.price && yen(b.price), `${b.boughtAt.slice(5).replace("-", "/")}に購入`]
+        {[[b.kind, b.style].filter(Boolean).join("・"), b.maker, b.origin, b.abv && abvText(b.abv), b.price && yen(b.price), `${b.boughtAt.slice(5).replace("-", "/")}に購入`]
           .filter(Boolean)
           .join("・")}
       </p>
