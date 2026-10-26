@@ -1168,3 +1168,28 @@ button.stamp {
 .mood-list li[aria-selected="true"] {
   background: var(--input-line);
 }
+
+/* --- 使い方の説明（「わかった」で消える） --- */
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.hint p {
+  flex: 1;
+  margin: 0;
+}
+.hint button {
+  flex-shrink: 0;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--input-line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}

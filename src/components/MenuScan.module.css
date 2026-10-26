@@ -165,3 +165,120 @@
 .match strong {
   color: var(--accent-dark);
 }
+
+.shootCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shootRow {
+  display: flex;
+  gap: 8px;
+}
+
+.shootRow > * {
+  flex: 1;
+  height: 44px;
+  font-size: 15px;
+}
+
+.sortNow {
+  font-size: 13px;
+  color: var(--accent-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sortPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.cardHead {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cardTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.abv {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.oneLine {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.act {
+  flex-shrink: 0;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--input-line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.act[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.act:disabled {
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+.actMain {
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 700;
+}

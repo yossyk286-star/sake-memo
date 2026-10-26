@@ -25,11 +25,25 @@ import { MOODS, moodFromText, type Mood } from "@/lib/moods";
 import MoodPicker from "./MoodPicker";
 import { findSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
+import Hint from "./Hint";
 import TasteBars from "./TasteBars";
 
 
 /** 調べたお酒について AI に聞くときの質問の例 */
 const ASK_SUGGESTIONS = ["どんな味？", "初心者でも飲みやすい？", "どの飲み方がいい？", "合う料理は？"];
+
+/** 閉じたカードに出す、味のひとこと（2つまで） */
+function tasteWords({ taste: t }: ScannedDrink) {
+  const w = [
+    t.sweetness >= 4 && "甘め",
+    t.sweetness <= 2 && "辛口",
+    t.aroma >= 4 && "香り華やか",
+    t.acidity >= 4 && "酸味しっかり",
+    t.body >= 4 && "しっかりコク",
+    t.body <= 1 && "軽め",
+  ].filter((x): x is string => !!x);
+  return w.length ? w.slice(0, 2).join("・") : "バランス型";
+}
 
 /** 調べたお酒の情報を、AI に渡す文にする */
 function drinkContext(d: ScannedDrink) {
@@ -193,6 +207,9 @@ export default function MenuScan({
   // 気分を選んだら、その順に並べる（番号はおすすめの計算と同じ、元の並びのまま持つ）
   const [mood, setMood] = useState<Mood | null>(null);
   const [genre, setGenre] = useState<Genre | null>(null);
+  const [sortOpen, setSortOpen] = useState(false);
+  // タップで開いているカード（1杯だけのときは最初から開く）
+  const [openCard, setOpenCard] = useState<string | null>(null);
   const genresHere = GENRES.filter((g) => drinks.some((d) => genreOf(d) === g));
   // 調べ直してそのジャンルがなくなったときは絞り込みを外す
   const activeGenre = genre && genresHere.length > 1 && genresHere.includes(genre) ? genre : null;
@@ -205,6 +222,13 @@ export default function MenuScan({
     }
     return mood ? idx.sort((a, b) => mood.score(drinks[b]) - mood.score(drinks[a])) : idx;
   }, [drinks, mood, pairing, activeGenre]);
+  const sortSummary = [
+    activeGenre,
+    mood && `気分：${mood.label}`,
+    pairing && (pairing.mood ? `気分：${pairing.dish}` : `料理：${pairing.dish}`),
+  ]
+    .filter(Boolean)
+    .join("／");
 
   // 前に飲んだお酒と、まだ飲んだことのない産地
   const drunkPlaces = useMemo(
@@ -359,11 +383,15 @@ export default function MenuScan({
 
   return (
     <section className={styles.box} aria-label="メニューやラベルを撮るか、名前で調べて入力">
-      <p className={styles.lead}>
-        {status === "done"
-          ? "「＋ 記録に追加」を押すと、お酒の情報が入った状態で感想を書けます。"
-          : "お酒のメニューや瓶・缶のラベルを撮るか、名前を入れて調べると、解説とおすすめの飲み方を出して、記録の項目に入れます。"}
-      </p>
+      {status === "done" ? (
+        <Hint id="scan-done" className={styles.lead}>
+          お酒の名前をタップすると、説明や飲み方が開きます。「＋記録」を押すと、お酒の情報が入った状態で感想を書けます。
+        </Hint>
+      ) : (
+        <p className={styles.lead}>
+          お酒のメニューや瓶・缶のラベルを撮るか、名前を入れて調べると、解説とおすすめの飲み方を出して、記録の項目に入れます。
+        </p>
+      )}
       {!savedPasscode && (
         <div className="field">
           <label className="label" htmlFor="scan-pass">
@@ -382,6 +410,7 @@ export default function MenuScan({
         </div>
       )}
 
+      <div className={status === "done" ? styles.shootRow : styles.shootCol}>
       <label
         className={`btn-primary ${styles.shoot}`}
         aria-disabled={status === "reading"}
@@ -403,7 +432,7 @@ export default function MenuScan({
         {status === "reading"
           ? "読み取り中…"
           : status === "done"
-            ? "別のメニューやラベルを撮る"
+            ? "撮る"
             : "メニューやラベルを撮って読み取る"}
         <input
           type="file"
@@ -417,7 +446,7 @@ export default function MenuScan({
 
       {status !== "reading" && (
         <label className="btn-secondary" style={{ cursor: "pointer" }}>
-          写真フォルダから選んで読み取る
+          {status === "done" ? "写真から" : "写真フォルダから選んで読み取る"}
           {/* capture を付けないとカメラではなく写真の一覧が開く */}
           <input
             type="file"
@@ -427,6 +456,8 @@ export default function MenuScan({
           />
         </label>
       )}
+
+      </div>
 
       {savedPhoto && status !== "reading" && (
         <button
@@ -497,10 +528,10 @@ export default function MenuScan({
       )}
 
       {drinks.length > 0 && !picks && (
-        <p className={styles.lead}>
+        <Hint id="scan-picks" className={styles.lead}>
           記録が{MIN_RECORDS}
           件以上たまるか、「好み」タブの「わたしの好み」を登録すると、好みに合いそうなお酒に「おすすめ」を付けます。
-        </p>
+        </Hint>
       )}
       {drinks.length > 0 && picks && best < 0 && (
         <p className={styles.lead}>
@@ -508,6 +539,22 @@ export default function MenuScan({
         </p>
       )}
 
+      {drinks.length > 1 && (
+        <div className="row" style={{ alignItems: "center", flexWrap: "nowrap" }}>
+          <button
+            type="button"
+            className="chip"
+            aria-expanded={sortOpen}
+            aria-pressed={sortOpen}
+            onClick={() => setSortOpen(!sortOpen)}
+          >
+            ⇅ 並び替え・絞り込み
+          </button>
+          {sortSummary && <span className={styles.sortNow}>{sortSummary}</span>}
+        </div>
+      )}
+      {drinks.length > 1 && sortOpen && (
+        <div className={styles.sortPanel}>
       {genresHere.length > 1 && (
         <div className="scroll-row" role="group" aria-label="ジャンルで絞り込み">
           {genresHere.map((g) => (
@@ -544,10 +591,6 @@ export default function MenuScan({
           }}
         />
       )}
-      {mood && !MOODS.some((m) => m.label === mood.label) && (
-        <p className={styles.lead}>「{mood.label}」に合いそうな順に並べました（AI は使っていません）。</p>
-      )}
-
       {drinks.length > 1 && (
         <form
           className="row"
@@ -580,6 +623,12 @@ export default function MenuScan({
           </button>
         </form>
       )}
+        </div>
+      )}
+      {mood && !MOODS.some((m) => m.label === mood.label) && (
+        <p className={styles.lead}>「{mood.label}」に合いそうな順に並べました（AI は使っていません）。</p>
+      )}
+
       {pairing && (
         <div
           className="row"
@@ -605,6 +654,8 @@ export default function MenuScan({
         const b = drinks[i];
         const badges = badgesOf(b);
         const match = pairing?.byName.get(b.name);
+        const open = drinks.length === 1 || openCard === b.name;
+        const wished = !!wishOf(b);
         return (
           <article
             key={i}
@@ -616,91 +667,121 @@ export default function MenuScan({
                 <span>{picks[i].reasons.join("、")}</span>
               </div>
             )}
-            <h3>{b.name}</h3>
-            {match && (
-              <p className={styles.match}>
-                <strong>
-                  {pairing?.mood ? "気分に合う度" : `${pairing?.dish}との相性`}{" "}
-                  {"●".repeat(match.score) + "○".repeat(5 - match.score)}
-                </strong>
-                {match.reason}
-              </p>
-            )}
-            {badges.length > 0 && (
-              <div className={styles.badges}>
-                {badges.map((t) => (
-                  <span key={t} className={styles.badge}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="tags">
-              {[b.kind, b.style, b.origin, b.abv != null ? abvText(b.abv, b.abvStated) : null].filter((t): t is string => !!t).map((t) => (
-                <span key={t} className="tag">
-                  {t}
-                </span>
-              ))}
-            </div>
-            <TasteBars taste={b.taste} />
-            {b.menuNote && (
-              <p className="muted">メニューの説明：{b.menuNote}</p>
-            )}
-            <p className={styles.text}>{b.explanation}</p>
-            <p className={styles.text}>
-              <strong>おすすめの飲み方：</strong>
-              {b.recommendation}
-            </p>
-            {b.pairing && (
-              <p className={styles.text}>
-                <strong>合う料理：</strong>
-                {b.pairing}
-              </p>
-            )}
-            {b.serveNotes.length > 0 && (
-              <details className={styles.methods}>
-                <summary>飲み方で比べる</summary>
-                <dl>
-                  {b.serveNotes.map((m) => (
-                    <div key={m.serve} style={{ display: "contents" }}>
-                      <dt>{m.serve}</dt>
-                      <dd>{m.note}</dd>
-                    </div>
+            <button
+              type="button"
+              className={styles.cardHead}
+              aria-expanded={open}
+              onClick={() => setOpenCard(open ? null : b.name)}
+            >
+              <span className={styles.cardTop}>
+                <span className={styles.name}>{b.name}</span>
+                {b.abv != null && <span className={styles.abv}>{abvText(b.abv, b.abvStated)}</span>}
+              </span>
+            </button>
+            {open && (
+              <>
+                {match && (
+                  <p className={styles.match}>
+                    <strong>
+                      {pairing?.mood ? "気分に合う度" : `${pairing?.dish}との相性`}{" "}
+                      {"●".repeat(match.score) + "○".repeat(5 - match.score)}
+                    </strong>
+                    {match.reason}
+                  </p>
+                )}
+                {badges.length > 0 && (
+                  <div className={styles.badges}>
+                    {badges.map((t) => (
+                      <span key={t} className={styles.badge}>
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="tags">
+                  {[b.kind, b.style, b.origin].filter((t): t is string => !!t).map((t) => (
+                    <span key={t} className="tag">
+                      {t}
+                    </span>
                   ))}
-                </dl>
-              </details>
+                </div>
+                <TasteBars taste={b.taste} />
+                {b.menuNote && <p className="muted">メニューの説明：{b.menuNote}</p>}
+                <p className={styles.text}>{b.explanation}</p>
+                <p className={styles.text}>
+                  <strong>おすすめの飲み方：</strong>
+                  {b.recommendation}
+                </p>
+                {b.pairing && (
+                  <p className={styles.text}>
+                    <strong>合う料理：</strong>
+                    {b.pairing}
+                  </p>
+                )}
+                {b.serveNotes.length > 0 && (
+                  <details className={styles.methods}>
+                    <summary>飲み方で比べる</summary>
+                    <dl>
+                      {b.serveNotes.map((m) => (
+                        <div key={m.serve} style={{ display: "contents" }}>
+                          <dt>{m.serve}</dt>
+                          <dd>{m.note}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </details>
+                )}
+                <details className={styles.methods}>
+                  <summary>AI に聞く</summary>
+                  <AskAI bare context={drinkContext(b)} suggestions={ASK_SUGGESTIONS} />
+                </details>
+              </>
             )}
-            <details className={styles.methods}>
-              <summary>AI に聞く</summary>
-              <AskAI bare context={drinkContext(b)} suggestions={ASK_SUGGESTIONS} />
-            </details>
-            <button
-              type="button"
-              className="btn-primary"
-              onClick={() => onPick(b)}
-            >
-              ＋ 記録に追加
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              aria-pressed={!!wishOf(b)}
-              onClick={() => toggleWish(b)}
-            >
-              {wishOf(b)
-                ? "★ 気になるお酒に入れました"
-                : "☆ 気になる（次に試す）"}
-            </button>
-            <button
-              type="button"
-              className="btn-ghost"
-              disabled={bottled.includes(b.name)}
-              onClick={() => addBottle(b)}
-            >
-              {bottled.includes(b.name)
-                ? "家のお酒に登録しました"
-                : "＋ 家のお酒に登録（買った瓶）"}
-            </button>
+            <div className={styles.actions}>
+              {!open && (
+                <button type="button" className={styles.oneLine} onClick={() => setOpenCard(b.name)}>
+                  {match && `${"●".repeat(match.score)}${"○".repeat(5 - match.score)} `}
+                  {tasteWords(b)}｜{[b.kind, b.style].filter(Boolean).join("・") || "種類不明"}
+                </button>
+              )}
+              <button
+                type="button"
+                className={`${styles.act} ${styles.actMain}`}
+                style={open ? { flex: 1 } : undefined}
+                onClick={() => onPick(b)}
+              >
+                ＋記録
+              </button>
+              <button
+                type="button"
+                className={styles.act}
+                aria-pressed={wished}
+                aria-label={wished ? "気になるから外す" : "気になる（次に試す）"}
+                onClick={() => toggleWish(b)}
+              >
+                {wished ? "★" : "☆"}
+              </button>
+              {open ? (
+                <button
+                  type="button"
+                  className={styles.act}
+                  disabled={bottled.includes(b.name)}
+                  aria-label="家のお酒に登録（買った瓶）"
+                  onClick={() => addBottle(b)}
+                >
+                  {bottled.includes(b.name) ? "登録済み" : "瓶"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.act}
+                  aria-label="詳しく見る"
+                  onClick={() => setOpenCard(b.name)}
+                >
+                  ⋯
+                </button>
+              )}
+            </div>
           </article>
         );
       })}
