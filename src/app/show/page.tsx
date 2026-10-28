@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import BuddyFace from "@/components/BuddyFace";
 import { stars, yen } from "@/components/RecordCard";
+import { buddyOn } from "@/lib/buddy";
 import { listRecords } from "@/lib/db";
 import { KINDS } from "@/lib/glossary";
 import { today } from "@/lib/lastScan";
@@ -30,6 +32,9 @@ export default function ShowPage() {
   const [kind, setKind] = useState<Kind | null>(null);
   // カウンター越しに店員さんへ向けるため、カードだけ上下を逆さにする
   const [flipped, setFlipped] = useState(false);
+  // 相棒がカードの隅で会釈する（設定で出さないにしていれば出さない）
+  const [buddy, setBuddy] = useState(false);
+  useEffect(() => setBuddy(buddyOn()), []);
   // いつもの好みを見せるか、今日の気分を見せるか
   const [mode, setMode] = useState<"prefs" | "mood">("prefs");
   const [moods, setMoods] = useState<string[]>([]);
@@ -227,6 +232,12 @@ export default function ShowPage() {
                     <span>おすすめがあれば</span>
                     <span>教えてください</span>
                   </p>
+                  {buddy && (
+                    <div className="show-buddy">
+                      よろしくお願いします
+                      <BuddyFace mood="happy" size={40} />
+                    </div>
+                  )}
                 </section>
               ) : (
                 <section className="show-card" data-flipped={flipped || undefined} aria-label="わたしの好み">
@@ -270,6 +281,12 @@ export default function ShowPage() {
                     <span>おすすめがあれば</span>
                     <span>教えてください</span>
                   </p>
+                  {buddy && (
+                    <div className="show-buddy">
+                      よろしくお願いします
+                      <BuddyFace mood="happy" size={40} />
+                    </div>
+                  )}
                 </section>
               )}
             </>

@@ -82,5 +82,7 @@ export interface Bottle {
   boughtAt: string;
   /** 飲みきったら true */
   finished: boolean;
+  /** 残りわずかのしるし。後から増やした項目なので古い瓶にはない */
+  low?: boolean;
   createdAt: number;
 }

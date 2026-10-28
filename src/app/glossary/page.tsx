@@ -5,6 +5,7 @@ import DailyQuiz from "@/components/DailyQuiz";
 import { CATEGORIES, CHOOSING_TIPS, TERMS, type GlossaryCategory } from "@/lib/glossary";
 import type { TermLookup } from "@/lib/menuScan";
 import { COCKTAIL_LIST, findCocktail } from "@/lib/cocktails";
+import { announceBuddy } from "@/lib/buddy";
 import { loadMyTerms, saveMyTerms, type MyTerm } from "@/lib/myTerms";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 
@@ -97,6 +98,7 @@ export default function GlossaryPage() {
     saveMyTerms(next);
     setJustAdded(t.term);
     setQuery(t.term);
+    announceBuddy({ mood: "wow", text: `「${t.term}」を覚えたね。ひとつ詳しくなった！` });
     setFilter("すべて");
   }
 

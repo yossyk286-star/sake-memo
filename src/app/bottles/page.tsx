@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SingleChips } from "@/components/ChipGroup";
 import { kindColor, stars, yen } from "@/components/RecordCard";
+import { announceBuddy } from "@/lib/buddy";
 import { deleteBottle, listBottles, listRecords, putBottle } from "@/lib/db";
 import { KINDS, STYLES_BY_KIND } from "@/lib/glossary";
 import AbvInput from "@/components/AbvInput";
@@ -141,6 +142,7 @@ function BottleCard({
         </h2>
         <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
           {b.finished && <span className="muted">飲みきった</span>}
+          {!b.finished && b.low && <span className="muted">残りわずか</span>}
           {/* 削除はあまり使わないので、ボタンの列から外して右上に小さく置く */}
           <button type="button" className="text-btn text-danger" onClick={() => onDelete(b.id)}>
             削除
@@ -185,13 +187,24 @@ function BottleCard({
           ))}
         </details>
       )}
-      <div className="row" style={{ flexWrap: "nowrap" }}>
+      <div className="row">
         {!b.finished && (
-          <Link href={`/new?bottle=${b.id}`} className="btn-primary" style={{ flex: 1, whiteSpace: "nowrap" }}>
+          <Link href={`/new?bottle=${b.id}`} className="btn-primary" style={{ flex: "1 0 100%", whiteSpace: "nowrap" }}>
             飲んだ・記録する
           </Link>
         )}
-        <button type="button" className="btn-secondary" onClick={() => onChange({ ...b, finished: !b.finished })}>
+        {!b.finished && (
+          <button
+            type="button"
+            className="btn-secondary"
+            aria-pressed={!!b.low}
+            onClick={() => onChange({ ...b, low: !b.low })}
+            style={{ flex: 1, whiteSpace: "nowrap" }}
+          >
+            残りわずか
+          </button>
+        )}
+        <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => onChange({ ...b, finished: !b.finished })}>
           {b.finished ? "まだある" : "飲みきった"}
         </button>
       </div>
@@ -215,6 +228,13 @@ export default function BottlesPage() {
   );
 
   async function change(b: Bottle) {
+    // 残りわずかにしたら、相棒が次の1本を探すよう声をかける
+    if (b.low && !bottles?.find((x) => x.id === b.id)?.low)
+      announceBuddy({
+        mood: "normal",
+        text: `${b.name}、そろそろなくなりそう？次の1本探す？`,
+        action: { label: "調べる", href: "/scan" },
+      });
     await putBottle(b);
     setBottles((bs) => bs?.map((x) => (x.id === b.id ? b : x)) ?? null);
   }

@@ -15,6 +15,7 @@ import { loadLastScan, saveLastScan, today } from "@/lib/lastScan";
 import { loadPasscode, PASSCODE_KEY } from "@/lib/passcode";
 import { shrinkPhoto } from "@/lib/photo";
 import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
+import { announceBuddy } from "@/lib/buddy";
 import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
 import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
@@ -28,6 +29,8 @@ import AskAI from "./AskAI";
 import Hint from "./Hint";
 import TasteBars from "./TasteBars";
 
+/** 相棒が「好きなやつ」を教えた一覧。アプリを開いている間は同じ一覧で何度も言わない */
+const announcedScans = new Set<string>();
 
 /** 調べたお酒について AI に聞くときの質問の例 */
 const ASK_SUGGESTIONS = ["どんな味？", "初心者でも飲みやすい？", "どの飲み方がいい？", "合う料理は？"];
@@ -231,6 +234,14 @@ export default function MenuScan({
     [drinks, records, prefs],
   );
   const best = picks ? bestPick(picks) : -1;
+  // 好みど真ん中のお酒があれば、相棒がそっと教える（同じ一覧では1回だけ）
+  useEffect(() => {
+    if (best < 0) return;
+    const key = drinks.map((d) => d.name).join("|");
+    if (announcedScans.has(key)) return;
+    announcedScans.add(key);
+    announceBuddy({ mood: "happy", text: `「${drinks[best].name}」、きっと好きなやつだよ` });
+  }, [best, drinks]);
 
   // 気分を選んだら、その順に並べる（番号はおすすめの計算と同じ、元の並びのまま持つ）
   const [mood, setMood] = useState<Mood | null>(null);

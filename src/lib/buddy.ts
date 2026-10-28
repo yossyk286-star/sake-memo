@@ -2,11 +2,12 @@ import { placeOf } from "./origins";
 import type { TastingRecord } from "./types";
 
 /**
- * 相棒（ちっちゃい徳利）が記録を保存したときに言うひとこと。
+ * 相棒（ちっちゃい徳利）が言うひとこと。記録を保存したとき・アプリを開いたときなど。
  * AI は使わず、記録の中身と今までの記録から決まった言葉を選ぶ
  */
 export type BuddyMood = "happy" | "normal" | "wow" | "worried" | "sad";
-export type BuddyLine = { text: string; mood: BuddyMood };
+/** action があれば吹き出しにリンクを出す（例：1年前の記録を見る） */
+export type BuddyLine = { text: string; mood: BuddyMood; action?: { label: string; href: string } };
 
 const KEY = "sake-memo:buddy";
 export const BUDDY_EVENT = "sake-memo:buddy";
@@ -34,7 +35,7 @@ export function announceBuddy(line: BuddyLine) {
 
 const pick = <T>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
 
-function localDate(d: Date) {
+export function localDate(d: Date) {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
@@ -86,7 +87,12 @@ const PLAIN = [
  * 保存した記録へのひとこと。all はこの記録も含めたすべての記録
  * 飲みすぎが心配な日は、ほかより先に心配する
  */
-export function buddyLine(r: TastingRecord, all: TastingRecord[], now = new Date()): BuddyLine {
+export function buddyLine(
+  r: TastingRecord,
+  all: TastingRecord[],
+  opts: { fromWish?: boolean } = {},
+  now = new Date(),
+): BuddyLine {
   const others = all.filter((x) => x.id !== r.id);
   const isToday = r.date === localDate(now);
   const sameDay = all.filter((x) => x.date === r.date).length;
@@ -112,11 +118,22 @@ export function buddyLine(r: TastingRecord, all: TastingRecord[], now = new Date
     return { mood: "wow", text: "はじめての記録だね！これからいっしょに飲んだお酒を覚えていくよ" };
 
   if (MILESTONES.includes(all.length))
-    return { mood: "wow", text: `${all.length}杯目の記録！ここまで続けてえらいなあ` };
+    return { mood: "wow", text: `${all.length}杯目の記録、おめでとう！ここまで続けてえらいなあ` };
 
   const place = placeOf(r);
-  if (place && !others.some((x) => placeOf(x) === place))
-    return { mood: "wow", text: `はじめての${place}！スタンプ押しといたよ` };
+  const newPlace = !!place && !others.some((x) => placeOf(x) === place);
+  if (opts.fromWish)
+    return {
+      mood: "wow",
+      text: newPlace
+        ? `ついに飲めたね！${place}のスタンプも押しといたよ`
+        : `ついに飲めたね！${r.name ? `${r.name}は` : ""}気になるリストから外しておいたよ`,
+    };
+
+  if (newPlace) return { mood: "wow", text: `${place}、はじめまして！スタンプ押しといたよ` };
+
+  if (r.kind && !others.some((x) => x.kind === r.kind))
+    return { mood: "wow", text: `はじめての${r.kind}！新しい扉だね` };
 
   const name = r.name.trim();
   const before = name ? others.filter((x) => x.name.trim() === name) : [];
@@ -161,4 +178,56 @@ export function buddyLine(r: TastingRecord, all: TastingRecord[], now = new Date
 
   const lines = kindLines(r);
   return { mood: "happy", text: pick(lines.length > 0 && Math.random() < 0.7 ? lines : PLAIN) };
+}
+
+/** 開いたときのひとことを、どれをいつ出したか覚えておく */
+const SEEN_KEY = "sake-memo:buddy-seen";
+type Seen = { lastOpen?: string; yearAgo?: string; friday?: string };
+
+function loadSeen(): Seen {
+  try {
+    return JSON.parse(localStorage.getItem(SEEN_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+const daysBetween = (a: string, b: string) =>
+  Math.round((new Date(`${b}T12:00:00`).getTime() - new Date(`${a}T12:00:00`).getTime()) / 86400000);
+
+/**
+ * アプリを開いたときのひとこと。出すぎないよう、どれも間をあけて1回だけ
+ * - 1年前の今日に記録があれば（1日1回）
+ * - 2週間以上あいて開いたら「おかえり」
+ * - 金曜の夕方から夜（週に1回）
+ */
+export function openLine(records: TastingRecord[], now = new Date()): BuddyLine | null {
+  const today = localDate(now);
+  const seen = loadSeen();
+  const next: Seen = { ...seen, lastOpen: today };
+  let line: BuddyLine | null = null;
+
+  const ago = new Date(now);
+  ago.setFullYear(ago.getFullYear() - 1);
+  const yearAgo = records.filter((r) => r.date === localDate(ago));
+  const gap = seen.lastOpen ? daysBetween(seen.lastOpen, today) : 0;
+
+  if (yearAgo.length > 0 && seen.yearAgo !== today) {
+    const best = yearAgo.reduce((a, b) => (b.overall > a.overall ? b : a));
+    line = {
+      mood: "wow",
+      text: `1年前の今日は「${best.name || best.kind || "お酒"}」を飲んでたよ${yearAgo.length > 1 ? `（ほか${yearAgo.length - 1}杯）` : ""}`,
+      action: { label: "見る", href: `/record?id=${best.id}` },
+    };
+    next.yearAgo = today;
+  } else if (gap >= 14) {
+    line = { mood: "happy", text: `おかえり！${gap}日ぶりだね。また一緒に記録しよう` };
+  } else if (now.getDay() === 5 && now.getHours() >= 17 && (!seen.friday || daysBetween(seen.friday, today) >= 7)) {
+    line = { mood: "happy", text: "金曜の夜だね。今日は何飲む？", action: { label: "調べる", href: "/scan" } };
+    next.friday = today;
+  }
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify(next));
+  } catch {}
+  return line;
 }
