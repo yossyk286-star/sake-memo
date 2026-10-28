@@ -859,10 +859,10 @@ export default function MenuScan({
                   type="button"
                   className={styles.act}
                   disabled={bottled.includes(b.name)}
-                  aria-label="家のお酒に登録（買った瓶）"
+                  aria-label="家のお酒に登録（買って家にあるお酒）"
                   onClick={() => addBottle(b)}
                 >
-                  {bottled.includes(b.name) ? "登録済み" : "瓶"}
+                  {bottled.includes(b.name) ? "家のお酒 ✓" : "＋家のお酒"}
                 </button>
               ) : (
                 <button
