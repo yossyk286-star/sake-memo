@@ -168,9 +168,7 @@ textarea {
   gap: 8px;
   min-height: calc(48px + env(safe-area-inset-top));
   padding: env(safe-area-inset-top) 8px 0;
-  background: var(--bar-bg);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
+  background: var(--bg);
   border-bottom: 0.5px solid var(--line);
 }
 .sub-header h1 {
@@ -1840,4 +1838,17 @@ input[type="search"].input:focus {
 }
 .hub-show strong {
   color: var(--accent);
+}
+
+/* 画面のいちばん上（時計や電池の裏）は、スクロールしても背景と同じ無地の色で隠す（ぼやけて透けないように） */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: env(safe-area-inset-top);
+  background: var(--bg);
+  pointer-events: none;
 }
