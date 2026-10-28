@@ -560,7 +560,7 @@ export default function RecordForm({
               aria-pressed={draft.shop.trim() === "家"}
               onClick={() => set("shop", draft.shop.trim() === "家" ? "" : "家")}
             >
-              🏠 家で
+              家で
             </button>
           </div>
           <datalist id="shop-names">
