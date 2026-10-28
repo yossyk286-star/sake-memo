@@ -315,3 +315,9 @@
 .drink > .cardHead {
   padding-right: 28px;
 }
+
+/* 色の付いた箱の中では、ボタンと入力欄を白く浮かせる */
+.box.box :global(.btn-secondary),
+.box.box :global(.input) {
+  background-color: var(--surface);
+}

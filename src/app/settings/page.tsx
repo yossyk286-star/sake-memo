@@ -1,11 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { exportJSON, importJSON } from "@/lib/db";
+import { ACCENTS, DEFAULT_THEME, loadTheme, saveTheme, type Appearance, type Theme } from "@/lib/theme";
+
+const APPEARANCES: { id: Appearance; label: string }[] = [
+  { id: "auto", label: "自動" },
+  { id: "light", label: "ライト" },
+  { id: "dark", label: "ダーク" },
+];
 
 export default function SettingsPage() {
   const [message, setMessage] = useState("");
+  const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
+  useEffect(() => setTheme(loadTheme()), []);
+
+  function changeTheme(next: Partial<Theme>) {
+    const t = { ...theme, ...next };
+    setTheme(t);
+    saveTheme(t);
+  }
 
   async function download() {
     const blob = new Blob([await exportJSON()], { type: "application/json" });
@@ -38,8 +53,46 @@ export default function SettingsPage() {
         <h1>設定</h1>
       </header>
       <main className="content" style={{ paddingTop: 16 }}>
+        <h2 className="section-title">見た目</h2>
+        <section className="card" style={{ gap: 14 }}>
+          <div className="setting-row">
+            <span>明るさ</span>
+            <div className="mode-switch three" role="group" aria-label="明るさ">
+              {APPEARANCES.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  aria-pressed={theme.appearance === a.id}
+                  onClick={() => changeTheme({ appearance: a.id })}
+                >
+                  {a.label}
+                </button>
+              ))}
+            </div>
+            <p className="muted">「自動」はスマホの設定に合わせて、夜は暗い画面になります。</p>
+          </div>
+          <div className="setting-row">
+            <span>テーマ色</span>
+            <div className="swatches" role="group" aria-label="テーマ色">
+              {ACCENTS.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  className="swatch"
+                  aria-pressed={theme.accent === a.id}
+                  onClick={() => changeTheme({ accent: a.id })}
+                >
+                  <i style={{ "--sw": a.light } as React.CSSProperties} />
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <h2 className="section-title">データ</h2>
         <section className="card">
-          <h2>データのバックアップ</h2>
+          <h2>バックアップ</h2>
           <p className="muted" style={{ lineHeight: 1.7 }}>
             記録はこの端末の中だけに保存されています。機種変更のときや念のために、ファイルに書き出しておけます。
           </p>
