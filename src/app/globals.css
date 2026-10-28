@@ -2207,14 +2207,9 @@ body::before {
   align-items: flex-end;
   gap: 6px;
   width: min(calc(100% - 32px), 420px);
-  padding: 0;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
   transform: translateX(-50%);
 }
-.buddy-face {
+.buddy .buddy-face {
   flex: none;
   animation: buddy-hop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) backwards;
 }
@@ -2288,4 +2283,78 @@ body::before {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+.buddy-text {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.buddy-action {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+/* 記録がまだない画面では、相棒が最初の1杯を誘う */
+.buddy-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 24px 12px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.buddy-empty strong {
+  color: var(--text);
+  font-size: 17px;
+}
+.buddy-empty .buddy-face {
+  animation: buddy-sway 2.4s ease-in-out infinite;
+  transform-origin: 50% 95%;
+}
+@keyframes buddy-sway {
+  25% {
+    transform: rotate(-4deg);
+  }
+  75% {
+    transform: rotate(4deg);
+  }
+}
+/* 店員さんに見せるカードの隅で会釈する */
+.show-buddy {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: -6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.show-buddy .buddy-face {
+  animation: buddy-bow 2.6s 0.6s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+@keyframes buddy-bow {
+  15%,
+  35% {
+    transform: rotate(18deg) translateY(2px);
+  }
+  50% {
+    transform: none;
+  }
+}
+/* 「残りわずか」など、押すと付くしるしのボタン */
+.btn-secondary[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
 }

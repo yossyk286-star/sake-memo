@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import GenreSortBar from "@/components/GenreSortBar";
+import BuddyFace from "@/components/BuddyFace";
 import Hint from "@/components/Hint";
 import SwipeRecord from "@/components/SwipeRecord";
 import { listRecords } from "@/lib/db";
@@ -140,11 +141,11 @@ export default function RecordsPage() {
           </div>
         )}
         {records?.length === 0 && (
-          <p className="empty">
-            まだ記録がありません。
-            <br />
-            下の「調べる」でお酒を調べるか、「記録する」から残してみましょう。
-          </p>
+          <div className="buddy-empty">
+            <BuddyFace mood="happy" size={72} />
+            <strong>最初の1杯、いっしょに記録しよう</strong>
+            <span>下の「調べる」でお酒を調べるか、「記録する」から残してみてね。</span>
+          </div>
         )}
         {records && records.length > 0 && filtering && days.length === 0 && (
           <p className="empty">当てはまる記録がありません。</p>
