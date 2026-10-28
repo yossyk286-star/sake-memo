@@ -120,11 +120,15 @@ function drawRadar(
   });
   ctx.fillStyle = COLORS.text;
   ctx.font = font(30, true);
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
+  // 軸名はいちばん外の角から外向きに少し離し、角の向きに合わせて寄せる（点と重ならないように）
   axes.forEach((a, i) => {
-    const [x, y] = at(i, 6.3);
-    ctx.fillText(a, x, y);
+    const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const [x, y] = at(i, 5);
+    ctx.textAlign = cos > 0.3 ? "left" : cos < -0.3 ? "right" : "center";
+    ctx.textBaseline = sin < -0.3 ? "bottom" : sin > 0.3 ? "top" : "middle";
+    ctx.fillText(a, x + cos * 26, y + sin * 26);
   });
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
