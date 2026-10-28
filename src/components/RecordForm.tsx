@@ -6,6 +6,7 @@ import { MultiChips, SingleChips } from "./ChipGroup";
 import AbvInput from "./AbvInput";
 import GlossarySheet from "./GlossarySheet";
 import SavedCheck from "./SavedCheck";
+import { announceBuddy, buddyLine } from "@/lib/buddy";
 import { putRecord, listRecords } from "@/lib/db";
 import {
   ALL_SERVES,
@@ -330,6 +331,8 @@ export default function RecordForm({
     setSaved(true);
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) await new Promise((r) => setTimeout(r, 700));
     setSaved(false);
+    // 新しい記録のときだけ、相棒がひとこと言う
+    if (!initial) listRecords().then((all) => announceBuddy(buddyLine(record, all)));
     if (onSaved) return onSaved(record);
     router.replace(initial ? `/record?id=${record.id}` : "/");
   }
