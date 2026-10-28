@@ -1963,6 +1963,29 @@ input[type="search"].input:focus {
     transition: none;
   }
 }
+.show-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--fill);
+}
+.show-modes button {
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.show-modes button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
 .show-ask span,
 .show-thanks span {
   display: inline-block;
