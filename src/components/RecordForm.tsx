@@ -309,7 +309,7 @@ export default function RecordForm({
   }
 
   async function save() {
-    if (!draft.shop.trim()) return setError("店名を入れてください");
+    if (!draft.shop.trim()) return setError("店名を入れるか「家で」を選んでください");
     if (!draft.overall) return setError("総合の評価を選んでください");
     setError("");
     setSaving(true);
@@ -541,16 +541,28 @@ export default function RecordForm({
         </div>
         <div className="field">
           <label className="label" htmlFor="f-shop">
-            店名 <span className="req">必須</span>
+            どこで飲んだ <span className="req">必須</span>
           </label>
-          <input
-            id="f-shop"
-            className="input"
-            list="shop-names"
-            placeholder="例：〇〇酒場"
-            value={draft.shop}
-            onChange={(e) => set("shop", e.target.value)}
-          />
+          <div className="row" style={{ flexWrap: "nowrap" }}>
+            <input
+              id="f-shop"
+              className="input"
+              list="shop-names"
+              placeholder="店名（例：〇〇酒場）"
+              value={draft.shop}
+              onChange={(e) => set("shop", e.target.value)}
+            />
+            {/* 家で買って飲んだときは店名の代わりに「家」 */}
+            <button
+              type="button"
+              className="chip"
+              style={{ flexShrink: 0 }}
+              aria-pressed={draft.shop.trim() === "家"}
+              onClick={() => set("shop", draft.shop.trim() === "家" ? "" : "家")}
+            >
+              🏠 家で
+            </button>
+          </div>
           <datalist id="shop-names">
             {shopNames.map((s) => (
               <option key={s} value={s} />

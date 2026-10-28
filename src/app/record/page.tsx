@@ -62,7 +62,7 @@ function DetailBody() {
   const rows: [string, string][] = r
     ? [
         ["日付", r.date],
-        ["店名", r.shop],
+        ["飲んだ場所", r.shop],
         ["種類", [r.kind, r.style].filter(Boolean).join("・") || "—"],
         ["銘柄", r.name || "—"],
         ["蔵元・醸造所", r.maker || "—"],

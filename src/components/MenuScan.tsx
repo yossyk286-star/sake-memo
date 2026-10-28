@@ -131,6 +131,8 @@ export default function MenuScan({
   const [status, setStatus] = useState<"idle" | "reading" | "done">(
     initialDrinks.length ? "done" : "idle",
   );
+  // 名前で調べている最中はその名前。写真の読み取りと出し分ける
+  const [searching, setSearching] = useState<string | null>(null);
   const [drinks, setDrinks] = useState<ScannedDrink[]>(initialDrinks);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -375,6 +377,7 @@ export default function MenuScan({
   async function request(payload: { image: string } | { query: string }) {
     setError("");
     setLocalHit(null);
+    setSearching("query" in payload ? payload.query : null);
     setStatus("reading");
     try {
       const data = await post(payload);
@@ -457,7 +460,7 @@ export default function MenuScan({
           <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
           <circle cx="12" cy="13" r="3.5" />
         </svg>
-        {status === "reading"
+        {status === "reading" && !searching
           ? "読み取り中…"
           : status === "done"
             ? "撮る"
@@ -486,6 +489,12 @@ export default function MenuScan({
       )}
 
       </div>
+
+      {status === "reading" && searching && (
+        <p className={styles.lead} role="status">
+          「{searching}」を調べています…
+        </p>
+      )}
 
       {savedPhoto && status !== "reading" && (
         <button
