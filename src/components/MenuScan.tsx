@@ -736,33 +736,32 @@ export default function MenuScan({
             key={i}
             className={`${styles.drink} ${i === best ? styles.best : ""}`}
           >
+            {/* 右上の角に置き、度数や「＋記録」から離して押し間違いを防ぐ */}
+            <button
+              type="button"
+              className={styles.remove}
+              aria-label={`${b.name}を一覧から外す`}
+              onClick={() => hide([b.name], `「${b.name}」`)}
+            >
+              ✕
+            </button>
             {i === best && picks && (
               <div className={styles.pick}>
                 <strong>あなたへのおすすめ</strong>
                 <span>{picks[i].reasons.join("、")}</span>
               </div>
             )}
-            <div className={styles.headRow}>
-              <button
-                type="button"
-                className={styles.cardHead}
-                aria-expanded={open}
-                onClick={() => setOpenCard(open ? null : b.name)}
-              >
-                <span className={styles.cardTop}>
-                  <span className={styles.name}>{b.name}</span>
-                  {b.abv != null && <span className={styles.abv}>{abvText(b.abv, b.abvStated)}</span>}
-                </span>
-              </button>
-              <button
-                type="button"
-                className={styles.remove}
-                aria-label={`${b.name}を一覧から外す`}
-                onClick={() => hide([b.name], `「${b.name}」`)}
-              >
-                ✕
-              </button>
-            </div>
+            <button
+              type="button"
+              className={styles.cardHead}
+              aria-expanded={open}
+              onClick={() => setOpenCard(open ? null : b.name)}
+            >
+              <span className={styles.cardTop}>
+                <span className={styles.name}>{b.name}</span>
+                {b.abv != null && <span className={styles.abv}>{abvText(b.abv, b.abvStated)}</span>}
+              </span>
+            </button>
             {open && (
               <>
                 {match && (
