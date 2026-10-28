@@ -17,6 +17,9 @@ const COLORS = {
 
 export type ShareSeries = { label: string; values: (number | null | undefined)[] };
 
+/** 総合の点。★1〜5 を「4.0」のように出す */
+const scoreText = (n: number) => n.toFixed(1);
+
 export type RecordShare = {
   title: string;
   overall: number;
@@ -165,7 +168,7 @@ function toBlob(canvas: HTMLCanvasElement) {
 export async function recordImage(r: RecordShare) {
   const { canvas, ctx } = base();
   let y = PAD + 8;
-  // 評価が3つ以上あるときだけグラフを描く（総合だけだと線になってしまう）
+  // 評価が3つ以上あるときだけグラフを描く（2つ以下だと線になってしまう）
   const hasRadar = r.values.filter((v) => v).length >= 3;
 
   if (r.photo) {
@@ -181,16 +184,26 @@ export async function recordImage(r: RecordShare) {
     ctx.fillText(line, PAD, y + 50);
     y += 74;
   }
-  ctx.fillStyle = COLORS.accent;
-  ctx.font = font(44);
-  ctx.fillText(stars(r.overall), PAD, y + 40);
-  y += 70;
   if (r.tags.length) {
     ctx.fillStyle = COLORS.muted;
     ctx.font = font(30);
     ctx.fillText(wrap(ctx, r.tags.join("・"), W - PAD * 2, 1)[0], PAD, y + 30);
     y += 56;
   }
+
+  // 総合はグラフに入れず、グラフの上に大きな数字で出す
+  y += 16;
+  ctx.fillStyle = COLORS.muted;
+  ctx.font = font(30, true);
+  ctx.fillText("総合評価", PAD, y + 62);
+  const labelW = ctx.measureText("総合評価").width;
+  ctx.fillStyle = COLORS.accent;
+  ctx.font = font(96, true);
+  ctx.fillText(scoreText(r.overall), PAD + labelW + 28, y + 80);
+  const scoreW = ctx.measureText(scoreText(r.overall)).width;
+  ctx.font = font(44);
+  ctx.fillText(stars(r.overall), PAD + labelW + 28 + scoreW + 24, y + 72);
+  y += 110;
 
   const bottom = H - PAD - 60;
   const textLines = (r.flavors.length ? 1 : 0) + (r.memo ? 2 : 0);
@@ -221,7 +234,7 @@ export async function recordImage(r: RecordShare) {
 }
 
 /** 2つの記録をくらべた画像 */
-export async function compareImage(axes: string[], series: (ShareSeries & { sub: string })[]) {
+export async function compareImage(axes: string[], series: (ShareSeries & { sub: string; overall: number })[]) {
   const { canvas, ctx } = base();
   ctx.fillStyle = COLORS.accent;
   ctx.font = font(34, true);
@@ -232,12 +245,22 @@ export async function compareImage(axes: string[], series: (ShareSeries & { sub:
     ctx.beginPath();
     ctx.arc(PAD + 16, y + 26, 16, 0, Math.PI * 2);
     ctx.fill();
+    // 右に総合の点を大きく出す
+    const scoreW = 200;
+    ctx.fillStyle = COLORS.muted;
+    ctx.font = font(24, true);
+    ctx.textAlign = "right";
+    ctx.fillText("総合", W - PAD, y + 8);
+    ctx.fillStyle = COLORS.series[i];
+    ctx.font = font(76, true);
+    ctx.fillText(scoreText(s.overall), W - PAD, y + 82);
+    ctx.textAlign = "left";
     ctx.fillStyle = COLORS.text;
     ctx.font = font(44, true);
-    ctx.fillText(wrap(ctx, s.label, W - PAD * 2 - 50, 1)[0], PAD + 50, y + 42);
+    ctx.fillText(wrap(ctx, s.label, W - PAD * 2 - 50 - scoreW, 1)[0], PAD + 50, y + 42);
     ctx.fillStyle = COLORS.muted;
     ctx.font = font(28);
-    ctx.fillText(wrap(ctx, s.sub, W - PAD * 2 - 50, 1)[0], PAD + 50, y + 88);
+    ctx.fillText(wrap(ctx, s.sub, W - PAD * 2 - 50 - scoreW, 1)[0], PAD + 50, y + 88);
     y += 130;
   });
   const room = H - PAD - 80 - y;
