@@ -11,13 +11,15 @@ const MAX = 5;
 function point(i: number, n: number, value: number) {
   // 1つ目の軸を真上に置き、時計回りに並べる
   const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
-  const r = (RADIUS * value) / MAX;
+  // いちばん内側の輪を 0（未入力）にして、1〜5 をその外側に並べる。
+  // 未入力の軸があっても中心まで尖らず、五角形の形のまま見られる
+  const r = (RADIUS * (value + 1)) / (MAX + 1);
   return [CENTER + r * Math.cos(angle), CENTER + r * Math.sin(angle)] as const;
 }
 
 const toPoints = (ps: (readonly [number, number])[]) => ps.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
 
-/** 1〜5 の評価を多角形のグラフで重ねる。未入力の軸は飛ばして、入れた軸だけを結ぶ */
+/** 1〜5 の評価を多角形のグラフで重ねる。未入力の軸はいちばん内側の輪（0）に置く */
 export default function RadarChart({ axes, series }: { axes: string[]; series: RadarSeries[] }) {
   const n = axes.length;
   return (
@@ -30,7 +32,7 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
         .map((s) => `${s.label}：${axes.map((a, i) => `${a}${s.values[i] ?? "未入力"}`).join("、")}`)
         .join("。")}
     >
-      {[1, 2, 3, 4, 5].map((level) => (
+      {[0, 1, 2, 3, 4, 5].map((level) => (
         <polygon
           key={level}
           points={toPoints(axes.map((_, i) => point(i, n, level)))}
@@ -45,16 +47,13 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
       })}
       {series.map((s, si) => {
         const color = SERIES_COLORS[si % SERIES_COLORS.length];
-        // 未入力を 0 として中心に置くと「とても弱い」に見えてしまうので、入れた軸だけを結ぶ
-        const ps = s.values.flatMap((v, i) => (v ? [point(i, n, v)] : []));
+        const ps = s.values.map((v, i) => point(i, n, v ?? 0));
         return (
           <g key={si}>
-            {ps.length > 1 && (
-              <polygon points={toPoints(ps)} fill={color} fillOpacity={0.18} stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
+            <polygon points={toPoints(ps)} fill={color} fillOpacity={0.18} stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
+            {ps.map(([x, y], i) =>
+              s.values[i] ? <circle key={i} cx={x} cy={y} r={3.5} fill={color} /> : null,
             )}
-            {ps.map(([x, y], i) => (
-              <circle key={i} cx={x} cy={y} r={3.5} fill={color} />
-            ))}
           </g>
         );
       })}
