@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import RecordCard, { drinkTitle, stars, yen } from "@/components/RecordCard";
 import { listRecords } from "@/lib/db";
-import { groupByShop } from "@/lib/shops";
+import { groupByShop, mapsUrl } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
 
 /** 値段を入れた記録があれば「・平均 800円」 */
@@ -23,6 +23,7 @@ function ShopBody() {
   }, []);
 
   const shop = useMemo(() => groupByShop(records ?? []).find((s) => s.name === name), [records, name]);
+  const shopMap = mapsUrl(name);
 
   return (
     <>
@@ -46,6 +47,11 @@ function ShopBody() {
               {shop.records.length}杯の記録
               {priceNote(shop.records)}
             </p>
+            {shopMap && (
+              <a href={shopMap} target="_blank" rel="noopener noreferrer" className="btn-secondary">
+                Google マップで開く
+              </a>
+            )}
             {shop.records.map((r) => (
               <RecordCard key={r.id} record={r} />
             ))}

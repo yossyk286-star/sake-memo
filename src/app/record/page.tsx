@@ -10,6 +10,7 @@ import { TASTE_AXES } from "@/lib/axes";
 import { deleteRecord, putRecord } from "@/lib/db";
 import { abvText } from "@/lib/abv";
 import { hasServeNote, serveNoteText } from "@/lib/serveNote";
+import { mapsUrl } from "@/lib/shops";
 import { recordImage, shareImage } from "@/lib/shareImage";
 import { useRecordFromQuery } from "@/lib/useRecord";
 import type { QA } from "@/lib/types";
@@ -96,6 +97,7 @@ function DetailBody() {
         ["値段", r.price ? yen(r.price) : ""],
       ]
     : [];
+  const shopMap = r ? mapsUrl(r.shop) : null;
   const scores = r ? TASTE_AXES.map(([label, get]) => [label, get(r) ?? null] as const) : [];
   const filledScores = scores.filter(([, v]) => v);
   /** AI に聞くときに渡す中身（入っている欄だけ） */
@@ -145,7 +147,14 @@ function DetailBody() {
                 </span>
               </div>
             </div>
-            <p className="detail-when">{[r.date.replaceAll("-", "/"), r.shop].filter(Boolean).join("・")}</p>
+            <div className="detail-when">
+              <span>{[r.date.replaceAll("-", "/"), r.shop].filter(Boolean).join("・")}</span>
+              {shopMap && (
+                <a href={shopMap} target="_blank" rel="noopener noreferrer" className="map-link">
+                  地図
+                </a>
+              )}
+            </div>
           </div>
 
           {(filledScores.length > 0 || r.flavors.length > 0) && (

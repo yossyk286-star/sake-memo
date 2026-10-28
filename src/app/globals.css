@@ -697,11 +697,29 @@ textarea.input {
   letter-spacing: 0;
 }
 .detail-when {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0;
   padding-top: 10px;
   border-top: 0.5px solid var(--line);
   font-size: 14px;
   color: var(--muted);
+}
+/* 店名で Google マップを開く小さなボタン */
+.map-link {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 /* 味：五角形のグラフと5段階の目盛り */

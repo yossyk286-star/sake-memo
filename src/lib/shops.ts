@@ -8,12 +8,19 @@ export type ShopSummary = {
   best: TastingRecord;
 };
 
-/** 行った店ごとにまとめる。最近行った順 */
+/** 家で飲んだ記録はお店ではないので、お店の一覧にも地図にも出さない */
+const HOME_NAMES = new Set(["家", "自宅", "うち", "家飲み"]);
+
+export function isHome(shop: string) {
+  return HOME_NAMES.has(shop.trim());
+}
+
+/** 行った店ごとにまとめる（家は除く）。最近行った順 */
 export function groupByShop(records: TastingRecord[]): ShopSummary[] {
   const groups = new Map<string, TastingRecord[]>();
   for (const r of records) {
     const name = r.shop.trim();
-    if (name) groups.set(name, [...(groups.get(name) ?? []), r]);
+    if (name && !isHome(name)) groups.set(name, [...(groups.get(name) ?? []), r]);
   }
   return [...groups]
     .map(([name, rs]) => {
@@ -22,4 +29,11 @@ export function groupByShop(records: TastingRecord[]): ShopSummary[] {
       return { name, records: sorted, lastDate: sorted[0].date, best };
     })
     .sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+}
+
+/** 店名で Google マップを検索するリンク（API キー不要・無料）。家なら null */
+export function mapsUrl(shop: string): string | null {
+  const name = shop.trim();
+  if (!name || isHome(name)) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
 }
