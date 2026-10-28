@@ -51,9 +51,10 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
         return (
           <g key={si}>
             <polygon points={toPoints(ps)} fill={color} fillOpacity={0.18} stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
-            {ps.map(([x, y], i) =>
-              s.values[i] ? <circle key={i} cx={x} cy={y} r={3.5} fill={color} /> : null,
-            )}
+            {/* 角ごとに点を打つ（未入力の角も内側の輪の上に） */}
+            {ps.map(([x, y], i) => (
+              <circle key={i} cx={x} cy={y} r={3.5} fill={color} />
+            ))}
           </g>
         );
       })}

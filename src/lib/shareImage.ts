@@ -65,7 +65,7 @@ function stars(n: number) {
   return "★".repeat(n) + "☆".repeat(5 - n);
 }
 
-/** 1〜5 の評価を多角形で描く。未入力の軸は中心 */
+/** 1〜5 の評価を多角形で描く。いちばん内側の輪が 0（未入力）で、1〜5 はその外側（画面の RadarChart と同じ） */
 function drawRadar(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -77,10 +77,11 @@ function drawRadar(
   const n = axes.length;
   const at = (i: number, v: number) => {
     const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
-    return [cx + ((radius * v) / 5) * Math.cos(a), cy + ((radius * v) / 5) * Math.sin(a)] as const;
+    const r = (radius * (v + 1)) / 6;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)] as const;
   };
   ctx.strokeStyle = COLORS.line;
-  for (let level = 1; level <= 5; level++) {
+  for (let level = 0; level <= 5; level++) {
     ctx.lineWidth = level === 5 ? 3 : 2;
     ctx.beginPath();
     axes.forEach((_, i) => {
@@ -108,6 +109,14 @@ function drawRadar(
     ctx.lineWidth = 6;
     ctx.lineJoin = "round";
     ctx.stroke();
+    // 角ごとに点を打つ（未入力の角も内側の輪の上に）
+    ctx.fillStyle = color;
+    s.values.forEach((v, i) => {
+      const [x, y] = at(i, v ?? 0);
+      ctx.beginPath();
+      ctx.arc(x, y, 9, 0, Math.PI * 2);
+      ctx.fill();
+    });
   });
   ctx.fillStyle = COLORS.text;
   ctx.font = font(30, true);
