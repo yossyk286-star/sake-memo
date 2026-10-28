@@ -1508,3 +1508,122 @@ input[type="search"].input:focus {
   border-bottom: 2.5px solid #fff;
   transform: rotate(-45deg);
 }
+
+/* --- 動き --- */
+
+/* 画面の切り替え：ふわっと出す（位置は動かさない。下に固定したボタンがずれないように） */
+.page-enter {
+  animation: fade-in 0.22s ease-out backwards;
+}
+
+/* 一覧やカードが上から順にすっと浮かび上がる */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.content > *,
+.hub > * {
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+}
+.content > :nth-child(2),
+.hub > :nth-child(2) {
+  animation-delay: 0.04s;
+}
+.content > :nth-child(3),
+.hub > :nth-child(3) {
+  animation-delay: 0.08s;
+}
+.content > :nth-child(4),
+.hub > :nth-child(4) {
+  animation-delay: 0.12s;
+}
+.content > :nth-child(5),
+.hub > :nth-child(5) {
+  animation-delay: 0.16s;
+}
+.content > :nth-child(n + 6),
+.hub > :nth-child(n + 6) {
+  animation-delay: 0.2s;
+}
+/* 入れ子の .content（日付ごとの区切りなど）は親と一緒に動くので重ねない */
+.content .content > * {
+  animation: none;
+}
+
+/* ★を押すとポンと弾む。左から順に少しずつ遅らせる */
+@keyframes star-pop {
+  40% {
+    transform: scale(1.35);
+  }
+  70% {
+    transform: scale(0.92);
+  }
+}
+.star-rating button.on {
+  animation: star-pop 0.4s ease backwards;
+}
+.star-rating button.on:nth-child(2) {
+  animation-delay: 0.03s;
+}
+.star-rating button.on:nth-child(3) {
+  animation-delay: 0.06s;
+}
+.star-rating button.on:nth-child(4) {
+  animation-delay: 0.09s;
+}
+.star-rating button.on:nth-child(5) {
+  animation-delay: 0.12s;
+}
+
+/* 保存したときの ✓ */
+.saved-check {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.saved-check-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 28px 20px;
+  border-radius: 22px;
+  background: var(--bar-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: var(--shadow-lift);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 700;
+  animation: check-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3) backwards;
+}
+.saved-check circle {
+  stroke-dasharray: 176;
+  animation: draw 0.4s ease-out backwards;
+}
+.saved-check path {
+  stroke-dasharray: 40;
+  animation: draw-tick 0.3s 0.25s ease-out backwards;
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: 176;
+  }
+}
+@keyframes draw-tick {
+  from {
+    stroke-dashoffset: 40;
+  }
+}
+@keyframes check-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
