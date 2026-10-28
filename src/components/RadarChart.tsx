@@ -59,11 +59,19 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
         );
       })}
       {axes.map((a, i) => {
-        const [x, y] = point(i, n, MAX + 1.1);
+        // 軸名はいちばん外の角から外向きに少し離し、角の向きに合わせて寄せる（点と重ならないように）
+        const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const [px, py] = point(i, n, MAX);
+        const x = px + cos * 10;
+        const y = py + sin * 10;
+        const anchor = cos > 0.3 ? "start" : cos < -0.3 ? "end" : "middle";
+        const baseline = sin < -0.3 ? "auto" : sin > 0.3 ? "hanging" : "middle";
         // どの記録にも入っていない軸は、名前を薄くする
         const empty = series.every((s) => !s.values[i]);
         return (
-          <text key={a} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="13" fill={empty ? "var(--muted)" : "var(--text)"}>
+          <text key={a} x={x} y={y} textAnchor={anchor} dominantBaseline={baseline} fontSize="13" fill={empty ? "var(--muted)" : "var(--text)"}>
             {a}
           </text>
         );
