@@ -1822,6 +1822,24 @@ input[type="search"].input:focus {
   font-weight: 700;
   color: var(--accent);
 }
+.show-card {
+  transition: transform 0.35s ease;
+}
+.show-card[data-flipped] {
+  transform: rotate(180deg);
+}
+.show-flip {
+  gap: 8px;
+}
+.show-flip[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .show-card {
+    transition: none;
+  }
+}
 .show-ask span,
 .show-thanks span {
   display: inline-block;
