@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import BuddyFace from "@/components/BuddyFace";
+import { announceBuddy, buddyOn, setBuddyOn } from "@/lib/buddy";
 import { exportJSON, importJSON } from "@/lib/db";
 import { ACCENTS, DEFAULT_THEME, loadTheme, saveTheme, type Appearance, type Theme } from "@/lib/theme";
 
@@ -14,7 +16,17 @@ const APPEARANCES: { id: Appearance; label: string }[] = [
 export default function SettingsPage() {
   const [message, setMessage] = useState("");
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
-  useEffect(() => setTheme(loadTheme()), []);
+  const [buddy, setBuddy] = useState(true);
+  useEffect(() => {
+    setTheme(loadTheme());
+    setBuddy(buddyOn());
+  }, []);
+
+  function changeBuddy(on: boolean) {
+    setBuddy(on);
+    setBuddyOn(on);
+    if (on) announceBuddy({ mood: "happy", text: "また記録するとき、ひとこと言うね！" });
+  }
 
   function changeTheme(next: Partial<Theme>) {
     const t = { ...theme, ...next };
@@ -87,6 +99,24 @@ export default function SettingsPage() {
                 </button>
               ))}
             </div>
+          </div>
+        </section>
+
+        <h2 className="section-title">相棒</h2>
+        <section className="card">
+          <div className="buddy-setting">
+            <BuddyFace mood={buddy ? "happy" : "normal"} size={52} />
+            <p className="muted" style={{ margin: 0 }}>
+              記録を保存すると、ちっちゃい徳利がひとこと言います。飲みすぎの日は心配もします。
+            </p>
+          </div>
+          <div className="mode-switch" role="group" aria-label="相棒">
+            <button type="button" aria-pressed={buddy} onClick={() => changeBuddy(true)}>
+              出す
+            </button>
+            <button type="button" aria-pressed={!buddy} onClick={() => changeBuddy(false)}>
+              出さない
+            </button>
           </div>
         </section>
 

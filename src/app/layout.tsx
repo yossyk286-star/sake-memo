@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import ServiceWorker from "@/components/ServiceWorker";
+import Buddy from "@/components/Buddy";
 import LaunchScreen from "@/components/LaunchScreen";
 import TabBar from "@/components/TabBar";
 import ThemeSync from "@/components/ThemeSync";
@@ -57,6 +58,7 @@ export default function RootLayout({
         <LaunchScreen />
         <div className="app">{children}</div>
         <TabBar />
+        <Buddy />
         <ServiceWorker />
         <ThemeSync />
       </body>
