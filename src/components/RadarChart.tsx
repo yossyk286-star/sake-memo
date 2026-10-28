@@ -17,7 +17,7 @@ function point(i: number, n: number, value: number) {
 
 const toPoints = (ps: (readonly [number, number])[]) => ps.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
 
-/** 1〜5 の評価を多角形のグラフで重ねる。未入力の軸は中心に置く */
+/** 1〜5 の評価を多角形のグラフで重ねる。未入力の軸は飛ばして、入れた軸だけを結ぶ */
 export default function RadarChart({ axes, series }: { axes: string[]; series: RadarSeries[] }) {
   const n = axes.length;
   return (
@@ -45,20 +45,25 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
       })}
       {series.map((s, si) => {
         const color = SERIES_COLORS[si % SERIES_COLORS.length];
-        const ps = s.values.map((v, i) => point(i, n, v ?? 0));
+        // 未入力を 0 として中心に置くと「とても弱い」に見えてしまうので、入れた軸だけを結ぶ
+        const ps = s.values.flatMap((v, i) => (v ? [point(i, n, v)] : []));
         return (
           <g key={si}>
-            <polygon points={toPoints(ps)} fill={color} fillOpacity={0.18} stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
-            {ps.map(([x, y], i) =>
-              s.values[i] ? <circle key={i} cx={x} cy={y} r={3.5} fill={color} /> : null,
+            {ps.length > 1 && (
+              <polygon points={toPoints(ps)} fill={color} fillOpacity={0.18} stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
             )}
+            {ps.map(([x, y], i) => (
+              <circle key={i} cx={x} cy={y} r={3.5} fill={color} />
+            ))}
           </g>
         );
       })}
       {axes.map((a, i) => {
         const [x, y] = point(i, n, MAX + 1.1);
+        // どの記録にも入っていない軸は、名前を薄くする
+        const empty = series.every((s) => !s.values[i]);
         return (
-          <text key={a} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="13" fill="var(--text)">
+          <text key={a} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="13" fill={empty ? "var(--muted)" : "var(--text)"}>
             {a}
           </text>
         );

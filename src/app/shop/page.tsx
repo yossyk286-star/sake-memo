@@ -28,7 +28,7 @@ function ShopBody() {
     <>
       <header className="sub-header">
         <Link href="/shops" className="back">
-          ‹ お店
+          ‹ 戻る
         </Link>
         <h1>{name}</h1>
       </header>

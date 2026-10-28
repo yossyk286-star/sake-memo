@@ -656,6 +656,10 @@ textarea.input {
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
+/* 長い名前（ワインなど）は見出しが何行にもならないよう小さく */
+.detail-hero h2.is-long {
+  font-size: 17px;
+}
 .kind-tag {
   align-self: flex-start;
   background: color-mix(in srgb, var(--kind) 14%, var(--surface));
@@ -1310,6 +1314,20 @@ button.stamp {
 }
 
 /* --- 家のお酒 --- */
+/* カードの右上に置く小さな文字だけのボタン。押せる高さは確保する */
+.text-btn {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.text-danger {
+  color: var(--danger);
+}
+
 .kind-dot {
   flex-shrink: 0;
   width: 12px;
