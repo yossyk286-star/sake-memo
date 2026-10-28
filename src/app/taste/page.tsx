@@ -104,6 +104,10 @@ export default function TastePage() {
       </header>
       {summary && <p className="lead">記録 {count}件から。数字は総合の平均（カッコ内は件数）です。</p>}
       <main className="content">
+        <Link href="/show" className="hub-item hub-show">
+          <strong>店員さんに見せる</strong>
+          <span className="muted">好みを大きく表示して「こういうのください」</span>
+        </Link>
         <nav className="hub" aria-label="記録のまとめ">
           <Link href="/stamps" className="hub-item">
             <strong>産地スタンプ帳</strong>

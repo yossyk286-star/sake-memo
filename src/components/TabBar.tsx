@@ -43,8 +43,8 @@ const TABS = [
   },
 ];
 
-// 入力・詳細画面はタブを出さない（保存ボタンと重なるため）
-const HIDDEN_ON = ["/new", "/edit"];
+// 入力・詳細画面はタブを出さない（保存ボタンと重なるため）。店員さんに見せる画面も、見せるものだけにする
+const HIDDEN_ON = ["/new", "/edit", "/show"];
 
 // 好みのタブから開くまとめの画面
 const TASTE_PAGES = ["/taste", "/stamps", "/shops", "/shop", "/prefs", "/bottles"];

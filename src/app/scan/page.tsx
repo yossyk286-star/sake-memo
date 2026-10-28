@@ -21,6 +21,9 @@ export default function ScanPage() {
     <>
       <header className="page-header">
         <h1>お酒を調べる</h1>
+        <Link href="/show" className="header-pill">
+          店員さんに見せる
+        </Link>
       </header>
 
       <Hint id="scan-page" className="lead">

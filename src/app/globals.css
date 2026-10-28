@@ -1736,4 +1736,100 @@ input[type="search"].input:focus {
 }
 .stamp-wait .stamp-meta {
   visibility: hidden;
+
+/* --- 店員さんに見せる --- */
+.show-page {
+  padding-top: 12px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+}
+.show-card {
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: inset 0 6px 0 var(--accent), var(--shadow);
+  padding: 26px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.show-ask {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+.show-taste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.show-pill {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.show-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.show-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.show-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.show-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.show-favs ul {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.show-favs li {
+  display: flex;
+  flex-direction: column;
+  font-size: 20px;
+}
+.show-favs li .muted {
+  font-size: 15px;
+}
+.show-thanks {
+  margin: 0;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--line);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.header-pill {
+  align-self: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.hub-show {
+  background: var(--accent-soft);
+}
+.hub-show strong {
+  color: var(--accent);
 }
