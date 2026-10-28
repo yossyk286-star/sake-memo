@@ -851,6 +851,28 @@ button.stamp {
   display: block;
   overflow-wrap: anywhere;
 }
+.compare-overall {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  text-align: center;
+}
+.compare-overall div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+.compare-overall .muted {
+  font-size: 12px;
+}
+.compare-overall strong {
+  font-size: 36px;
+  font-variant-numeric: tabular-nums;
+}
+.compare-overall .stars {
+  font-size: 13px;
+}
 .compare-table {
   width: 100%;
   border-collapse: collapse;
