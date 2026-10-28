@@ -88,12 +88,21 @@ const ASK_SYSTEM = `あなたはお酒にくわしい、やさしい案内役で
 その内容をふまえて、初心者にもわかる日本語で、3〜6文くらいで具体的に答えてください。飲み方の質問には温度や割り方の比率などの数字も入れてください。
 見出しや箇条書きの記号（#、*、-）は使わず、ふつうの文章で答えてください。わからないことは推測だと言ってください。`;
 
+// 日本語の合言葉も使えるよう、空白・全角/半角・カタカナ/ひらがな・大文字/小文字の揺れをそろえて比べる
+// （「アイ」と「あい」、「ABC」と「abc」を同じとみなす）
+function foldPasscode(s: string) {
+  return s
+    .normalize("NFKC")
+    .replace(/\s+/g, "")
+    .replace(/[\u30a1-\u30f6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .toLowerCase();
+}
+
 function passcodeOK(given: unknown) {
   const expected = process.env.APP_PASSCODE;
   if (!expected || typeof given !== "string") return false;
-  // 日本語の合言葉も使えるよう、前後の空白と全角/半角の揺れをそろえて比べる
-  const a = Buffer.from(given.trim().normalize("NFKC"));
-  const b = Buffer.from(expected.trim().normalize("NFKC"));
+  const a = Buffer.from(foldPasscode(given));
+  const b = Buffer.from(foldPasscode(expected));
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
