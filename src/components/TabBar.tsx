@@ -68,7 +68,9 @@ export default function TabBar() {
           const active =
             t.href === "/"
               ? pathname === "/" || pathname === "/record" || pathname === "/compare"
-              : t.href === "/taste"
+              : t.href === "/scan"
+                ? pathname.startsWith("/scan") || pathname === "/pair"
+                : t.href === "/taste"
                 ? TASTE_PAGES.includes(pathname)
                 : pathname.startsWith(t.href);
           // 真ん中の「調べる」はお店で片手で押しやすいよう大きな丸ボタンにする

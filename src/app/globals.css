@@ -2358,3 +2358,141 @@ body::before {
   background: var(--accent);
   color: var(--on-accent);
 }
+
+/* 料理から選ぶ */
+.pair-link {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.pair-link-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.pair-link-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pair-result,
+.pair-mine {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pair-head {
+  margin: 6px 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.pair-mine .pair-head {
+  font-size: 15px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.pair-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent-soft);
+  border-radius: var(--radius);
+  padding: 10px 14px 10px 10px;
+}
+.pair-tip p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.pair-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pair-pick {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+.pair-rank {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--kind);
+}
+.pair-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pair-body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.pair-body .muted {
+  font-size: 13px;
+}
+.pair-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: inherit;
+}
+.pair-row + .pair-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 38px;
+  right: 0;
+  border-top: 0.5px solid var(--line);
+}
+.pair-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pair-row-body strong {
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pair-row-body .muted {
+  font-size: 13px;
+}
+.pair-chevron {
+  color: var(--fill-strong);
+  font-size: 22px;
+  line-height: 1;
+}
+.pair-none,
+.pair-from {
+  margin: 0 4px;
+  font-size: 13px;
+}
