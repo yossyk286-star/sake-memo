@@ -62,7 +62,7 @@ export default function ShowPage() {
         </Link>
         <h1>店員さんに見せる</h1>
         <Link href="/prefs" className="back" style={{ gridColumn: 3, justifySelf: "end" }}>
-          好みを直す
+          編集
         </Link>
       </header>
 

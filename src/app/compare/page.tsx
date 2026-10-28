@@ -95,7 +95,13 @@ function CompareBody() {
         <h1>くらべる</h1>
       </header>
       <main className="content" style={{ paddingTop: 16 }}>
-        {records && !a && <p className="empty">記録が見つかりませんでした。</p>}
+        {records && !a && (
+          <p className="empty">
+            くらべる記録が選ばれていません。
+            <br />
+            記録を開いて「ほかの記録とくらべる」から選べます。
+          </p>
+        )}
         {a && !b && (
           <>
             <p style={{ margin: 0, fontSize: 14 }}>「{drinkTitle(a)}」と比べる記録を選んでください。</p>

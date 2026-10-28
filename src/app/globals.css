@@ -418,6 +418,13 @@ textarea.input {
   font-weight: 700;
   cursor: pointer;
   padding: 0;
+  position: relative;
+}
+/* 見た目は小さいまま、押せる範囲を 44px に広げる */
+.help::after {
+  content: "";
+  position: absolute;
+  inset: -11px;
 }
 .ratings {
   display: flex;
@@ -754,7 +761,8 @@ textarea.input {
 
 /* --- 好み --- */
 .highlight {
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #000));
+  /* 白い文字が読めるよう、ダークモードでも濃いほうの色を使う */
+  background: linear-gradient(135deg, var(--accent-l), color-mix(in srgb, var(--accent-l) 70%, #000));
   color: #fff;
   border-radius: 20px;
   padding: 20px;
@@ -844,7 +852,7 @@ textarea.input {
 }
 .swipe-edit {
   left: 0;
-  background: var(--accent);
+  background: var(--accent-l);
 }
 .swipe-delete {
   right: 0;

@@ -136,7 +136,7 @@ export default function GlossaryPage() {
           id="g-search"
           type="search"
           className="input"
-          placeholder="用語を検索（なければ調べて追加できます）"
+          placeholder="用語を検索"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
