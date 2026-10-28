@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import MenuScan, { PickedDrink } from "@/components/MenuScan";
 import RecordForm from "@/components/RecordForm";
 import { drinkToDraft, type ScannedDrink } from "@/lib/menuScan";
+import { photosOf } from "@/lib/photo";
 import { useRecordFromQuery } from "@/lib/useRecord";
 
 function EditBody() {
@@ -24,7 +25,7 @@ function EditBody() {
       {record && (
         <>
           {picked && <PickedDrink drink={picked} />}
-          {!picked && scanOpen && <MenuScan onPick={setPicked} savedPhoto={record.photo} />}
+          {!picked && scanOpen && <MenuScan onPick={setPicked} savedPhoto={photosOf(record)[0] ?? null} />}
           {!picked && !scanOpen && (
             <div style={{ padding: "16px 16px 0" }}>
               <button type="button" className="btn-secondary" style={{ width: "100%" }} onClick={() => setScanOpen(true)}>

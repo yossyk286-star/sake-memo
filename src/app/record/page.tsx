@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import AskAI from "@/components/AskAI";
+import { PhotoAddButton, PhotoRow } from "@/components/PhotoAdd";
 import RadarChart from "@/components/RadarChart";
 import { drinkTitle, kindColor, stars, yen } from "@/components/RecordCard";
 import { TASTE_AXES } from "@/lib/axes";
 import { deleteRecord, putRecord } from "@/lib/db";
 import { abvText } from "@/lib/abv";
 import { hasServeNote, serveNoteText } from "@/lib/serveNote";
+import { photosOf, shrinkPhotos } from "@/lib/photo";
 import { mapsUrl } from "@/lib/shops";
 import { recordImage, shareImage } from "@/lib/shareImage";
 import { useRecordFromQuery } from "@/lib/useRecord";
@@ -42,12 +44,26 @@ function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
 function DetailBody() {
   const router = useRouter();
   const loaded = useRecordFromQuery();
-  // AI に聞いた答えを足したらその場で表示を変える
+  // AI に聞いた答えや写真を足したらその場で表示を変える
   const [r, setR] = useState(loaded);
   useEffect(() => setR(loaded), [loaded]);
-  const photo = r?.photo;
-  const photoURL = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo]);
-  useEffect(() => () => void (photoURL && URL.revokeObjectURL(photoURL)), [photoURL]);
+  const photos = useMemo(() => (r ? photosOf(r) : []), [r]);
+  const [photoError, setPhotoError] = useState("");
+
+  /** 編集画面を開かずに、写真だけその場で足す */
+  async function addPhotos(files: FileList | null) {
+    if (!r) return;
+    try {
+      const added = await shrinkPhotos(files);
+      if (added.length === 0) return;
+      const next = { ...r, photos: [...photosOf(r), ...added], photo: null, updatedAt: Date.now() };
+      await putRecord(next);
+      setR(next);
+      setPhotoError("");
+    } catch {
+      setPhotoError("写真を読み込めませんでした");
+    }
+  }
 
   async function remove() {
     if (!r || !confirm("この記録を削除しますか？")) return;
@@ -66,7 +82,7 @@ function DetailBody() {
       flavors: r.flavors,
       memo: r.memo,
       footer: [r.shop, r.date.replaceAll("-", "/")].filter(Boolean).join("・"),
-      photo: r.photo,
+      photo: photos[0] ?? null,
     });
     await shareImage(blob, drinkTitle(r)).catch(() => alert("共有できませんでした"));
   }
@@ -124,9 +140,15 @@ function DetailBody() {
       {r === null && <p className="empty">記録が見つかりませんでした。</p>}
       {r && (
         <main className="content" style={{ paddingTop: 16 }}>
-          {photoURL && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={photoURL} alt="記録の写真" className="photo-preview" />
+          {/* 写真があるときは右下に小さく重ね、ないときも幅いっぱいにしない */}
+          <div className="photo-wrap">
+            <PhotoRow photos={photos} />
+            <PhotoAddButton chip label={photos.length > 0 ? "＋ 写真" : "＋ 写真を追加"} onFiles={addPhotos} />
+          </div>
+          {photoError && (
+            <p className="error" role="alert">
+              {photoError}
+            </p>
           )}
           <div className="card detail-hero">
             <div className="detail-hero-top">
