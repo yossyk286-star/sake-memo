@@ -108,3 +108,39 @@ export function isEmptyCard(c: ShowCard) {
     !c.budget
   );
 }
+
+/** 今日の気分（src/lib/moods.ts の MOODS）を、店員さんに伝わる言い方にする。ないものはそのまま出す */
+const MOOD_PHRASES: Record<string, string> = {
+  すっきり: "すっきりしたもの",
+  香り華やか: "香りが華やか",
+  しっかりコク: "コクがしっかり",
+  "軽め・弱め": "軽めで度数低め",
+  "強め・酔いたい": "強めのもの",
+  飲みやすい: "飲みやすいもの",
+  食事と一緒に: "食事に合うもの",
+  シュワっと炭酸: "シュワっと炭酸",
+  あったかいの: "温かいもの",
+  キンキンに冷たく: "キンキンに冷えたもの",
+};
+
+export function moodPhrase(label: string) {
+  return MOOD_PHRASES[label] ?? label;
+}
+
+const MOOD_KEY = "sake-memo:show-mood";
+
+/** 選んだ今日の気分。同じ日のうちは開き直しても残す */
+export function loadTodayMoods(today: string): string[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(MOOD_KEY) ?? "null");
+    return saved?.date === today && Array.isArray(saved.moods) ? saved.moods : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveTodayMoods(today: string, moods: string[]) {
+  try {
+    localStorage.setItem(MOOD_KEY, JSON.stringify({ date: today, moods }));
+  } catch {}
+}
