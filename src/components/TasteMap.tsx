@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import RecordCard from "./RecordCard";
+import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
 
 const LEVELS = [1, 2, 3, 4, 5] as const;
@@ -21,12 +22,16 @@ function cellColor(avg: number) {
 
 /**
  * 甘さ（横）とコク（縦）で記録を並べた味の地図。
- * マスの数字は杯数、色の濃さは総合の平均。マスを押すとそのお酒を出す
+ * マスの数字は杯数、色の濃さは総合の平均。マスを押すとそのお酒を出す。
+ * 2種類以上あれば、ジャンルで絞り込める
  */
 export default function TasteMap({ records }: { records: TastingRecord[] }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const placed = records.filter((r) => r.sweetness && r.body);
-  if (placed.length === 0) {
+  const [genre, setGenre] = useState<Genre | null>(null);
+  const all = records.filter((r) => r.sweetness && r.body);
+  const genres = GENRES.filter((g) => all.some((r) => genreOf(r) === g));
+  const placed = genre ? all.filter((r) => genreOf(r) === genre) : all;
+  if (all.length === 0) {
     return (
       <section className="card">
         <h2 style={{ fontSize: 14 }}>味マップ</h2>
@@ -54,9 +59,39 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
   return (
     <section className="card" style={{ gap: 10 }}>
       <h2 style={{ fontSize: 14 }}>味マップ</h2>
+      {genres.length > 1 && (
+        <div className="scroll-row" role="group" aria-label="味マップをジャンルで絞り込み">
+          <button
+            type="button"
+            className="chip"
+            aria-pressed={genre === null}
+            onClick={() => {
+              setGenre(null);
+              setSelected(null);
+            }}
+          >
+            すべて
+          </button>
+          {genres.map((g) => (
+            <button
+              key={g}
+              type="button"
+              className="chip kind-chip"
+              style={{ "--kc": genreColor(g) } as React.CSSProperties}
+              aria-pressed={genre === g}
+              onClick={() => {
+                setGenre(genre === g ? null : g);
+                setSelected(null);
+              }}
+            >
+              {g}
+            </button>
+          ))}
+        </div>
+      )}
       {center && (
         <p style={{ margin: 0, fontSize: 14 }}>
-          高く評価したお酒は<strong>{SWEET_WORDS[center.sweet]}・{BODY_WORDS[center.body]}</strong>のあたりに集まっています。
+          {genre ? `${genre}で` : ""}高く評価したお酒は<strong>{SWEET_WORDS[center.sweet]}・{BODY_WORDS[center.body]}</strong>のあたりに集まっています。
         </p>
       )}
       <div className="taste-map">
