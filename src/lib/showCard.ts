@@ -120,7 +120,7 @@ const MOOD_PHRASES: Record<string, string> = {
   食事と一緒に: "食事に合うもの",
   シュワっと炭酸: "シュワっと炭酸",
   あったかいの: "温かいもの",
-  キンキンに冷たく: "キンキンに冷えたもの",
+  キンキンに冷たく: "よく冷えたもの",
 };
 
 export function moodPhrase(label: string) {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { stars, yen } from "@/components/RecordCard";
 import { listRecords } from "@/lib/db";
+import { KINDS } from "@/lib/glossary";
 import { today } from "@/lib/lastScan";
 import { MOODS } from "@/lib/moods";
 import { loadPrefs, type MyPrefs } from "@/lib/prefs";
@@ -60,6 +61,11 @@ export default function ShowPage() {
   }, []);
 
   const kinds = useMemo(() => (records && prefs ? showKinds(records, prefs) : []), [records, prefs]);
+  // 今日の気分では、記録がない種類も選べるようにする（よく飲む種類が先）
+  const kindOptions = useMemo(
+    () => (mode === "mood" ? [...new Set([...kinds, ...KINDS.filter((k) => k !== "その他")])] : kinds),
+    [mode, kinds],
+  );
   const card = useMemo(() => (records && prefs ? buildShowCard(records, prefs, kind) : null), [records, prefs, kind]);
 
   function updateMoods(next: string[]) {
@@ -93,7 +99,15 @@ export default function ShowPage() {
           {/* 相手に向けているあいだは、カードが上に来るよう選ぶところを隠す */}
           {!flipped && (
             <div className="show-modes" role="group" aria-label="見せるもの">
-              <button type="button" aria-pressed={mode === "prefs"} onClick={() => setMode("prefs")}>
+              <button
+                type="button"
+                aria-pressed={mode === "prefs"}
+                onClick={() => {
+                  setMode("prefs");
+                  // 今日の気分で記録のない種類を選んでいたら、いつもの種類に戻す
+                  if (kind && !kinds.includes(kind)) setKind(kinds[0] ?? null);
+                }}
+              >
                 いつもの好み
               </button>
               <button type="button" aria-pressed={mode === "mood"} onClick={() => setMode("mood")}>
@@ -101,16 +115,19 @@ export default function ShowPage() {
               </button>
             </div>
           )}
-          {!flipped && kinds.length > 1 && (
-            <div className="row" role="group" aria-label="種類">
-              {kinds.map((k) => (
-                <button key={k} type="button" className="chip" aria-pressed={kind === k} onClick={() => setKind(k)}>
-                  {k}
+          {!flipped && kindOptions.length > 1 && (
+            <div className="field">
+              <span className="label">{mode === "mood" ? "飲みたいお酒" : "種類"}</span>
+              <div className="row" role="group" aria-label={mode === "mood" ? "飲みたいお酒" : "種類"}>
+                {kindOptions.map((k) => (
+                  <button key={k} type="button" className="chip" aria-pressed={kind === k} onClick={() => setKind(k)}>
+                    {k}
+                  </button>
+                ))}
+                <button type="button" className="chip" aria-pressed={kind === null} onClick={() => setKind(null)}>
+                  {mode === "mood" ? "おまかせ" : "ぜんぶ"}
                 </button>
-              ))}
-              <button type="button" className="chip" aria-pressed={kind === null} onClick={() => setKind(null)}>
-                ぜんぶ
-              </button>
+              </div>
             </div>
           )}
 
