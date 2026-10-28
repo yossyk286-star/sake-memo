@@ -1919,6 +1919,125 @@ input[type="search"].input:focus {
   visibility: hidden;
 }
 
+/* --- 産地スタンプの旅日記：初めて飲んだ日の順に、ハンコを線でつなぐ --- */
+.stamps-switch {
+  margin: 0 16px 12px;
+}
+.diary-summary {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 4px;
+  text-align: center;
+}
+.diary-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+.diary-summary strong {
+  font-size: 20px;
+  color: var(--accent);
+  line-height: 1.3;
+}
+.diary-summary div:first-child strong {
+  font-size: 17px;
+  padding: 2px 0;
+}
+.diary-summary small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.diary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.diary-day {
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+}
+/* ハンコどうしをつなぐ旅の道（点線） */
+.diary-day::before {
+  content: "";
+  position: absolute;
+  left: 27px;
+  top: 0;
+  bottom: 0;
+  border-left: 2px dotted var(--input-line);
+}
+.diary-day:first-child::before {
+  top: 34px;
+}
+.diary-day:last-child::before {
+  bottom: calc(100% - 34px);
+}
+.diary-day:only-child::before {
+  display: none;
+}
+.diary-stamp {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  transform: rotate(-6deg);
+}
+/* カタカナの国名は2行に収める */
+.diary-stamp[data-long] {
+  padding: 2px;
+  font-size: 9.5px;
+  word-break: normal;
+  line-break: anywhere;
+}
+.diary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 2px 0;
+  text-decoration: none;
+  color: inherit;
+}
+.diary-date {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.diary-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.diary-note {
+  font-size: 14px;
+  color: var(--text);
+}
+.diary-note.quote::before {
+  content: "「";
+}
+.diary-note.quote::after {
+  content: "」";
+}
+.diary-sub {
+  font-size: 12px;
+}
+
 /* --- 店員さんに見せる --- */
 .show-page {
   padding-top: 12px;

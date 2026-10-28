@@ -138,3 +138,32 @@ export function collectStamps(records: TastingRecord[]) {
   }
   return { stamps, others, total: ALL.length };
 }
+
+export type DiaryEntry = {
+  place: string;
+  /** 日本の都道府県か（海外・リスト外は false） */
+  japan: boolean;
+  /** その産地で初めて飲んだ記録 */
+  first: TastingRecord;
+  count: number;
+};
+
+const JAPAN = new Set(REGIONS.filter((r) => r.region !== "海外").flatMap((r) => r.places.map((p) => p.name)));
+
+/** 産地を初めて飲んだ日の順に並べる。日本一周・世界一周の旅の記録のように読める */
+export function travelDiary(stamps: Map<string, Stamp>, others: Map<string, Stamp>): DiaryEntry[] {
+  const earliest = (rs: TastingRecord[]) =>
+    rs.reduce((a, b) => (b.date < a.date || (b.date === a.date && b.createdAt < a.createdAt) ? b : a));
+  return [...stamps, ...others]
+    .map(([place, s]) => ({ place, japan: JAPAN.has(place), first: earliest(s.records), count: s.count }))
+    .sort((a, b) => a.first.date.localeCompare(b.first.date) || a.first.createdAt - b.first.createdAt);
+}
+
+/** 旅日記に添えるひとこと。メモの1行目、なければ感じた味や料理 */
+export function diaryNote(r: TastingRecord): { text: string; quote: boolean } | null {
+  const line = r.memo.split("\n").map((s) => s.trim()).find(Boolean);
+  if (line) return { text: line.length > 40 ? `${line.slice(0, 40)}…` : line, quote: true };
+  if (r.flavors.length > 0) return { text: r.flavors.slice(0, 3).join("・"), quote: false };
+  if (r.pairing.trim()) return { text: `${r.pairing.trim()}と一緒に`, quote: false };
+  return null;
+}
