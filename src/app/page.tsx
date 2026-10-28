@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import GenreSortBar from "@/components/GenreSortBar";
+import Hint from "@/components/Hint";
 import SwipeRecord from "@/components/SwipeRecord";
 import { listRecords } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
@@ -94,8 +95,13 @@ export default function RecordsPage() {
 
       {records && records.length > 0 && (
         <p className="lead">
-          これまでの記録 {records.length}件（左にスライドで削除、右で編集）
+          これまでの記録 {records.length}件
         </p>
+      )}
+      {records && records.length > 0 && (
+        <Hint id="home-swipe" className="lead">
+          記録を左にスライドすると削除、右にスライドすると編集できます。
+        </Hint>
       )}
 
       <main className="content" style={{ paddingBottom: 96 }}>

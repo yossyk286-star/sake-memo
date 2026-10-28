@@ -115,7 +115,7 @@ function DetailBody() {
     <>
       <header className="sub-header">
         <Link href="/" className="back">
-          ‹ 一覧
+          ‹ 戻る
         </Link>
         <h1>記録</h1>
       </header>
@@ -134,7 +134,7 @@ function DetailBody() {
                     {[r.kind, r.style].filter(Boolean).join("・")}
                   </span>
                 )}
-                <h2>{drinkTitle(r)}</h2>
+                <h2 className={drinkTitle(r).length > 18 ? "is-long" : undefined}>{drinkTitle(r)}</h2>
                 {r.name && r.maker && <p className="muted">{r.maker}</p>}
               </div>
               <div className="detail-score" aria-label={`総合 5段階中${r.overall}`}>

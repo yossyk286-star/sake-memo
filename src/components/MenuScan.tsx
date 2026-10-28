@@ -524,7 +524,7 @@ export default function MenuScan({
             type="search"
             enterKeyHint="search"
             maxLength={60}
-            placeholder="名前で調べる（例：獺祭）"
+            placeholder="銘柄（例：獺祭）"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

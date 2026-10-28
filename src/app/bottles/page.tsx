@@ -139,12 +139,25 @@ function BottleCard({
           <i className="kind-dot" style={{ background: kindColor(b.kind) }} aria-hidden="true" />
           {b.name}
         </h2>
-        {b.finished && <span className="muted">飲みきった</span>}
+        <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          {b.finished && <span className="muted">飲みきった</span>}
+          {/* 削除はあまり使わないので、ボタンの列から外して右上に小さく置く */}
+          <button type="button" className="text-btn text-danger" onClick={() => onDelete(b.id)}>
+            削除
+          </button>
+        </span>
       </div>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+        {/* 「1,500/円」のように1つの項目の途中で折り返さないよう、項目ごとにまとめる */}
         {[[b.kind, b.style].filter(Boolean).join("・"), b.maker, b.origin, b.abv && abvText(b.abv), b.price && yen(b.price), `${b.boughtAt.slice(5).replace("-", "/")}に購入`]
           .filter(Boolean)
-          .join("・")}
+          .map((t, i, all) => (
+            // 「・」は行の頭に来られないので、前の項目の後ろに付けて、そこで折り返せるようにする
+            <span key={i} style={{ whiteSpace: "nowrap" }}>
+              {t}
+              {i < all.length - 1 && "・"}
+            </span>
+          ))}
       </p>
       <p style={{ margin: 0, fontSize: 14 }}>
         {mine.length > 0 ? (
@@ -172,7 +185,7 @@ function BottleCard({
           ))}
         </details>
       )}
-      <div className="row">
+      <div className="row" style={{ flexWrap: "nowrap" }}>
         {!b.finished && (
           <Link href={`/new?bottle=${b.id}`} className="btn-primary" style={{ flex: 1, whiteSpace: "nowrap" }}>
             飲んだ・記録する
@@ -180,9 +193,6 @@ function BottleCard({
         )}
         <button type="button" className="btn-secondary" onClick={() => onChange({ ...b, finished: !b.finished })}>
           {b.finished ? "まだある" : "飲みきった"}
-        </button>
-        <button type="button" className="btn-secondary btn-danger" onClick={() => onDelete(b.id)}>
-          削除
         </button>
       </div>
     </article>
