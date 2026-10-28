@@ -9,6 +9,8 @@ export type LastScan = {
 };
 
 const KEY = "sake-memo:last-scan";
+/** 一覧が変わったときに流す合図（下のタブの件数を合わせる） */
+export const LAST_SCAN_EVENT = "sake-memo:last-scan-changed";
 
 export function today() {
   const d = new Date();
@@ -30,6 +32,7 @@ function store(scan: LastScan) {
   try {
     localStorage.setItem(KEY, JSON.stringify(scan));
   } catch {}
+  window.dispatchEvent(new Event(LAST_SCAN_EVENT));
 }
 
 /** recorded はラベルや名前で1本足したときに、すでに記録した分を引き継ぐのに使う */
