@@ -153,7 +153,9 @@ textarea {
 }
 .page-header h1 {
   margin: 0;
-  font-size: 32px;
+  /* 小さい iPhone で右のボタンと並んでも見出しが2行に割れないように */
+  font-size: clamp(26px, 7vw, 32px);
+  white-space: nowrap;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.15;
