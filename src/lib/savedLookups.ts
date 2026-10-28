@@ -53,6 +53,14 @@ export function recentSaved(n: number) {
     .map(({ drink }) => drink);
 }
 
+/** 前に調べたお酒から外す（そのお酒の名前で引けるものと、調べた言葉で引けるものをまとめて消す） */
+export function forgetSaved(name: string) {
+  const kept = Object.entries(load()).filter(([, v]) => v.drink.name !== name);
+  try {
+    localStorage.setItem(KEY, JSON.stringify(Object.fromEntries(kept)));
+  } catch {}
+}
+
 /** バックアップ用 */
 export function exportSaved() {
   return load();

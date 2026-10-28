@@ -23,7 +23,7 @@ import { findCocktail } from "@/lib/cocktails";
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { MOODS, moodFromText, type Mood } from "@/lib/moods";
 import MoodPicker from "./MoodPicker";
-import { findSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
+import { findSaved, forgetSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
 import Hint from "./Hint";
 import TasteBars from "./TasteBars";
@@ -162,6 +162,32 @@ export default function MenuScan({
     setRecent(recentSaved(8));
   }, []);
 
+  // 調べた結果を一覧から外す（今日の一覧からだけ。前に調べた情報は残るので、また調べても AI は使わない）
+  const [undo, setUndo] = useState<{ label: string; drinks: ScannedDrink[] } | null>(null);
+  function replaceDrinks(next: ScannedDrink[]) {
+    saveLastScan(next, loadLastScan()?.recorded ?? []);
+    setDrinks(next);
+    onScanned?.(next);
+    if (next.length === 0) {
+      setStatus("idle");
+      setPairing(null);
+    }
+  }
+  function hide(names: string[], label: string) {
+    setUndo({ label, drinks });
+    setLocalHit(null);
+    replaceDrinks(drinks.filter((d) => !names.includes(d.name)));
+  }
+
+  // 「前に調べたお酒」の候補を消すモード
+  const [editRecent, setEditRecent] = useState(false);
+  function forget(name: string) {
+    forgetSaved(name);
+    const next = recentSaved(8);
+    setRecent(next);
+    if (next.length === 0) setEditRecent(false);
+  }
+
   const wishOf = (b: ScannedDrink) => wishes.find((w) => w.name === b.name);
 
   // ラベルを撮った瓶を、家で何回かに分けて飲むお酒として登録する
@@ -273,6 +299,7 @@ export default function MenuScan({
     onScanned?.(next);
     setStatus("done");
     setError("");
+    setUndo(null);
     setLocalHit({ name: d.name, how, query: q });
   }
 
@@ -373,6 +400,7 @@ export default function MenuScan({
       setDrinks(next);
       onScanned?.(next);
       setStatus("done");
+      setUndo(null);
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "読み取りに失敗しました");
@@ -504,11 +532,31 @@ export default function MenuScan({
 
       {status !== "reading" && recent.length > 0 && (
         <div className="scroll-row" aria-label="前に調べたお酒">
-          {recent.map((d) => (
-            <button key={d.name} type="button" className="chip" onClick={() => lookup(false, d.name)}>
-              {d.name}
-            </button>
-          ))}
+          {recent.map((d) =>
+            editRecent ? (
+              <button
+                key={d.name}
+                type="button"
+                className={`chip ${styles.forget}`}
+                aria-label={`${d.name}を前に調べたお酒から消す`}
+                onClick={() => forget(d.name)}
+              >
+                {d.name} ✕
+              </button>
+            ) : (
+              <button key={d.name} type="button" className="chip" onClick={() => lookup(false, d.name)}>
+                {d.name}
+              </button>
+            ),
+          )}
+          <button
+            type="button"
+            className={`chip ${styles.editChip}`}
+            aria-pressed={editRecent}
+            onClick={() => setEditRecent(!editRecent)}
+          >
+            {editRecent ? "完了" : "✎ 消す"}
+          </button>
         </div>
       )}
       {localHit && (
@@ -520,6 +568,25 @@ export default function MenuScan({
             </button>
           )}
         </p>
+      )}
+      {undo && (
+        <div className="row" style={{ alignItems: "center", flexWrap: "nowrap" }}>
+          <p className={styles.lead} style={{ flex: 1, margin: 0 }} role="status">
+            {undo.label}を一覧から外しました。
+          </p>
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ height: 36, padding: "0 12px", flexShrink: 0 }}
+            onClick={() => {
+              replaceDrinks(undo.drinks);
+              setStatus("done");
+              setUndo(null);
+            }}
+          >
+            元に戻す
+          </button>
+        </div>
       )}
       {error && (
         <p className="error" role="alert">
@@ -551,6 +618,14 @@ export default function MenuScan({
             ⇅ 並び替え・絞り込み
           </button>
           {sortSummary && <span className={styles.sortNow}>{sortSummary}</span>}
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ height: 36, padding: "0 12px", flexShrink: 0, marginLeft: "auto" }}
+            onClick={() => hide(drinks.map((d) => d.name), `${drinks.length}杯すべて`)}
+          >
+            すべて消す
+          </button>
         </div>
       )}
       {drinks.length > 1 && sortOpen && (
@@ -667,17 +742,27 @@ export default function MenuScan({
                 <span>{picks[i].reasons.join("、")}</span>
               </div>
             )}
-            <button
-              type="button"
-              className={styles.cardHead}
-              aria-expanded={open}
-              onClick={() => setOpenCard(open ? null : b.name)}
-            >
-              <span className={styles.cardTop}>
-                <span className={styles.name}>{b.name}</span>
-                {b.abv != null && <span className={styles.abv}>{abvText(b.abv, b.abvStated)}</span>}
-              </span>
-            </button>
+            <div className={styles.headRow}>
+              <button
+                type="button"
+                className={styles.cardHead}
+                aria-expanded={open}
+                onClick={() => setOpenCard(open ? null : b.name)}
+              >
+                <span className={styles.cardTop}>
+                  <span className={styles.name}>{b.name}</span>
+                  {b.abv != null && <span className={styles.abv}>{abvText(b.abv, b.abvStated)}</span>}
+                </span>
+              </button>
+              <button
+                type="button"
+                className={styles.remove}
+                aria-label={`${b.name}を一覧から外す`}
+                onClick={() => hide([b.name], `「${b.name}」`)}
+              >
+                ✕
+              </button>
+            </div>
             {open && (
               <>
                 {match && (

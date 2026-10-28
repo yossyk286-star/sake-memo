@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { loadLastScan } from "@/lib/lastScan";
+import { LAST_SCAN_EVENT, loadLastScan } from "@/lib/lastScan";
 
 const TABS = [
   {
@@ -53,7 +53,12 @@ export default function TabBar() {
   const pathname = usePathname();
   // 今日調べたお酒の数。画面を移るたびに読み直す
   const [scanned, setScanned] = useState(0);
-  useEffect(() => setScanned(loadLastScan()?.drinks.length ?? 0), [pathname]);
+  useEffect(() => {
+    const update = () => setScanned(loadLastScan()?.drinks.length ?? 0);
+    update();
+    window.addEventListener(LAST_SCAN_EVENT, update);
+    return () => window.removeEventListener(LAST_SCAN_EVENT, update);
+  }, [pathname]);
   if (HIDDEN_ON.includes(pathname)) return null;
 
   return (
