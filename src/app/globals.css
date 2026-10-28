@@ -1697,14 +1697,14 @@ input[type="search"].input:focus {
     justify-content: center;
     background: var(--bg);
     pointer-events: none;
-    animation: launch-out 0.35s ease-in 0.45s forwards;
+    animation: launch-out 0.35s ease-in 1.1s forwards;
   }
   .launch img {
     width: 120px;
     height: 120px;
     border-radius: 27px;
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
-    animation: launch-icon 0.8s cubic-bezier(0.3, 0.7, 0.4, 1) forwards;
+    animation: launch-icon 1.45s ease-out forwards;
   }
 }
 @keyframes launch-out {
@@ -1714,12 +1714,16 @@ input[type="search"].input:focus {
   }
 }
 @keyframes launch-icon {
-  40% {
-    transform: scale(0.94);
+  /* 少し小さめから出てきて、1秒ほどしっかり見せてから、消えるときに少し大きくなる */
+  0% {
+    transform: scale(0.9);
+  }
+  18%,
+  76% {
+    transform: scale(1);
   }
   100% {
-    transform: scale(1.25);
-    opacity: 0;
+    transform: scale(1.12);
   }
 }
 @media (prefers-reduced-motion: reduce) {
