@@ -113,7 +113,16 @@ function DiaryDay({ entry, nth, pop }: { entry: DiaryEntry; nth: number; pop?: b
         data-long={label.length > 3 || undefined}
         aria-hidden
       >
-        {label}
+        {label.length < 5 ? (
+          label
+        ) : (
+          // 長い名前は半分ずつ2行にする（「エチオピ／ア」のように1文字だけ落ちないように）
+          <>
+            {label.slice(0, Math.ceil(label.length / 2))}
+            <br />
+            {label.slice(Math.ceil(label.length / 2))}
+          </>
+        )}
       </span>
       <Link href={`/record?id=${r.id}`} className="diary-body">
         <span className="diary-date">
@@ -150,12 +159,8 @@ function Diary({ entries, popOf }: { entries: DiaryEntry[]; popOf: (name: string
       <section className="card diary-summary">
         <div>
           <span className="muted">旅のはじまり</span>
-          <strong>
-            {Number(first.slice(5, 7))}月{Number(first.slice(8))}日
-          </strong>
-          <span className="muted">
-            {first.slice(0, 4)}年・{entries[0].place}から
-          </span>
+          <strong>{first.split("-").map(Number).join(".")}</strong>
+          <span className="muted">{entries[0].place}から</span>
         </div>
         <div>
           <span className="muted">日本一周</span>
