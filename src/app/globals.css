@@ -1627,3 +1627,113 @@ input[type="search"].input:focus {
     transform: scale(0.8);
   }
 }
+
+/* --- 産地スタンプ：新しい産地はハンコをポンと押す --- */
+.stamp-news {
+  margin: 0 16px 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 14px;
+  font-weight: 700;
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) 0.2s backwards;
+}
+.stamp-pop {
+  position: relative;
+  animation: stamp-press 0.55s cubic-bezier(0.3, 0.7, 0.4, 1) backwards;
+}
+/* 押した瞬間にインクがじわっと広がる輪 */
+.stamp-pop::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  animation: stamp-ink 0.6s ease-out;
+  animation-delay: inherit;
+}
+@keyframes stamp-press {
+  0% {
+    opacity: 0;
+    transform: scale(2.3) rotate(-22deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(0.86) rotate(-4deg);
+  }
+  70% {
+    transform: scale(1.06) rotate(-7deg);
+  }
+  100% {
+    transform: rotate(-6deg);
+  }
+}
+@keyframes stamp-ink {
+  0%,
+  40% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* --- 起動画面：ホーム画面から開いたとき、アイコンからふわっとアプリに切り替える --- */
+.launch {
+  display: none;
+}
+@media (display-mode: standalone) {
+  .launch {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    pointer-events: none;
+    animation: launch-out 0.35s ease-in 0.45s forwards;
+  }
+  .launch img {
+    width: 120px;
+    height: 120px;
+    border-radius: 27px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    animation: launch-icon 0.8s cubic-bezier(0.3, 0.7, 0.4, 1) forwards;
+  }
+}
+@keyframes launch-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes launch-icon {
+  40% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .launch {
+    display: none !important;
+  }
+}
+/* まだ画面に見えていない新しいスタンプは、押す前の空きの枠で待つ */
+.stamp-wait {
+  border: 1.5px dashed var(--input-line);
+  background: none;
+  color: var(--muted);
+  transform: none;
+}
+.stamp-wait .stamp-meta {
+  visibility: hidden;
+}
