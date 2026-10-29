@@ -27,6 +27,7 @@ const SYSTEM = `あなたはお酒の初心者に、お酒を解説するアシ�
 - 居酒屋・バー・レストランのお酒のメニュー写真：載っているお酒ごとに情報を取り出す。料理やソフトドリンクは含めない
 - 瓶・缶・箱のラベル写真：写っているお酒（ふつうは1本）の情報をラベルから読み取る。裏ラベルの原材料・精米歩合・アルコール度数・蔵元・産地も手がかりにする
 - お酒の名前：そのお酒1つについて答える。「ネットで調べた情報」が付いていれば、それを優先して使う
+メニューにお酒がたくさん載っているときは、目立つもの・お酒らしいものから最大12本までにしてください（多すぎると読み切れないため）。
 蔵元・産地・タイプは、写真に書かれていなくても、有名な銘柄で確かにわかる場合だけ入れてください。自信がなければ空文字か null にしてください。
 「味の予想」「おすすめの飲み方」「合う料理」「飲み方ごとの違い」「度数」は、説明・種類・タイプ・銘柄から推定して必ず埋めてください。複数あるときは違いがわかるよう、相対的に付けてください。度数は書いてあればその値（abvStated=true）、なければおおよその値（abvStated=false）にしてください。
 名前で調べたお酒が、調べた情報にもなく、よく知らないときは、名前から推測できる範囲で答え、解説の最初に「${GUESS_MARK}」と書いてください。名前がお酒でなければ空配列にしてください。
@@ -293,11 +294,18 @@ export async function POST(req: Request) {
 }
 
 function apiError(e: unknown) {
+  // 答えが長すぎて途中で切れ、形を読み取れなかったとき（メニューのお酒が多いときに起きやすい）
+  if (e instanceof Anthropic.AnthropicError && e.message.startsWith("Failed to parse")) {
+    console.error("read-menu parse error", e.message.slice(0, 200));
+    return error(422, "お酒が多すぎて読み切れませんでした。メニューを半分ずつ撮ってみてください");
+  }
   if (e instanceof Anthropic.RateLimitError) return error(429, "混み合っています。少し待ってからもう一度お試しください");
   if (e instanceof Anthropic.AuthenticationError) return error(503, "API キーが正しくないようです");
   if (e instanceof Anthropic.APIError) {
     console.error("read-menu API error", e.status, e.message);
     return error(502, "読み取りに失敗しました（利用上限に達した可能性があります）");
   }
-  throw e;
+  // 思いがけない失敗でも、画面に理由を出せるよう JSON で返す
+  console.error("read-menu unexpected error", e);
+  return error(500, "読み取りに失敗しました。もう一度お試しください");
 }

@@ -1,11 +1,15 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { drinkTitle, stars } from "@/components/RecordCard";
 import { collectStamps, diaryNote, REGIONS, travelDiary, type DiaryEntry, type Stamp } from "@/lib/origins";
 import { listRecords } from "@/lib/db";
 import type { TastingRecord } from "@/lib/types";
+
+// 地図の形は大きいので、ボタンを押したときに読み込む
+const JapanMapSheet = dynamic(() => import("@/components/JapanMapSheet"), { ssr: false });
 
 function StampCell({
   name,
@@ -214,6 +218,7 @@ export default function StampsPage() {
   const [records, setRecords] = useState<TastingRecord[] | null>(null);
   const [opened, setOpened] = useState<string | null>(null);
   const toggle = (name: string) => setOpened((o) => (o === name ? null : name));
+  const [mapOpen, setMapOpen] = useState(false);
   const [view, setView] = useState<View>("スタンプ帳");
   useEffect(() => {
     try {
@@ -277,7 +282,8 @@ export default function StampsPage() {
         </p>
       )}
 
-      <main className="content">
+      {/* 右下の地図ボタンに最後のカードが隠れないように */}
+      <main className="content" style={{ paddingBottom: 96 }}>
         {view === "旅日記" && records && <Diary entries={diary} popOf={popOf} />}
         {view === "スタンプ帳" && REGIONS.map((r) => {
           const done = r.places.filter((c) => stamps.has(c.name)).length;
@@ -326,6 +332,17 @@ export default function StampsPage() {
           </section>
         )}
       </main>
+
+      {records && (
+        <button type="button" className="map-fab" aria-label="日本地図で見る" onClick={() => setMapOpen(true)}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z" />
+            <path d="M9 4v13.5M15 6.5V20" />
+          </svg>
+          <span>地図</span>
+        </button>
+      )}
+      {mapOpen && <JapanMapSheet stamps={stamps} onClose={() => setMapOpen(false)} />}
     </>
   );
 }

@@ -220,6 +220,10 @@ textarea {
   font-size: 14px;
   color: var(--muted);
 }
+/* 戻るのある画面は見出しの下に線があるので、説明文がその線にくっつかないようにあける */
+.sub-header + .lead {
+  padding-top: 16px;
+}
 .content {
   padding: 0 16px 28px;
   display: flex;
@@ -1617,6 +1621,11 @@ input[type="search"].input {
 input[type="search"].input:focus {
   box-shadow: none;
 }
+/* 横にボタンが並ぶ検索欄は、ボタンと同じ高さにそろえる */
+.row > input[type="search"].input {
+  height: 46px;
+  border-radius: 12px;
+}
 
 /* --- 設定画面 --- */
 .section-title {
@@ -2494,5 +2503,195 @@ body::before {
 .pair-none,
 .pair-from {
   margin: 0 4px;
+/* --- 産地スタンプ帳：右下の丸い地図ボタンと、飲んだ県に色が付く日本地図 --- */
+.map-fab {
+  position: fixed;
+  right: max(16px, calc(50% - 280px + 16px));
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 15;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent), var(--shadow-lift);
+  transition: transform 0.15s ease;
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) 0.3s backwards;
+}
+.map-fab:active {
+  transform: scale(0.92);
+}
+.jmap-sheet {
+  max-height: 88dvh;
+}
+.jmap-count {
+  margin-left: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.jmap {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 県に寄っても枠の形は変えない */
+  aspect-ratio: 440 / 388;
+  max-height: 58dvh;
+  margin: 0 auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.jmap-wrap {
+  position: relative;
+}
+/* 県に寄っているときに、右上から全体に戻る */
+.jmap-all {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  animation: fade-in 0.2s ease;
+}
+.jmap-pref {
+  fill: var(--fill-strong);
+  stroke: var(--surface);
+  stroke-width: 0.6;
+  /* 寄っても県境の線は太くしない */
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: fill 0.2s ease;
+}
+.jmap-pref.on {
+  fill: var(--accent);
+}
+.jmap-pref[data-picked] {
+  fill: var(--muted);
+}
+.jmap-pref.on[data-picked] {
+  fill: var(--accent-dark);
+  stroke: var(--text);
+  stroke-width: 1.2;
+}
+.jmap-okinawa {
+  cursor: pointer;
+}
+.jmap-inset {
+  fill: transparent;
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.jmap-okinawa.on .jmap-inset {
+  fill: var(--accent-soft);
+}
+.jmap-okinawa[data-picked] .jmap-inset {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.jmap-okinawa text {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--muted);
+}
+.jmap-okinawa.on text {
+  fill: var(--accent);
+}
+.jmap-info {
+  min-height: 52px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+}
+.jmap-best {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+.jmap-best-name {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.jmap-credit {
+  margin: -4px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* --- 世界地図：飲んだ国だけ塗る。スタンプ帳の産地には点を打つ --- */
+.wmap {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 地図の枠は全体と同じ形のまま（寄っても高さが変わらない） */
+  aspect-ratio: 800 / 354;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-2));
+  -webkit-tap-highlight-color: transparent;
+}
+.wmap-land {
+  fill: var(--fill-strong);
+  stroke: var(--surface);
+  stroke-width: 0.4;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: fill 0.2s ease;
+}
+.wmap-land.listed {
+  cursor: pointer;
+}
+.wmap-land.on {
+  fill: var(--accent);
+  cursor: pointer;
+}
+.wmap-land[data-picked] {
+  fill: var(--muted);
+}
+.wmap-land.on[data-picked] {
+  fill: var(--accent-dark);
+}
+.wmap-dot {
+  fill: var(--surface);
+  stroke: var(--muted);
+  cursor: pointer;
+}
+.wmap-dot.on {
+  fill: var(--accent);
+  stroke: var(--surface);
+}
+.wmap-areas {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 0 -20px;
+  padding: 0 20px;
+  scrollbar-width: none;
+}
+.wmap-areas .chip {
+  min-height: 32px;
   font-size: 13px;
 }

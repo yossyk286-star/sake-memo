@@ -332,6 +332,13 @@ export default function MenuScan({
     if (await request({ query: q })) setQuery("");
   }
 
+  /** サーバーが理由を返さなかったとき（時間切れ・写真が大きすぎるなど）の説明 */
+  function fallbackError(status: number) {
+    if (status === 504) return "時間がかかりすぎて読み取れませんでした。写すお酒を減らして撮ってみてください";
+    if (status === 413) return "写真が大きすぎます。もう少し離れて撮ってみてください";
+    return `読み取りに失敗しました（エラー ${status}）。少し待ってからもう一度お試しください`;
+  }
+
   /** 合言葉を付けて送る。うまくいったら合言葉を覚えておく */
   async function post(payload: object) {
     if (!navigator.onLine)
@@ -346,7 +353,7 @@ export default function MenuScan({
     });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) setSavedPasscode(false);
-    if (!res.ok) throw new Error(data.error ?? "読み取りに失敗しました");
+    if (!res.ok) throw new Error(data.error ?? fallbackError(res.status));
     try {
       localStorage.setItem(PASSCODE_KEY, passcode.trim().normalize("NFKC"));
     } catch {}
