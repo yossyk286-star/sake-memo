@@ -2192,7 +2192,8 @@ input[type="search"].input:focus {
   color: var(--accent);
 }
 
-/* 画面のいちばん上（時計や電池の裏）は、スクロールしても背景と同じ無地の色で隠す（ぼやけて透けないように） */
+/* 画面のいちばん上（時計や電池の裏）は、スクロールしても背景と同じ無地の色で隠す（ぼやけて透けないように）。
+   iPhone は時計の少し下までぼかしをかけるので、その分も無地にして、下の端だけふわっと消す */
 body::before {
   content: "";
   position: fixed;
@@ -2200,8 +2201,8 @@ body::before {
   left: 0;
   right: 0;
   z-index: 40;
-  height: env(safe-area-inset-top);
-  background: var(--bg);
+  height: calc(env(safe-area-inset-top) + 16px);
+  background: linear-gradient(var(--bg) calc(100% - 16px), transparent);
   pointer-events: none;
 }
 
