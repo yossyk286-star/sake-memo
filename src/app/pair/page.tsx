@@ -192,7 +192,7 @@ export default function PairPage() {
               <h2 className="pair-head">「{result.pairing.dish}」に合うお酒</h2>
               {result.pairing.tip && (
                 <div className="pair-tip">
-                  <BuddyFace mood="happy" size={36} />
+                  <BuddyFace mood="happy" size={52} />
                   <p>{result.pairing.tip}</p>
                 </div>
               )}
