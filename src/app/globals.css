@@ -2482,3 +2482,54 @@ body::before {
   color: var(--muted);
   text-align: right;
 }
+
+/* --- 世界地図：飲んだ国だけ塗る。スタンプ帳の産地には点を打つ --- */
+.wmap {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-2));
+  -webkit-tap-highlight-color: transparent;
+}
+.wmap-land {
+  fill: var(--fill-strong);
+  stroke: var(--surface);
+  stroke-width: 0.4;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: fill 0.2s ease;
+}
+.wmap-land.listed {
+  cursor: pointer;
+}
+.wmap-land.on {
+  fill: var(--accent);
+  cursor: pointer;
+}
+.wmap-land[data-picked] {
+  fill: var(--muted);
+}
+.wmap-land.on[data-picked] {
+  fill: var(--accent-dark);
+}
+.wmap-dot {
+  fill: var(--surface);
+  stroke: var(--muted);
+  cursor: pointer;
+}
+.wmap-dot.on {
+  fill: var(--accent);
+  stroke: var(--surface);
+}
+.wmap-areas {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin: 0 -20px;
+  padding: 0 20px;
+  scrollbar-width: none;
+}
+.wmap-areas .chip {
+  min-height: 32px;
+  font-size: 13px;
+}
