@@ -1621,6 +1621,11 @@ input[type="search"].input {
 input[type="search"].input:focus {
   box-shadow: none;
 }
+/* 横にボタンが並ぶ検索欄は、ボタンと同じ高さにそろえる */
+.row > input[type="search"].input {
+  height: 46px;
+  border-radius: 12px;
+}
 
 /* --- 設定画面 --- */
 .section-title {
