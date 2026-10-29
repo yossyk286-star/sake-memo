@@ -3,6 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { timingSafeEqual } from "node:crypto";
 import { COCKTAIL_REFERENCE } from "@/lib/cocktails";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
+import { FoodPairingSchema } from "@/lib/foodPairing";
 import { MenuScanResultSchema, PairingResultSchema, TermLookupSchema } from "@/lib/menuScan";
 
 // 名前で調べてネット検索までしたときは時間がかかるので、待ち時間の上限を長めにする
@@ -182,6 +183,33 @@ export async function POST(req: Request) {
   }
 
   // 食べている料理か今日の気分と、読み取り済みのお酒の相性（文字だけなので安い）
+  // 料理・食べ物から、合うお酒を選ぶ（メニューがなくても使える。文字だけなので安い）
+  if (typeof body?.food === "string") {
+    const food = body.food.trim();
+    if (!food || food.length > MAX_DISH) return error(400, "料理の名前を入れてください");
+    const likes = typeof body.likes === "string" ? body.likes.slice(0, 200) : "";
+    try {
+      const response = await client.messages.parse({
+        model: MODEL,
+        max_tokens: 2000,
+        system: "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。",
+        output_config: { effort: "low", format: zodOutputFormat(FoodPairingSchema) },
+        messages: [
+          {
+            role: "user",
+            content: `「${food}」に合うお酒を3つ選んでください。日本酒・ワイン・ビール・ウイスキー・焼酎・その他（梅酒やカクテルなど）から、種類が重ならないように、合う順に選んでください。${likes ? `\n\n利用者の好み（合うものの中から、なるべく好みに寄せる）：${likes}` : ""}`,
+          },
+        ],
+      });
+      const parsed = response.parsed_output;
+      if (!parsed) return error(422, "うまく判断できませんでした");
+      if (!parsed.found || parsed.picks.length === 0) return error(422, "料理や食べ物の名前を入れてください");
+      return Response.json(parsed);
+    } catch (e) {
+      return apiError(e);
+    }
+  }
+
   if (typeof body?.dish === "string" || typeof body?.mood === "string") {
     const isMood = typeof body?.mood === "string";
     const dish = String(isMood ? body.mood : body.dish).trim();
