@@ -4,8 +4,9 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { drinkTitle, stars } from "@/components/RecordCard";
-import { JAPAN_PATHS, JAPAN_VIEWBOX, OKINAWA_SHIFT } from "@/lib/japanMap";
+import { JAPAN_BOXES, JAPAN_PATHS, JAPAN_VIEWBOX, OKINAWA_SHIFT } from "@/lib/japanMap";
 import { REGIONS, type Stamp } from "@/lib/origins";
+import { fitBox, useViewBox } from "@/lib/useViewBox";
 
 // 世界地図の形は大きいので、「世界」を押したときに読み込む
 const WorldMap = dynamic(() => import("@/components/WorldMap"), { ssr: false });
@@ -14,6 +15,7 @@ const WorldMap = dynamic(() => import("@/components/WorldMap"), { ssr: false });
 const PREFS = REGIONS.filter((r) => r.region !== "海外").flatMap((r) =>
   r.places.map((p) => ({ id: p.aliases[0], name: p.name })),
 );
+const [, , JAPAN_W, JAPAN_H] = JAPAN_VIEWBOX.split(" ").map(Number);
 const ABROAD = REGIONS.find((r) => r.region === "海外")!.places.map((p) => p.name);
 
 type Mode = "日本" | "世界";
@@ -48,6 +50,12 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
   const pickWorld = (name: string) => (name === "日本" ? pickMode("日本") : setPicked((x) => (x === name ? null : name)));
   const stamp = picked ? stamps.get(picked) : undefined;
   const best = stamp && [...stamp.records].sort((a, b) => b.overall - a.overall || b.date.localeCompare(a.date))[0];
+
+  // 県を押したらその県に寄る。小さい県でもまわりが少し見える広さにする
+  const pickedPref = mode === "日本" ? PREFS.find((p) => p.name === picked) : undefined;
+  const viewBox = useViewBox(
+    pickedPref ? fitBox(JAPAN_BOXES[pickedPref.id], JAPAN_W / JAPAN_H, JAPAN_W / 3.2) : JAPAN_VIEWBOX,
+  );
 
   const shape = (p: (typeof PREFS)[number]) => (
     <path
@@ -100,19 +108,26 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
             onPick={pickWorld}
           />
         ) : (
-          <svg className="jmap" viewBox={JAPAN_VIEWBOX} role="img" aria-label={`飲んだ県 ${done}か所`}>
-            {PREFS.filter((p) => p.id !== "okinawa").map(shape)}
-            {/* 沖縄は左上の枠に。島が小さいので、枠ごと押せるようにする */}
-            <g
-              className={stamps.has("沖縄") ? "jmap-okinawa on" : "jmap-okinawa"}
-              data-picked={picked === "沖縄" || undefined}
-              onClick={() => setPicked((x) => (x === "沖縄" ? null : "沖縄"))}
-            >
-              <rect className="jmap-inset" x="2" y="2" width="132" height="102" rx="8" />
-              <text x="12" y="24">沖縄</text>
-              <g transform={OKINAWA_SHIFT}>{shape(PREFS.find((p) => p.id === "okinawa")!)}</g>
-            </g>
-          </svg>
+          <div className="jmap-wrap">
+            <svg className="jmap" viewBox={viewBox} role="img" aria-label={`飲んだ県 ${done}か所`}>
+              {PREFS.filter((p) => p.id !== "okinawa").map(shape)}
+              {/* 沖縄は左上の枠に。島が小さいので、枠ごと押せるようにする */}
+              <g
+                className={stamps.has("沖縄") ? "jmap-okinawa on" : "jmap-okinawa"}
+                data-picked={picked === "沖縄" || undefined}
+                onClick={() => setPicked((x) => (x === "沖縄" ? null : "沖縄"))}
+              >
+                <rect className="jmap-inset" x="2" y="2" width="132" height="102" rx="8" />
+                <text x="12" y="24">沖縄</text>
+                <g transform={OKINAWA_SHIFT}>{shape(PREFS.find((p) => p.id === "okinawa")!)}</g>
+              </g>
+            </svg>
+            {pickedPref && (
+              <button type="button" className="jmap-all" onClick={() => setPicked(null)}>
+                全体を見る
+              </button>
+            )}
+          </div>
         )}
 
         <div className="jmap-info" aria-live="polite">

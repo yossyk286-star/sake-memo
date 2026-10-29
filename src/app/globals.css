@@ -2408,14 +2408,38 @@ body::before {
   display: block;
   width: 100%;
   height: auto;
+  /* 県に寄っても枠の形は変えない */
+  aspect-ratio: 440 / 388;
   max-height: 58dvh;
   margin: 0 auto;
   -webkit-tap-highlight-color: transparent;
+}
+.jmap-wrap {
+  position: relative;
+}
+/* 県に寄っているときに、右上から全体に戻る */
+.jmap-all {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lift);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  animation: fade-in 0.2s ease;
 }
 .jmap-pref {
   fill: var(--fill-strong);
   stroke: var(--surface);
   stroke-width: 0.6;
+  /* 寄っても県境の線は太くしない */
+  vector-effect: non-scaling-stroke;
   stroke-linejoin: round;
   cursor: pointer;
   transition: fill 0.2s ease;
@@ -2429,7 +2453,7 @@ body::before {
 .jmap-pref.on[data-picked] {
   fill: var(--accent-dark);
   stroke: var(--text);
-  stroke-width: 1;
+  stroke-width: 1.2;
 }
 .jmap-okinawa {
   cursor: pointer;
@@ -2438,6 +2462,7 @@ body::before {
   fill: transparent;
   stroke: var(--line);
   stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 .jmap-okinawa.on .jmap-inset {
   fill: var(--accent-soft);
@@ -2488,6 +2513,8 @@ body::before {
   display: block;
   width: 100%;
   height: auto;
+  /* 地図の枠は全体と同じ形のまま（寄っても高さが変わらない） */
+  aspect-ratio: 800 / 354;
   border-radius: 12px;
   background: color-mix(in srgb, var(--accent) 5%, var(--surface-2));
   -webkit-tap-highlight-color: transparent;
