@@ -1,17 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { fitBox, useViewBox } from "@/lib/useViewBox";
 import { WORLD_AREAS, WORLD_PATHS, WORLD_PLACES, WORLD_VIEWBOX } from "@/lib/worldMap";
 
-// 寄ったときの地図の縦横比。縦長の地域でも地図の高さが変わりすぎないように、この比に広げて見せる
-const AREA_RATIO = 1.6;
-
-function fitArea(box: string) {
-  const [x, y, w, h] = box.split(" ").map(Number);
-  const W = Math.max(w, h * AREA_RATIO);
-  const H = W / AREA_RATIO;
-  return `${Math.round(x - (W - w) / 2)} ${Math.round(y - (H - h) / 2)} ${Math.round(W)} ${Math.round(H)}`;
-}
+const [, , FULL_W, FULL_H] = WORLD_VIEWBOX.split(" ").map(Number);
 
 /**
  * 飲んだ国だけ色が付く世界地図。小さい国も押せるように、スタンプ帳の産地には点を打つ。
@@ -33,9 +26,10 @@ export default function WorldMap({
   onPick: (name: string) => void;
 }) {
   const [area, setArea] = useState<string | null>(null);
-  const viewBox = area ? fitArea(WORLD_AREAS[area]) : WORLD_VIEWBOX;
+  // 寄っても全体と同じ縦横比のまま見せる（地図の枠の形が変わると国が伸びて見えるので）
+  const viewBox = useViewBox(area ? fitBox(WORLD_AREAS[area], FULL_W / FULL_H, 0, 0.05) : WORLD_VIEWBOX);
   // 寄ったぶん点が大きくならないように、見ている幅に合わせて半径を決める
-  const zoom = Number(viewBox.split(" ")[2]) / Number(WORLD_VIEWBOX.split(" ")[2]);
+  const zoom = Number(viewBox.split(" ")[2]) / FULL_W;
 
   const dots = places.filter((n) => WORLD_PLACES[n]);
   const onIso = new Map<string, string>();
