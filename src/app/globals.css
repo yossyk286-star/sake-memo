@@ -220,6 +220,10 @@ textarea {
   font-size: 14px;
   color: var(--muted);
 }
+/* 戻るのある画面は見出しの下に線があるので、説明文がその線にくっつかないようにあける */
+.sub-header + .lead {
+  padding-top: 16px;
+}
 .content {
   padding: 0 16px 28px;
   display: flex;
@@ -2357,4 +2361,119 @@ body::before {
 .btn-secondary[aria-pressed="true"] {
   background: var(--accent);
   color: var(--on-accent);
+}
+
+/* --- 産地スタンプ帳：右下の丸い地図ボタンと、飲んだ県に色が付く日本地図 --- */
+.map-fab {
+  position: fixed;
+  right: max(16px, calc(50% - 280px + 16px));
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  z-index: 15;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent), var(--shadow-lift);
+  transition: transform 0.15s ease;
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) 0.3s backwards;
+}
+.map-fab:active {
+  transform: scale(0.92);
+}
+.jmap-sheet {
+  max-height: 88dvh;
+}
+.jmap-count {
+  margin-left: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.jmap {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 58dvh;
+  margin: 0 auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.jmap-pref {
+  fill: var(--fill-strong);
+  stroke: var(--surface);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: fill 0.2s ease;
+}
+.jmap-pref.on {
+  fill: var(--accent);
+}
+.jmap-pref[data-picked] {
+  fill: var(--muted);
+}
+.jmap-pref.on[data-picked] {
+  fill: var(--accent-dark);
+  stroke: var(--text);
+  stroke-width: 1;
+}
+.jmap-okinawa {
+  cursor: pointer;
+}
+.jmap-inset {
+  fill: transparent;
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.jmap-okinawa.on .jmap-inset {
+  fill: var(--accent-soft);
+}
+.jmap-okinawa[data-picked] .jmap-inset {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.jmap-okinawa text {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--muted);
+}
+.jmap-okinawa.on text {
+  fill: var(--accent);
+}
+.jmap-info {
+  min-height: 52px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+}
+.jmap-best {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+.jmap-best-name {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.jmap-credit {
+  margin: -4px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
 }
