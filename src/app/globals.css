@@ -2192,7 +2192,8 @@ input[type="search"].input:focus {
   color: var(--accent);
 }
 
-/* 画面のいちばん上（時計や電池の裏）は、スクロールしても背景と同じ無地の色で隠す（ぼやけて透けないように） */
+/* 画面のいちばん上（時計や電池の裏）は、スクロールしても背景と同じ無地の色で隠す（ぼやけて透けないように）。
+   iPhone は時計の少し下までぼかしをかけるので、その分も無地にして、下の端だけふわっと消す */
 body::before {
   content: "";
   position: fixed;
@@ -2200,8 +2201,8 @@ body::before {
   left: 0;
   right: 0;
   z-index: 40;
-  height: env(safe-area-inset-top);
-  background: var(--bg);
+  height: calc(env(safe-area-inset-top) + 16px);
+  background: linear-gradient(var(--bg) calc(100% - 16px), transparent);
   pointer-events: none;
 }
 
@@ -2369,16 +2370,27 @@ body::before {
 }
 
 /* 料理から選ぶ */
-.pair-link {
-  flex-direction: row;
+/* 調べる画面の枠の中に置く、料理から選ぶへの入口 */
+.pair-entry {
+  display: flex;
   align-items: center;
   gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 13px;
+}
+.pair-entry strong {
+  font-size: 15px;
+  color: var(--text);
 }
 .pair-link-icon {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   display: grid;
   place-items: center;
   background: var(--accent);
@@ -2415,6 +2427,9 @@ body::before {
   background: var(--accent-soft);
   border-radius: var(--radius);
   padding: 10px 14px 10px 10px;
+}
+.pair-tip .buddy-face {
+  flex-shrink: 0;
 }
 .pair-tip p {
   margin: 0;
