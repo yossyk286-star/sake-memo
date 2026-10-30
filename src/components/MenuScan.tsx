@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { drinkToDraft, type MenuScanResult, type DishIdeas, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
 import { placeOf } from "@/lib/origins";
 import {
@@ -37,6 +37,8 @@ const announcedScans = new Set<string>();
 
 /** 調べたお酒について AI に聞くときの質問の例 */
 const ASK_SUGGESTIONS = ["どんな味？", "初心者でも飲みやすい？", "どの飲み方がいい？", "合う料理は？"];
+/** 写真フォルダから一度に選べる枚数（1枚ずつ AI に送るので、多すぎると時間とお金がかかる） */
+const MAX_PHOTOS = 5;
 
 /** 閉じたカードに出す、味のひとこと（2つまで） */
 function tasteWords({ taste: t }: ScannedDrink) {
@@ -156,6 +158,13 @@ export default function MenuScan({
   // 名前で調べている最中はその名前。写真の読み取りと出し分ける
   const [searching, setSearching] = useState<string | null>(null);
   const [drinks, setDrinks] = useState<ScannedDrink[]>(initialDrinks);
+  // 写真を何枚か続けて読み取るとき、前の写真の結果に足していけるよう最新の一覧を持っておく
+  const drinksRef = useRef(drinks);
+  useEffect(() => {
+    drinksRef.current = drinks;
+  }, [drinks]);
+  // 何枚か選んだときの「何枚目を読み取り中か」
+  const [progress, setProgress] = useState<{ at: number; of: number } | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   // 名前で調べる欄は「文字で」を押したときだけ出す（まめメモと同じ）
@@ -314,21 +323,38 @@ export default function MenuScan({
   }
 
   async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    // 写真フォルダからは何枚か選べる（表と裏など）。1枚ずつ順に読み取って一覧に足す
+    const picked = [...(e.target.files ?? [])];
     e.target.value = "";
-    if (file) await scan(file);
+    const files = picked.slice(0, MAX_PHOTOS);
+    if (files.length === 0) return;
+    if (!passcode) return setError("先に合言葉を入れてください");
+    let failed = 0;
+    for (const [i, file] of files.entries()) {
+      if (files.length > 1) setProgress({ at: i + 1, of: files.length });
+      if (!(await scan(file))) failed++;
+    }
+    setProgress(null);
+    if (files.length > 1 && failed > 0)
+      setError(`${files.length}枚のうち${failed}枚は読み取れませんでした。その写真だけ撮り直してみてください`);
+    else if (picked.length > MAX_PHOTOS && failed === 0)
+      setError(`一度に読み取れるのは${MAX_PHOTOS}枚までです。残りはもう一度選んでください`);
   }
 
   async function scan(photo: Blob) {
-    if (!passcode) return setError("先に合言葉を入れてください");
+    if (!passcode) {
+      setError("先に合言葉を入れてください");
+      return false;
+    }
     setStatus("reading");
     try {
       // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
       const image = await blobToBase64(await shrinkPhoto(photo, 1000));
-      await request({ image });
+      return await request({ image });
     } catch {
       setError("写真を読み込めませんでした");
-      setStatus(drinks.length ? "done" : "idle");
+      setStatus(drinksRef.current.length ? "done" : "idle");
+      return false;
     }
   }
 
@@ -472,7 +498,8 @@ export default function MenuScan({
       // 次からは AI を呼ばずに出せるよう保存しておく
       saveLookups(found, "query" in payload ? payload.query : undefined);
       // 今読み取ったお酒を今日の一覧の上に足す（表と裏など何枚かに分かれたメニューを続けて撮っても、新しい分がすぐ見えるように）
-      const next = [...found, ...drinks.filter((d) => !found.some((f) => f.name === d.name))];
+      const next = [...found, ...drinksRef.current.filter((d) => !found.some((f) => f.name === d.name))];
+      drinksRef.current = next;
       if (found.length > 1) setPairing(null);
       saveLastScan(next, loadLastScan()?.recorded ?? []);
       setDrinks(next);
@@ -482,7 +509,7 @@ export default function MenuScan({
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "読み取りに失敗しました");
-      setStatus(drinks.length ? "done" : "idle");
+      setStatus(drinksRef.current.length ? "done" : "idle");
       return false;
     }
   }
@@ -536,7 +563,9 @@ export default function MenuScan({
           <circle cx="12" cy="13" r="3.5" />
         </svg>
         {status === "reading" && !searching
-          ? "読み取り中…"
+          ? progress
+            ? `読み取り中…（${progress.at}/${progress.of}枚）`
+            : "読み取り中…"
           : status === "done"
             ? "撮る"
             : "メニューやラベルを撮って読み取る"}
@@ -557,6 +586,7 @@ export default function MenuScan({
           <input
             type="file"
             accept="image/*"
+            multiple
             onChange={onPhoto}
             className="visually-hidden"
           />

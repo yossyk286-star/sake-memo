@@ -68,6 +68,9 @@ type Result = {
 };
 
 /** 料理や食べ物を入れると、合うお酒と、自分の記録・家のお酒から合いそうなものを出す */
+/** 写真フォルダから一度に選べる枚数（1枚ずつ AI に送るので、多すぎると時間とお金がかかる） */
+const MAX_PHOTOS = 5;
+
 export default function PairPage() {
   const router = useRouter();
   const [dish, setDish] = useState("");
@@ -82,6 +85,8 @@ export default function PairPage() {
   // メニューの写真から読み取った料理と、それぞれにいちばん合うもの
   const [menu, setMenu] = useState<FoodMenu["dishes"] | null>(null);
   const [reading, setReading] = useState(false);
+  // 何枚か選んだときの「何枚目を読み取り中か」
+  const [progress, setProgress] = useState<{ at: number; of: number } | null>(null);
   // 2枚目以降を足したときに増えた品数（1枚目なら null）
   const [addedCount, setAddedCount] = useState<number | null>(null);
   const [menuDate, setMenuDate] = useState<string | undefined>();
@@ -167,30 +172,43 @@ export default function PairPage() {
 
   /** メニューや料理の写真を送って、載っている料理ごとに合うものを出す */
   async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    // 写真フォルダからは何枚か選べる（表と裏など）。1枚ずつ順に読み取って一覧に足す
+    const picked = [...(e.target.files ?? [])];
     e.target.value = "";
-    if (!file || reading) return;
+    const files = picked.slice(0, MAX_PHOTOS);
+    if (files.length === 0 || reading) return;
     if (!passcode.trim()) return setError("先に合言葉を入れてください");
     if (!navigator.onLine) return setError("オフラインのため読み取れません。電波のあるところでもう一度お試しください");
     setError("");
     setReading(true);
-    try {
-      // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
-      const image = await blobToBase64(await shrinkPhoto(file, 1000));
-      const data = (await post({ foodImage: image })) as FoodMenu;
-      // 同じ日に続けて撮ったメニュー（表と裏、フードとおつまみなど）は入れ替えずに、新しい分を上に足す
-      const before = menu && menuDate === today() ? menu : [];
-      const added = data.dishes.filter((d) => !before.some((m) => m.dish === d.dish));
-      setMenu([...added, ...before]);
-      setAddedCount(before.length > 0 ? added.length : null);
-      setMenuDate(today());
-      setResult(null);
-      setJustRead(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "読み取れませんでした");
-    } finally {
-      setReading(false);
+    // 同じ日に続けて撮ったメニュー（表と裏、フードとおつまみなど）は入れ替えずに、新しい分を上に足す
+    const before = menu && menuDate === today() ? menu : [];
+    let all = before;
+    let lastError = "";
+    let failed = 0;
+    for (const [i, file] of files.entries()) {
+      if (files.length > 1) setProgress({ at: i + 1, of: files.length });
+      try {
+        // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
+        const image = await blobToBase64(await shrinkPhoto(file, 1000));
+        const data = (await post({ foodImage: image })) as FoodMenu;
+        const added = data.dishes.filter((d) => !all.some((m) => m.dish === d.dish));
+        all = [...added, ...all];
+        setMenu(all);
+        setMenuDate(today());
+        setResult(null);
+        setJustRead(true);
+      } catch (err) {
+        failed++;
+        lastError = err instanceof Error ? err.message : "読み取れませんでした";
+      }
     }
+    setAddedCount(before.length > 0 && all.length > before.length ? all.length - before.length : null);
+    setProgress(null);
+    setReading(false);
+    if (failed > 0)
+      setError(files.length > 1 ? `${files.length}枚のうち${failed}枚は読み取れませんでした。その写真だけ撮り直してみてください` : lastError);
+    else if (picked.length > MAX_PHOTOS) setError(`一度に読み取れるのは${MAX_PHOTOS}枚までです。残りはもう一度選んでください`);
   }
 
   /** 今日読み取った飲み物メニューを、この料理に合う順に AI に並べてもらう */
@@ -346,13 +364,13 @@ export default function PairPage() {
               <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
                 <circle cx="12" cy="13" r="3.5" />
             </svg>
-            {reading ? "読み取り中…" : "メニューを撮る"}
+            {reading ? (progress ? `読み取り中…（${progress.at}/${progress.of}枚）` : "読み取り中…") : "メニューを撮る"}
             <input type="file" accept="image/*" capture="environment" onChange={onPhoto} disabled={reading} className="visually-hidden" />
           </label>
           <label className="btn-secondary" aria-disabled={reading}>
             写真から
             {/* capture を付けないとカメラではなく写真の一覧が開く */}
-            <input type="file" accept="image/*" onChange={onPhoto} disabled={reading} className="visually-hidden" />
+            <input type="file" accept="image/*" multiple onChange={onPhoto} disabled={reading} className="visually-hidden" />
           </label>
         </div>
         {reading && <Skeleton label="メニューを読み取っています…" chips />}
