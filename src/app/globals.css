@@ -3268,3 +3268,14 @@ body::before {
   font-size: 12px;
   font-weight: 700;
 }
+
+/* 料理を選んだときに動かす先（候補とその下の記録・家の分）。並びは .content と同じ */
+.pair-jump {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-margin-top: calc(env(safe-area-inset-top) + 16px);
+}
+.pair-jump:empty {
+  display: none;
+}
