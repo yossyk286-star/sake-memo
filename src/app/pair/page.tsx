@@ -7,11 +7,12 @@ import Skeleton from "@/components/Skeleton";
 import { announceBuddy } from "@/lib/buddy";
 import { listBottles, listRecords } from "@/lib/db";
 import { loadLastScan, today } from "@/lib/lastScan";
-import type { ScannedDrink } from "@/lib/menuScan";
+import type { PairingResult, ScannedDrink } from "@/lib/menuScan";
 import {
   BUILT_IN_DISHES,
   builtInPairing,
-  drinksForPicks,
+  loadMenuRanks,
+  saveMenuRanks,
   findSavedPairing,
   groupMenu,
   loadLastPair,
@@ -20,8 +21,8 @@ import {
   recentPairings,
   saveLastPair,
   savePairing,
-  type DrinkMatch,
   type FoodMenu,
+  type MenuRank,
   type FoodPairing,
   type MineMatch,
 } from "@/lib/foodPairing";
@@ -61,32 +62,51 @@ type Result = {
   bottles: MineMatch<Bottle>[];
 };
 
-/** 同じお店で今日読み取った飲み物メニューのうち、合うもの。rows なら見出しの下の一覧として出す */
-function OnDrinkMenu({ matches, rows }: { matches: DrinkMatch[]; rows?: boolean }) {
-  if (matches.length === 0) {
-    return <p className="muted pair-none">さっき読み取った飲み物メニューには、合う種類が見つかりませんでした。</p>;
+/** 料理の中に出す、今日読み取った飲み物メニューから選ぶボタンと、押したあとの合う順（上位3杯） */
+function DrinkMenuPicks({
+  count,
+  ranks,
+  busy,
+  error,
+  onAsk,
+}: {
+  count: number;
+  ranks?: MenuRank[];
+  busy: boolean;
+  error: string;
+  onAsk: () => void;
+}) {
+  if (!ranks) {
+    return (
+      <div className="pair-on-menu">
+        <button type="button" className="btn-secondary pair-on-menu-btn" onClick={onAsk} disabled={busy}>
+          {busy ? "選んでいます…" : "さっきの飲み物メニューから選ぶ"}
+        </button>
+        {error && <p className="error">{error}</p>}
+      </div>
+    );
   }
-  const list = (
-    <div className={rows ? "list-group" : "pair-on-menu-list"}>
-      {matches.map(({ drink: d, why }) => (
-        <Link key={d.name} href="/scan" className="pair-row">
-          <span className="kind-dot" style={{ background: genreColor(genreOf(d)) }} aria-hidden="true" />
-          <span className="pair-row-body">
-            <strong>{d.name}</strong>
-            <span className="muted">{why}</span>
-          </span>
-          <span className="pair-chevron" aria-hidden="true">
-            ›
-          </span>
-        </Link>
-      ))}
-    </div>
-  );
-  if (rows) return list;
+  const top = ranks.filter((r) => r.score >= 3).slice(0, 3);
   return (
     <div className="pair-on-menu">
       <p className="pair-dish-for">さっきの飲み物メニューなら</p>
-      {list}
+      {top.length === 0 ? (
+        <p className="muted">メニューの中には、とくに合うものが見つかりませんでした。</p>
+      ) : (
+        <ol className="pair-on-menu-list">
+          {top.map((r) => (
+            <li key={r.name} className="pair-on-menu-item">
+              <span className="pair-on-menu-name">
+                <strong>{r.name}</strong>
+                <span className="pair-on-menu-score" aria-label={`相性${r.score}`}>
+                  {"●".repeat(r.score) + "○".repeat(5 - r.score)}
+                </span>
+              </span>
+              <span className="muted">{r.reason}</span>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }
@@ -109,6 +129,10 @@ export default function PairPage() {
   const [restored, setRestored] = useState(false);
   // 同じお店で今日読み取った飲み物メニュー。料理に合うものをそこから選ぶ
   const [drinkMenu, setDrinkMenu] = useState<ScannedDrink[]>([]);
+  // 飲み物メニューの中から料理に合う順を聞いた結果（料理名ごと）と、聞いている料理
+  const [menuRanks, setMenuRanks] = useState<Record<string, MenuRank[]>>({});
+  const [ranking, setRanking] = useState<string | null>(null);
+  const [rankError, setRankError] = useState<{ dish: string; text: string } | null>(null);
   // 読み取りが終わったら結果まで動かして、終わったことがわかるようにする
   const [justRead, setJustRead] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
@@ -123,7 +147,9 @@ export default function PairPage() {
       setMenu(last.menu);
       setMenuDate(last.date);
     }
-    setDrinkMenu(loadLastScan()?.drinks ?? []);
+    const drinks = loadLastScan()?.drinks ?? [];
+    setDrinkMenu(drinks);
+    setMenuRanks(loadMenuRanks(drinks));
     Promise.all([listRecords(), listBottles()]).then(([r, b]) => {
       setRecords(r);
       setBottles(b);
@@ -192,6 +218,32 @@ export default function PairPage() {
       setError(err instanceof Error ? err.message : "読み取れませんでした");
     } finally {
       setReading(false);
+    }
+  }
+
+  /** 今日読み取った飲み物メニューを、この料理に合う順に AI に並べてもらう */
+  async function rankDrinkMenu(d: string) {
+    if (ranking) return;
+    if (!passcode.trim()) return setRankError({ dish: d, text: "先に合言葉を入れてください" });
+    if (!navigator.onLine) return setRankError({ dish: d, text: "オフラインのため調べられません" });
+    setRankError(null);
+    setRanking(d);
+    try {
+      const data = (await post({
+        dish: d,
+        drinks: drinkMenu.map(({ name, kind, style }) => ({ name, kind, style })),
+      })) as PairingResult;
+      const ranks = data.ranks
+        .filter((r) => drinkMenu[r.index])
+        .map((r) => ({ name: drinkMenu[r.index].name, score: Math.min(5, Math.max(1, r.score)), reason: r.reason }))
+        .sort((a, b) => b.score - a.score);
+      const next = { ...menuRanks, [d]: ranks };
+      setMenuRanks(next);
+      saveMenuRanks(drinkMenu, next);
+    } catch (e) {
+      setRankError({ dish: d, text: e instanceof Error ? e.message : "調べられませんでした" });
+    } finally {
+      setRanking(null);
     }
   }
 
@@ -349,7 +401,15 @@ export default function PairPage() {
                       </div>
                       <p className="pair-group-reason">{pick.reason}</p>
                       {pick.examples && <p className="muted">例：{pick.examples}</p>}
-                      {drinkMenu.length > 0 && <OnDrinkMenu matches={drinksForPicks(drinkMenu, [pick], 2)} />}
+                      {drinkMenu.length > 0 && (
+                        <DrinkMenuPicks
+                          count={drinkMenu.length}
+                          ranks={menuRanks[d]}
+                          busy={ranking === d}
+                          error={rankError?.dish === d ? rankError.text : ""}
+                          onAsk={() => rankDrinkMenu(d)}
+                        />
+                      )}
                       <button type="button" className="text-btn pair-dish-more" onClick={() => choose(d)}>
                         ほかの候補と、記録・家のお酒から探す ›
                       </button>
@@ -405,10 +465,15 @@ export default function PairPage() {
               </ol>
             </section>
 
-            {drinkMenu.length > 0 && (
-              <section className="pair-mine">
-                <h2 className="pair-head">さっき読み取った飲み物メニューなら</h2>
-                <OnDrinkMenu matches={drinksForPicks(drinkMenu, result.pairing.picks)} rows />
+            {drinkMenu.length > 0 && !menu?.some((m) => m.dish === result.query) && (
+              <section className="card pair-menu-card">
+                <DrinkMenuPicks
+                  count={drinkMenu.length}
+                  ranks={menuRanks[result.query]}
+                  busy={ranking === result.query}
+                  error={rankError?.dish === result.query ? rankError.text : ""}
+                  onAsk={() => rankDrinkMenu(result.query)}
+                />
               </section>
             )}
 
