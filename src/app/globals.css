@@ -3400,3 +3400,13 @@ html[lang="en"] .stamp-name {
 html[lang="en"] .stamp-name-long {
   font-size: 10px;
 }
+html[lang="en"] .show-ask span,
+html[lang="en"] .show-thanks span {
+  margin-right: 0.28em;
+}
+html[lang="en"] .diary-note.quote::before {
+  content: "“";
+}
+html[lang="en"] .diary-note.quote::after {
+  content: "”";
+}

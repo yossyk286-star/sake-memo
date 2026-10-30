@@ -62,10 +62,12 @@ export function tr(ja: string, ...args: (string | number | null | undefined)[]):
 
 /** 訳の無い「日本酒・純米」は、区切りごとに訳せればつなげ直す（「Sake · Junmai」） */
 function joined(ja: string): string {
-  for (const sep of ["・", "、"]) {
+  for (const sep of ["・", "、", " × "]) {
     if (!ja.includes(sep)) continue;
     const parts = ja.split(sep);
-    if (parts.every((p) => dict[p] !== undefined)) return parts.map((p) => dict[p]).join(dict[sep] ?? sep);
+    // 「Natural」のように、もともと英語の言葉はそのまま使う
+    if (parts.every((p) => dict[p] !== undefined || /^[\x20-\x7e]+$/.test(p)))
+      return parts.map((p) => dict[p] ?? p).join(dict[sep] ?? sep);
   }
   return ja;
 }

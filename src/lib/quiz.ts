@@ -1,4 +1,5 @@
 import { TERMS, type Term } from "./glossary";
+import { getLang, tr } from "./i18n";
 
 export type Question = { term: Term; hint: string; choices: string[]; answer: number };
 
@@ -24,6 +25,8 @@ function shuffle<T>(xs: T[], rand: () => number) {
 
 /** 説明文の中の答えの言葉を伏せる（「スパークリング」の説明に「スパークリング」と出ないように） */
 function maskTerm(text: string, term: string) {
+  // 英語のときは訳した説明から、訳した言葉を伏せる
+  if (getLang() === "en") return tr(text).replace(new RegExp(tr(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), "___");
   return text.split(term).join("〇〇");
 }
 

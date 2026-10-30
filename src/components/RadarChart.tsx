@@ -27,7 +27,7 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
     <svg
       viewBox={`0 0 ${SIZE} ${SIZE}`}
       width="100%"
-      style={{ maxWidth: 360, display: "block", margin: "0 auto" }}
+      style={{ maxWidth: 360, display: "block", margin: "0 auto", overflow: "visible" }}
       role="img"
       aria-label={series
         .map((s) => `${tr(s.label)}：${axes.map((a, i) => `${tr(a)}${s.values[i] ?? tr("未入力")}`).join(tr("、"))}`)
