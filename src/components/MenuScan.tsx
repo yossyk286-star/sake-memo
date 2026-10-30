@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { drinkToDraft, type MenuScanResult, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
+import { drinkToDraft, type MenuScanResult, type DishIdeas, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
 import { placeOf } from "@/lib/origins";
 import {
   deleteWish,
@@ -22,13 +22,14 @@ import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
 import { abvText } from "@/lib/abv";
 import { findCocktail } from "@/lib/cocktails";
-import { dishesForDrink, loadTodayMenu, type FoodMenu } from "@/lib/foodPairing";
+import { loadDishRanks, loadTodayMenu, saveDishRanks, type FoodMenu, type MenuRank } from "@/lib/foodPairing";
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { MOODS, moodFromText, type Mood } from "@/lib/moods";
 import MoodPicker from "./MoodPicker";
 import { findSaved, forgetSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
 import Hint from "./Hint";
+import MenuPicks from "./MenuPicks";
 import TasteBars from "./TasteBars";
 
 /** 相棒が「好きなやつ」を教えた一覧。アプリを開いている間は同じ一覧で何度も言わない */
@@ -161,6 +162,12 @@ export default function MenuScan({
   const [pairingBusy, setPairingBusy] = useState(false);
   // 同じお店で今日読み取った料理メニュー。お酒ごとに合う料理を出し、料理で並べるときの候補にする
   const [foodMenu, setFoodMenu] = useState<FoodMenu["dishes"]>([]);
+  // お酒ごとに、料理メニューの中から合う順を聞いた結果と、聞いているお酒
+  const [dishRanks, setDishRanks] = useState<Record<string, MenuRank[]>>({});
+  const [dishRanking, setDishRanking] = useState<string | null>(null);
+  const [dishRankError, setDishRankError] = useState<{ name: string; text: string } | null>(null);
+  // 料理メニューをまだ読み取っていないときに「合う料理を探す」で挙げてもらった料理
+  const [dishIdeas, setDishIdeas] = useState<Record<string, MenuRank[]>>({});
 
   // localStorage はブラウザでしか読めないので、表示後に読み込む
   useEffect(() => {
@@ -172,7 +179,9 @@ export default function MenuScan({
     listWishes().then(setWishes);
     setPrefs(loadPrefs());
     setRecent(recentSaved(8));
-    setFoodMenu(loadTodayMenu());
+    const menu = loadTodayMenu();
+    setFoodMenu(menu);
+    setDishRanks(loadDishRanks(menu));
   }, []);
 
   // 調べた結果を一覧から外す（今日の一覧からだけ。前に調べた情報は残るので、また調べても AI は使わない）
@@ -369,6 +378,36 @@ export default function MenuScan({
     return data;
   }
 
+  /** 今日読み取った料理メニューを、このお酒に合う順に AI に並べてもらう */
+  async function rankDishes(b: ScannedDrink) {
+    if (dishRanking) return;
+    if (!passcode) return setDishRankError({ name: b.name, text: "先に合言葉を入れてください" });
+    setDishRankError(null);
+    setDishRanking(b.name);
+    try {
+      const data = (await post({
+        drink: { name: b.name, kind: b.kind, style: b.style },
+        dishes: foodMenu.map((m) => m.dish),
+      })) as PairingResult | DishIdeas;
+      if ("ideas" in data) {
+        const ideas = data.ideas.map((r) => ({ name: r.dish, score: Math.min(5, Math.max(1, r.score)), reason: r.reason }));
+        setDishIdeas((prev) => ({ ...prev, [b.name]: ideas }));
+        return;
+      }
+      const ranks = data.ranks
+        .filter((r) => foodMenu[r.index])
+        .map((r) => ({ name: foodMenu[r.index].dish, score: Math.min(5, Math.max(1, r.score)), reason: r.reason }))
+        .sort((x, y) => y.score - x.score);
+      const next = { ...dishRanks, [b.name]: ranks };
+      setDishRanks(next);
+      saveDishRanks(foodMenu, next);
+    } catch (err) {
+      setDishRankError({ name: b.name, text: err instanceof Error ? err.message : "調べられませんでした" });
+    } finally {
+      setDishRanking(null);
+    }
+  }
+
   /** いま食べている料理に合う順に並べる */
   /** 料理か、文字で入れた気分に合う順を AI に聞く */
   async function pairWith(d = dish.trim(), asMood = false) {
@@ -417,15 +456,16 @@ export default function MenuScan({
       // 次からは AI を呼ばずに出せるよう保存しておく
       saveLookups(found, "query" in payload ? payload.query : undefined);
       setRecent(recentSaved(8));
-      // 1本だけ（ラベルや名前で調べたとき）は今の一覧の先頭に足す。メニューなら一覧を入れ替える
-      let next = found;
+      // 1本だけ（ラベルや名前で調べたとき）は今の一覧の先頭に足す。
+      // メニューは今日の一覧の後ろに足す（表と裏など何枚かに分かれたメニューを続けて撮れるように）
+      let next: ScannedDrink[];
       if (found.length === 1) {
         next = [found[0], ...drinks.filter((d) => d.name !== found[0].name)];
-        saveLastScan(next, loadLastScan()?.recorded ?? []);
       } else {
-        saveLastScan(next);
+        next = [...drinks, ...found.filter((f) => !drinks.some((d) => d.name === f.name))];
         setPairing(null);
       }
+      saveLastScan(next, loadLastScan()?.recorded ?? []);
       setDrinks(next);
       onScanned?.(next);
       setStatus("done");
@@ -861,12 +901,27 @@ export default function MenuScan({
                     {b.pairing}
                   </p>
                 )}
-                {foodMenu.length > 0 && (
-                  <p className={styles.text}>
-                    <strong>さっきの料理メニューなら：</strong>
-                    {dishesForDrink(foodMenu, b).slice(0, 3).join("、") || "合うと出た料理はありません"}
-                  </p>
-                )}
+                <div style={{ "--kind": genreColor(genreOf(b)) } as React.CSSProperties}>
+                  {foodMenu.length > 0 ? (
+                    <MenuPicks
+                      label="さっきの料理メニューなら"
+                      button="さっきの料理メニューから選ぶ"
+                      ranks={dishRanks[b.name]}
+                      busy={dishRanking === b.name}
+                      error={dishRankError?.name === b.name ? dishRankError.text : ""}
+                      onAsk={() => rankDishes(b)}
+                    />
+                  ) : (
+                    <MenuPicks
+                      label="このお酒に合う料理"
+                      button="合う料理を探す"
+                      ranks={dishIdeas[b.name]}
+                      busy={dishRanking === b.name}
+                      error={dishRankError?.name === b.name ? dishRankError.text : ""}
+                      onAsk={() => rankDishes(b)}
+                    />
+                  )}
+                </div>
                 {b.serveNotes.length > 0 && (
                   <details className={styles.methods}>
                     <summary>飲み方で比べる</summary>

@@ -91,6 +91,19 @@ export const PairingResultSchema = z.object({
 
 export type PairingResult = z.infer<typeof PairingResultSchema>;
 
+/** 料理メニューをまだ読み取っていないとき、このお酒に合う料理を AI に挙げてもらう */
+export const DishIdeasSchema = z.object({
+  ideas: z.array(
+    z.object({
+      dish: z.string().describe("料理の名前。お店でよく見かける名前で"),
+      score: z.number().int().describe("相性。3（合う）〜5（とても合う）"),
+      reason: z.string().describe("なぜ合うか、20〜40字くらいで"),
+    }),
+  ),
+});
+
+export type DishIdeas = z.infer<typeof DishIdeasSchema>;
+
 /** 辞典に足す用語を調べた結果 */
 export const TermLookupSchema = z.object({
   found: z.boolean().describe("お酒に関係する言葉として説明できれば true。関係ない・わからなければ false"),

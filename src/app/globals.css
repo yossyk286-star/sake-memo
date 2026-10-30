@@ -2934,6 +2934,10 @@ body::before {
   height: 42px;
   font-size: 15px;
 }
+/* 白いカードの上でも押せるとわかるよう、うっすら色をのせる（調べる画面の「箱の中は白く」より強く） */
+.pair-on-menu .btn-secondary.pair-on-menu-btn.pair-on-menu-btn {
+  background-color: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
 .pair-on-menu-list {
   margin: 0;
   padding: 0;
