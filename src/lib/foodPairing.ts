@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { KINDS, STYLES_BY_KIND } from "./glossary";
+import { today } from "./lastScan";
+import type { ScannedDrink } from "./menuScan";
 import { nameKey } from "./savedLookups";
 import type { Bottle, Kind, TastingRecord } from "./types";
 
@@ -359,7 +361,7 @@ export function matchBottles(bottles: Bottle[], pairing: FoodPairing, limit = 2)
 const LAST_KEY = "sake-memo:pair-last";
 
 /** 最後に読み取ったメニューと選んだ料理。ほかの画面に行って戻っても続きから見られるように残す */
-export type LastPair = { menu: FoodMenu["dishes"] | null; query: string };
+export type LastPair = { menu: FoodMenu["dishes"] | null; query: string; /** メニューを読み取った日 */ date?: string };
 
 export function loadLastPair(): LastPair | null {
   try {
@@ -375,4 +377,33 @@ export function saveLastPair(v: LastPair) {
     if (!v.menu && !v.query) localStorage.removeItem(LAST_KEY);
     else localStorage.setItem(LAST_KEY, JSON.stringify(v));
   } catch {}
+}
+
+/** 今日読み取った料理メニュー。同じお店で飲み物を選ぶときに、撮り直さずに使う */
+export function loadTodayMenu(): FoodMenu["dishes"] {
+  const last = loadLastPair();
+  return last?.date === today() ? (last.menu ?? []) : [];
+}
+
+export type DrinkMatch = { drink: ScannedDrink; why: string; score: number };
+
+/** 今日読み取った飲み物メニューから、この料理に合うおすすめと同じタイプ・種類のもの（AI は使わない） */
+export function drinksForPicks(drinks: ScannedDrink[], picks: FoodPick[], limit = 3): DrinkMatch[] {
+  return drinks
+    .map((d) => {
+      const m = matchPick(d, picks);
+      return m && { drink: d, why: m.why, score: m.score };
+    })
+    .filter((m): m is DrinkMatch => !!m)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+/** 今日読み取った料理メニューから、このお酒が「いちばん合う」と出た料理。同じタイプを先に */
+export function dishesForDrink(menu: FoodMenu["dishes"], drink: Pick<ScannedDrink, "kind" | "style">): string[] {
+  return menu
+    .map(({ dish, pick }) => ({ dish, m: matchPick(drink, [pick]) }))
+    .filter((x) => x.m)
+    .sort((a, b) => b.m!.score - a.m!.score)
+    .map((x) => x.dish);
 }

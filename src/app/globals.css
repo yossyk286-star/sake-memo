@@ -2872,7 +2872,7 @@ body::before {
 .pair-dish .pair-chevron {
   transition: transform 0.2s ease;
 }
-.pair-dish[open] .pair-chevron {
+.pair-dish[open] > summary .pair-chevron {
   transform: rotate(90deg);
 }
 .pair-dish[open] summary {
@@ -2912,6 +2912,21 @@ body::before {
 }
 .pair-dish-body .pair-group-head h3 {
   font-size: 20px;
+}
+/* 同じお店で読み取った飲み物メニューから、合うもの */
+.pair-on-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 0.5px solid color-mix(in srgb, var(--kind) 35%, transparent);
+}
+.pair-on-menu-list {
+  margin: 0 -14px;
+}
+.pair-on-menu-list .pair-row {
+  padding: 8px 14px;
 }
 .pair-dish-more {
   align-self: flex-start;
