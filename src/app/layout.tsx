@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import ServiceWorker from "@/components/ServiceWorker";
 import Buddy from "@/components/Buddy";
+import ClearField from "@/components/ClearField";
 import LaunchScreen from "@/components/LaunchScreen";
 import TabBar from "@/components/TabBar";
 import ThemeSync from "@/components/ThemeSync";
@@ -61,6 +62,7 @@ export default function RootLayout({
         <Buddy />
         <ServiceWorker />
         <ThemeSync />
+        <ClearField />
       </body>
     </html>
   );
