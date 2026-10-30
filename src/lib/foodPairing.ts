@@ -355,3 +355,24 @@ export function matchBottles(bottles: Bottle[], pairing: FoodPairing, limit = 2)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 }
+
+const LAST_KEY = "sake-memo:pair-last";
+
+/** 最後に読み取ったメニューと選んだ料理。ほかの画面に行って戻っても続きから見られるように残す */
+export type LastPair = { menu: FoodMenu["dishes"] | null; query: string };
+
+export function loadLastPair(): LastPair | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(LAST_KEY) ?? "null");
+    return v && typeof v.query === "string" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLastPair(v: LastPair) {
+  try {
+    if (!v.menu && !v.query) localStorage.removeItem(LAST_KEY);
+    else localStorage.setItem(LAST_KEY, JSON.stringify(v));
+  } catch {}
+}

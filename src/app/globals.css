@@ -2776,8 +2776,17 @@ body::before {
 .pair-group {
   gap: 10px;
 }
+/* 角丸に上だけ太線を引くと端が曲がって見えるので、全体をうっすら色づけて縁を細く囲む */
 .pair-best {
-  border-top: 4px solid var(--kind);
+  background: color-mix(in srgb, var(--kind) 9%, var(--surface));
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--kind) 40%, transparent), var(--shadow);
+}
+.pair-best > .pair-best-label {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--kind);
+  color: #fff;
 }
 .pair-best-label {
   font-size: 12px;
