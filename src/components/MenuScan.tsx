@@ -145,6 +145,8 @@ export default function MenuScan({
   const [drinks, setDrinks] = useState<ScannedDrink[]>(initialDrinks);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  // 名前で調べる欄は「文字で」を押したときだけ出す（まめメモと同じ）
+  const [textOpen, setTextOpen] = useState(false);
   // AI を使わずに出したとき、どこから出したか（調べ直すボタン用）
   const [localHit, setLocalHit] = useState<{ name: string; how: string; query: string } | null>(null);
   const [recent, setRecent] = useState<ScannedDrink[]>([]);
@@ -328,6 +330,7 @@ export default function MenuScan({
     setDrinks(next);
     onScanned?.(next);
     setStatus("done");
+    setTextOpen(false);
     setError("");
     setUndo(null);
     setLocalHit({ name: d.name, how, query: q });
@@ -346,7 +349,10 @@ export default function MenuScan({
     }
     if (!passcode) return setError("先に合言葉を入れてください");
     // 見つからなかったときは直して調べ直せるよう、入れた名前を残す
-    if (await request({ query: q })) setQuery("");
+    if (await request({ query: q })) {
+      setQuery("");
+      setTextOpen(false);
+    }
   }
 
   /** サーバーが理由を返さなかったとき（時間切れ・写真が大きすぎるなど）の説明 */
@@ -554,6 +560,11 @@ export default function MenuScan({
         </label>
       )}
 
+        {status === "done" && !textOpen && (
+          <button type="button" className="btn-secondary" onClick={() => setTextOpen(true)}>
+            文字で
+          </button>
+        )}
       </div>
 
       {status === "reading" && (
@@ -574,38 +585,44 @@ export default function MenuScan({
         </button>
       )}
 
-      {status !== "reading" && (
-        <form
-          className="row"
-          style={{ flexWrap: "nowrap" }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            lookup();
-          }}
-        >
-          <label htmlFor="scan-query" className="visually-hidden">
-            お酒の名前で調べる
-          </label>
-          <input
-            id="scan-query"
-            className="input"
-            type="search"
-            enterKeyHint="search"
-            maxLength={60}
-            placeholder="銘柄（例：獺祭）"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="btn-secondary"
-            style={{ flexShrink: 0 }}
-            disabled={!query.trim()}
+      {status !== "reading" &&
+        (textOpen ? (
+          <form
+            className="field"
+            onSubmit={(e) => {
+              e.preventDefault();
+              lookup();
+            }}
           >
-            調べる
-          </button>
-        </form>
-      )}
+            <label className="label" htmlFor="scan-query">
+              お酒の名前
+            </label>
+            <input
+              id="scan-query"
+              className="input"
+              type="search"
+              enterKeyHint="search"
+              maxLength={60}
+              autoFocus
+              placeholder="例：獺祭 純米大吟醸45、シャブリ"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <button type="submit" className="btn-primary" disabled={!query.trim()}>
+              この名前で調べる
+            </button>
+          </form>
+        ) : (
+          status !== "done" && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setTextOpen(true)}
+            >
+              文字で入力して調べる
+            </button>
+          )
+        ))}
 
       {status !== "reading" && extra}
 
