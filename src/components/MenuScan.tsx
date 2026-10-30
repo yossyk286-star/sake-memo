@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { drinkToDraft, type MenuScanResult, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
+import { drinkToDraft, type MenuScanResult, type DishIdeas, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
 import { placeOf } from "@/lib/origins";
 import {
   deleteWish,
@@ -166,6 +166,8 @@ export default function MenuScan({
   const [dishRanks, setDishRanks] = useState<Record<string, MenuRank[]>>({});
   const [dishRanking, setDishRanking] = useState<string | null>(null);
   const [dishRankError, setDishRankError] = useState<{ name: string; text: string } | null>(null);
+  // 料理メニューをまだ読み取っていないときに「合う料理を探す」で挙げてもらった料理
+  const [dishIdeas, setDishIdeas] = useState<Record<string, MenuRank[]>>({});
 
   // localStorage はブラウザでしか読めないので、表示後に読み込む
   useEffect(() => {
@@ -386,7 +388,12 @@ export default function MenuScan({
       const data = (await post({
         drink: { name: b.name, kind: b.kind, style: b.style },
         dishes: foodMenu.map((m) => m.dish),
-      })) as PairingResult;
+      })) as PairingResult | DishIdeas;
+      if ("ideas" in data) {
+        const ideas = data.ideas.map((r) => ({ name: r.dish, score: Math.min(5, Math.max(1, r.score)), reason: r.reason }));
+        setDishIdeas((prev) => ({ ...prev, [b.name]: ideas }));
+        return;
+      }
       const ranks = data.ranks
         .filter((r) => foodMenu[r.index])
         .map((r) => ({ name: foodMenu[r.index].dish, score: Math.min(5, Math.max(1, r.score)), reason: r.reason }))
@@ -894,8 +901,8 @@ export default function MenuScan({
                     {b.pairing}
                   </p>
                 )}
-                {foodMenu.length > 0 && (
-                  <div style={{ "--kind": genreColor(genreOf(b)) } as React.CSSProperties}>
+                <div style={{ "--kind": genreColor(genreOf(b)) } as React.CSSProperties}>
+                  {foodMenu.length > 0 ? (
                     <MenuPicks
                       label="さっきの料理メニューなら"
                       button="さっきの料理メニューから選ぶ"
@@ -904,8 +911,17 @@ export default function MenuScan({
                       error={dishRankError?.name === b.name ? dishRankError.text : ""}
                       onAsk={() => rankDishes(b)}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <MenuPicks
+                      label="このお酒に合う料理"
+                      button="合う料理を探す"
+                      ranks={dishIdeas[b.name]}
+                      busy={dishRanking === b.name}
+                      error={dishRankError?.name === b.name ? dishRankError.text : ""}
+                      onAsk={() => rankDishes(b)}
+                    />
+                  )}
+                </div>
                 {b.serveNotes.length > 0 && (
                   <details className={styles.methods}>
                     <summary>飲み方で比べる</summary>

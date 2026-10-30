@@ -4,7 +4,7 @@ import { timingSafeEqual } from "node:crypto";
 import { COCKTAIL_REFERENCE } from "@/lib/cocktails";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
 import { FoodMenuSchema, FoodPairingSchema } from "@/lib/foodPairing";
-import { MenuScanResultSchema, PairingResultSchema, TermLookupSchema } from "@/lib/menuScan";
+import { MenuScanResultSchema, PairingResultSchema, DishIdeasSchema, TermLookupSchema } from "@/lib/menuScan";
 
 // 名前で調べてネット検索までしたときは時間がかかるので、待ち時間の上限を長めにする
 export const maxDuration = 60;
@@ -253,8 +253,24 @@ export async function POST(req: Request) {
       .slice(0, MAX_PAIRING_DRINKS)
       .map((x) => x.trim().slice(0, MAX_DISH));
     if (!name) return error(400, "お酒がありません");
-    if (dishes.length === 0) return error(400, "料理がありません");
     try {
+      if (dishes.length === 0) {
+        const response = await client.messages.parse({
+          model: MODEL,
+          max_tokens: 2000,
+          system: "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。",
+          output_config: { effort: "low", format: zodOutputFormat(DishIdeasSchema) },
+          messages: [
+            {
+              role: "user",
+              content: `いま「${name}」を飲んでいます。居酒屋や飲食店のメニューでよく見かける料理から、このお酒に合うものを合う順に5つ挙げてください。`,
+            },
+          ],
+        });
+        if (!response.parsed_output) return error(422, "うまく判断できませんでした");
+        return Response.json(response.parsed_output);
+      }
+
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 4000,
