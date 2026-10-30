@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
 import Skeleton from "@/components/Skeleton";
 import { announceBuddy } from "@/lib/buddy";
@@ -72,6 +72,9 @@ export default function PairPage() {
   const [menu, setMenu] = useState<FoodMenu["dishes"] | null>(null);
   const [reading, setReading] = useState(false);
   const [restored, setRestored] = useState(false);
+  // 読み取りが終わったら結果まで動かして、終わったことがわかるようにする
+  const [justRead, setJustRead] = useState(false);
+  const menuRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const p = loadPasscode();
@@ -94,6 +97,10 @@ export default function PairPage() {
       setRestored(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (justRead) menuRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [justRead, menu]);
 
   useEffect(() => {
     if (restored) saveLastPair({ menu, query: result?.query ?? "" });
@@ -138,6 +145,7 @@ export default function PairPage() {
       const data = (await post({ foodImage: image })) as FoodMenu;
       setMenu(data.dishes);
       setResult(null);
+      setJustRead(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "読み取れませんでした");
     } finally {
@@ -172,6 +180,8 @@ export default function PairPage() {
     }
   }
 
+  // 迷ったとき用に、いちばん多くの料理に合うお酒をひとつだけ添える
+  const top = menu ? groupMenu(menu)[0] : undefined;
   const suggestions = [...new Set([...recent, ...BUILT_IN_DISHES])].slice(0, 14);
 
   return (
@@ -182,8 +192,8 @@ export default function PairPage() {
         </Link>
         <h1>料理から選ぶ</h1>
       </header>
-      <p className="lead" style={{ paddingTop: 12 }}>
-        食べる料理を入れるかメニューを撮ると、合うお酒と、これまでの記録や家のお酒から合いそうなものを出します。
+      <p className="lead lead-phrases" style={{ paddingTop: 12 }}>
+        料理を入れるか<wbr />メニューを撮ると、<wbr />合うお酒と、<wbr />記録や<wbr />家のお酒から<wbr />合いそうなものを出します。
       </p>
 
       <main className="content" style={{ paddingBottom: 110 }}>
@@ -260,50 +270,56 @@ export default function PairPage() {
         </div>
         {reading && <Skeleton label="メニューを読み取っています…" chips />}
         {menu && !reading && (
-          <section className="pair-mine" aria-live="polite">
+          <section ref={menuRef} className="pair-mine pair-menu" aria-live="polite">
             <div className="pair-menu-head">
-              <h2 className="pair-head">メニューの料理に合うお酒</h2>
-              <button type="button" className="text-btn" onClick={() => setMenu(null)}>
+              <h2 className="pair-head">読み取った料理</h2>
+              <button type="button" className="text-btn" onClick={() => {
+                  setMenu(null);
+                  setJustRead(false);
+                }}>
                 閉じる
               </button>
             </div>
-            {groupMenu(menu).map((g, gi) => (
-              <div key={g.key} className={gi === 0 ? "card pair-group pair-best" : "card pair-group"} style={{ "--kind": genreColor(genreOf({ kind: g.pick.kind, style: g.pick.style, name: "" })) } as React.CSSProperties}>
-                {gi === 0 && <span className="pair-best-label">このメニューならまずこれ</span>}
-                {gi === 1 && <span className="pair-best-label pair-other-label">ほかに合わせるなら</span>}
-                <div className="pair-group-head">
-                  <span className="kind-dot" style={{ background: "var(--kind)" }} aria-hidden="true" />
-                  <h3>{g.label}</h3>
-                  {g.sub && <span className="muted">{g.sub}</span>}
-                </div>
-                {gi === 0 && <p className="pair-group-reason">{g.items[0].reason}</p>}
-                <div className="pair-dishes" aria-label="合う料理">
-                  {g.items.map((it) => (
-                    <button
-                      key={it.dish}
-                      type="button"
-                      className="chip"
-                      aria-pressed={result?.query === it.dish}
-                      onClick={() => choose(it.dish)}
-                    >
-                      {it.dish}
-                    </button>
-                  ))}
-                </div>
-                <details className="pair-why">
-                  <summary>料理ごとの説明</summary>
-                  <dl>
-                    {g.items.map((it) => (
-                      <div key={it.dish}>
-                        <dt>{it.dish}</dt>
-                        <dd>{it.reason}</dd>
+            <p className={justRead ? "pair-done pair-done-new" : "pair-done"}>
+              <span className="pair-done-check" aria-hidden="true">✓</span>
+              <span>
+                <strong>{menu.length}品読み取りました</strong>
+                <span className="muted">料理を押すと、合うお酒が出ます</span>
+              </span>
+            </p>
+            <div className="list-group pair-dish-list">
+              {menu.map(({ dish: d, pick }) => {
+                const g = genreOf({ kind: pick.kind, style: pick.style, name: pick.title });
+                return (
+                  <details key={d} className="pair-dish" style={{ "--kind": genreColor(g) } as React.CSSProperties}>
+                    <summary>
+                      <span className="pair-dish-name">{d}</span>
+                      <span className="pair-chevron" aria-hidden="true">
+                        ›
+                      </span>
+                    </summary>
+                    <div className="pair-dish-body">
+                      <p className="pair-dish-for">この料理に合うのは</p>
+                      <div className="pair-group-head">
+                        <span className="kind-dot" style={{ background: "var(--kind)" }} aria-hidden="true" />
+                        <h3>{pick.title}</h3>
+                        <span className="muted">{pick.style && pick.style !== pick.title ? pick.style : (g ?? pick.kind)}</span>
                       </div>
-                    ))}
-                  </dl>
-                </details>
-              </div>
-            ))}
-            <p className="muted pair-none">料理を押すと、ほかの候補や、記録・家のお酒から合うものも出します。</p>
+                      <p className="pair-group-reason">{pick.reason}</p>
+                      {pick.examples && <p className="muted">例：{pick.examples}</p>}
+                      <button type="button" className="text-btn pair-dish-more" onClick={() => choose(d)}>
+                        ほかの候補と、記録・家のお酒から探す ›
+                      </button>
+                    </div>
+                  </details>
+                );
+              })}
+            </div>
+            {top && top.items.length > 1 && (
+              <p className="muted pair-none">
+                迷ったら<strong className="pair-top">{top.label}</strong>。{top.items.length}品に合います。
+              </p>
+            )}
           </section>
         )}
         {error && (
