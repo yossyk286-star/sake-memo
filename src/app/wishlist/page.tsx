@@ -18,6 +18,8 @@ export default function WishlistPage() {
   }, []);
 
   async function remove(id: string) {
+    const name = wishes?.find((w) => w.id === id)?.name;
+    if (!confirm(`${name ? `「${name}」を` : ""}気になるリストから外しますか？`)) return;
     await deleteWish(id);
     setWishes((ws) => ws?.filter((w) => w.id !== id) ?? null);
   }
