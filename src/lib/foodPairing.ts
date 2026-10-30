@@ -1,45 +1,10 @@
-import { z } from "zod";
-import { KINDS, STYLES_BY_KIND } from "./glossary";
+export type { FoodMenu, FoodPick, FoodPairing } from "./schemas";
+import type { FoodMenu, FoodPick, FoodPairing } from "./schemas";
 import { saveLastScan, today } from "./lastScan";
 import type { ScannedDrink } from "./menuScan";
 import { nameKey } from "./savedLookups";
 import type { Bottle, Kind, TastingRecord } from "./types";
 import { getLang, tr } from "./i18n";
-
-/** 料理に合うお酒1つ分 */
-export const FoodPickSchema = z.object({
-  kind: z.enum(KINDS).describe("お酒の種類"),
-  style: z
-    .string()
-    .describe(
-      `タイプ。種類ごとに次から選ぶ：${KINDS.map((k) => `${k}=${STYLES_BY_KIND[k].join("/")}`).join("、")}。どれでもなければ空文字`,
-    ),
-  title: z.string().describe("おすすめを短く（例：辛口の純米酒をぬる燗で、軽めの赤ワイン）。20字くらいまで"),
-  reason: z.string().describe("なぜこの料理に合うか、初心者にもわかるように1〜2文で"),
-  examples: z.string().describe("お店や酒屋で探しやすい銘柄・品種の例を2つくらい（例：黒龍、ピノ・ノワール）。思いつかなければ空文字"),
-});
-
-/** 料理・食べ物から選んだ、合うお酒 */
-export const FoodPairingSchema = z.object({
-  found: z.boolean().describe("料理・食べ物・おつまみとして判断できれば true。食べ物でなければ false"),
-  dish: z.string().describe("料理名（表記をととのえたもの）"),
-  tip: z.string().describe("この料理にお酒を合わせるときのコツを1文で（例：タレなら甘みとコクのあるお酒、塩ならすっきりしたお酒）"),
-  picks: z.array(FoodPickSchema).describe("合うお酒を合う順に3つ。種類が重ならないようにする"),
-});
-
-/** 料理のメニューや料理の写真から、載っている料理ごとにいちばん合うお酒 */
-export const FoodMenuSchema = z.object({
-  dishes: z
-    .array(
-      z.object({
-        dish: z.string().describe("料理名（メニューに書いてあるとおり、長ければ短くととのえる）"),
-        pick: FoodPickSchema.describe("この料理にいちばん合うお酒"),
-      }),
-    )
-    .describe("写っている料理。多くても12品。飲み物は含めない。料理が写っていなければ空配列"),
-});
-
-export type FoodMenu = z.infer<typeof FoodMenuSchema>;
 
 export type MenuGroup = { key: string; label: string; sub: string; pick: FoodPick; items: { dish: string; reason: string }[] };
 
@@ -54,8 +19,6 @@ export function groupMenu(dishes: FoodMenu["dishes"]): MenuGroup[] {
   }
   return [...groups.values()].sort((a, b) => b.items.length - a.items.length);
 }
-export type FoodPick = z.infer<typeof FoodPickSchema>;
-export type FoodPairing = Omit<z.infer<typeof FoodPairingSchema>, "found">;
 
 const p = (kind: Kind, style: string, title: string, reason: string, examples = ""): FoodPick => ({
   kind,
