@@ -26,7 +26,7 @@ import { loadDishRanks, loadTodayMenu, saveDishRanks, type FoodMenu, type MenuRa
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { MOODS, moodFromText, type Mood } from "@/lib/moods";
 import MoodPicker from "./MoodPicker";
-import { findSaved, forgetSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
+import { findSaved, saveLookups } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
 import Hint from "./Hint";
 import MenuPicks, { scoreWord } from "./MenuPicks";
@@ -117,6 +117,19 @@ export function PickedDrink({
   );
 }
 
+/** 一覧の絞り込み用。全角半角・大文字小文字・ひらがなカタカナの違いを無視する */
+function findKey(text: string) {
+  return text
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60))
+    .replace(/\s+/g, "");
+}
+
+function findText(d: ScannedDrink) {
+  return [d.name, d.kind, d.style, d.origin, d.menuNote].filter(Boolean).join(" ");
+}
+
 /** メニューやラベルを撮影するか名前で調べてお酒の情報を出し、選んだお酒を記録フォームに渡す */
 export default function MenuScan({
   onPick,
@@ -149,7 +162,6 @@ export default function MenuScan({
   const [textOpen, setTextOpen] = useState(false);
   // AI を使わずに出したとき、どこから出したか（調べ直すボタン用）
   const [localHit, setLocalHit] = useState<{ name: string; how: string; query: string } | null>(null);
-  const [recent, setRecent] = useState<ScannedDrink[]>([]);
   const [records, setRecords] = useState<TastingRecord[]>([]);
   const [wishes, setWishes] = useState<WishDrink[]>([]);
   const [prefs, setPrefs] = useState(EMPTY_PREFS);
@@ -180,7 +192,6 @@ export default function MenuScan({
     listRecords().then(setRecords);
     listWishes().then(setWishes);
     setPrefs(loadPrefs());
-    setRecent(recentSaved(8));
     const menu = loadTodayMenu();
     setFoodMenu(menu);
     setDishRanks(loadDishRanks(menu));
@@ -201,15 +212,6 @@ export default function MenuScan({
     setUndo({ label, drinks });
     setLocalHit(null);
     replaceDrinks(drinks.filter((d) => !names.includes(d.name)));
-  }
-
-  // 「前に調べたお酒」の候補を消すモード
-  const [editRecent, setEditRecent] = useState(false);
-  function forget(name: string) {
-    forgetSaved(name);
-    const next = recentSaved(8);
-    setRecent(next);
-    if (next.length === 0) setEditRecent(false);
   }
 
   const wishOf = (b: ScannedDrink) => wishes.find((w) => w.name === b.name);
@@ -266,6 +268,8 @@ export default function MenuScan({
   const [mood, setMood] = useState<Mood | null>(null);
   const [genre, setGenre] = useState<Genre | null>(null);
   const [sortOpen, setSortOpen] = useState(false);
+  // 一覧が多くなったときに名前や種類で絞る
+  const [find, setFind] = useState("");
   // タップで開いているカード（1杯だけのときは最初から開く）
   const [openCard, setOpenCard] = useState<string | null>(null);
   const genresHere = GENRES.filter((g) => drinks.some((d) => genreOf(d) === g));
@@ -273,13 +277,17 @@ export default function MenuScan({
   const activeGenre = genre && genresHere.length > 1 && genresHere.includes(genre) ? genre : null;
   // 料理との相性を出したときは、その順を優先する
   const order = useMemo(() => {
-    const idx = drinks.map((_, i) => i).filter((i) => !activeGenre || genreOf(drinks[i]) === activeGenre);
+    const key = findKey(find);
+    const idx = drinks
+      .map((_, i) => i)
+      .filter((i) => !activeGenre || genreOf(drinks[i]) === activeGenre)
+      .filter((i) => !key || findKey(findText(drinks[i])).includes(key));
     if (pairing) {
       const s = (i: number) => pairing.byName.get(drinks[i].name)?.score ?? 0;
       return idx.sort((a, b) => s(b) - s(a));
     }
     return mood ? idx.sort((a, b) => mood.score(drinks[b]) - mood.score(drinks[a])) : idx;
-  }, [drinks, mood, pairing, activeGenre]);
+  }, [drinks, mood, pairing, activeGenre, find]);
   const sortSummary = [
     activeGenre,
     mood && `気分：${mood.label}`,
@@ -462,7 +470,6 @@ export default function MenuScan({
         );
       // 次からは AI を呼ばずに出せるよう保存しておく
       saveLookups(found, "query" in payload ? payload.query : undefined);
-      setRecent(recentSaved(8));
       // 1本だけ（ラベルや名前で調べたとき）は今の一覧の先頭に足す。
       // メニューは今日の一覧の後ろに足す（表と裏など何枚かに分かれたメニューを続けて撮れるように）
       let next: ScannedDrink[];
@@ -568,9 +575,12 @@ export default function MenuScan({
         )}
       </div>
       {status === "done" && (
-        <p className={styles.howTo}>
-          「撮る」「写真から」はメニューやラベルを読み取り、「文字で」はお酒の名前を打って調べます。
-        </p>
+        <dl className={styles.howTo}>
+          <dt>撮る・写真から</dt>
+          <dd>メニューやラベルを読み取る</dd>
+          <dt>文字で</dt>
+          <dd>お酒の名前を打って調べる</dd>
+        </dl>
       )}
 
       {status === "reading" && (
@@ -632,35 +642,6 @@ export default function MenuScan({
 
       {status !== "reading" && extra}
 
-      {status !== "reading" && recent.length > 0 && (
-        <div className="scroll-row" aria-label="前に調べたお酒">
-          {recent.map((d) =>
-            editRecent ? (
-              <button
-                key={d.name}
-                type="button"
-                className={`chip ${styles.forget}`}
-                aria-label={`${d.name}を前に調べたお酒から消す`}
-                onClick={() => forget(d.name)}
-              >
-                {d.name} ✕
-              </button>
-            ) : (
-              <button key={d.name} type="button" className="chip" onClick={() => lookup(false, d.name)}>
-                {d.name}
-              </button>
-            ),
-          )}
-          <button
-            type="button"
-            className={`chip ${styles.editChip}`}
-            aria-pressed={editRecent}
-            onClick={() => setEditRecent(!editRecent)}
-          >
-            {editRecent ? "完了" : "✎ 消す"}
-          </button>
-        </div>
-      )}
       {undo && (
         <div className="row" style={{ alignItems: "center", flexWrap: "nowrap" }}>
           <p className={styles.lead} style={{ flex: 1, margin: 0 }} role="status">
@@ -707,18 +688,22 @@ export default function MenuScan({
             aria-pressed={sortOpen}
             onClick={() => setSortOpen(!sortOpen)}
           >
-            ⇅ 並び替え・絞り込み
+            ⇅ 並び替え
           </button>
-          {sortSummary && <span className={styles.sortNow}>{sortSummary}</span>}
-          <button
-            type="button"
-            className="btn-ghost"
-            style={{ height: 36, padding: "0 12px", flexShrink: 0, marginLeft: "auto" }}
-            onClick={() => hide(drinks.map((d) => d.name), `${drinks.length}杯すべて`)}
-          >
-            すべて消す
-          </button>
+          <input
+            className={`input ${styles.find}`}
+            type="search"
+            enterKeyHint="search"
+            aria-label="一覧を名前や種類で絞り込む"
+            placeholder="名前・種類で探す"
+            value={find}
+            onChange={(e) => setFind(e.target.value)}
+          />
         </div>
+      )}
+      {drinks.length > 1 && sortSummary && <p className={styles.sortNow}>{sortSummary}</p>}
+      {drinks.length > 1 && find.trim() && order.length === 0 && (
+        <p className={styles.lead}>「{find.trim()}」に当てはまるお酒はありません。</p>
       )}
       {drinks.length > 1 && sortOpen && (
         <div className={styles.sortPanel}>
@@ -1015,6 +1000,11 @@ export default function MenuScan({
           </article>
         );
       })}
+      {drinks.length > 1 && (
+        <button type="button" className={`btn-ghost ${styles.clearAll}`} onClick={() => hide(drinks.map((d) => d.name), `${drinks.length}杯すべて`)}>
+          一覧をすべて消す
+        </button>
+      )}
     </section>
   );
 }
