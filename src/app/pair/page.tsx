@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
 import MenuPicks from "@/components/MenuPicks";
+import ScanTabs from "@/components/ScanTabs";
+import ShopBar from "@/components/ShopBar";
 import Skeleton from "@/components/Skeleton";
 import { announceBuddy } from "@/lib/buddy";
 import { listBottles, listRecords } from "@/lib/db";
@@ -20,6 +23,7 @@ import {
   matchBottles,
   matchRecords,
   recentPairings,
+  resetShop,
   saveLastPair,
   savePairing,
   type FoodMenu,
@@ -65,6 +69,7 @@ type Result = {
 
 /** 料理や食べ物を入れると、合うお酒と、自分の記録・家のお酒から合いそうなものを出す */
 export default function PairPage() {
+  const router = useRouter();
   const [dish, setDish] = useState("");
   const [passcode, setPasscode] = useState("");
   const [savedPasscode, setSavedPasscode] = useState(true);
@@ -205,6 +210,11 @@ export default function PairPage() {
     }
   }
 
+  /** 飲み物メニューから選んだお酒を、そのまま記録に進める（料理も一緒に入れる） */
+  function record(dishName: string) {
+    return (name: string) => router.push(`/new?drink=${encodeURIComponent(name)}&food=${encodeURIComponent(dishName)}`);
+  }
+
   async function choose(input = dish) {
     const q = input.trim();
     if (!q || busy) return;
@@ -238,12 +248,26 @@ export default function PairPage() {
 
   return (
     <>
-      <header className="sub-header">
-        <Link href="/scan" className="back">
-          ‹ 調べる
+      <header className="page-header">
+        <h1>お酒を調べる</h1>
+        <Link href="/show" className="header-pill">
+          店員さんに見せる
         </Link>
-        <h1>料理から選ぶ</h1>
       </header>
+      <ScanTabs current="food" />
+      <ShopBar
+        drinks={drinkMenu.length}
+        dishes={menu && menuDate === today() ? menu.length : 0}
+        onReset={() => {
+          resetShop();
+          setMenu(null);
+          setMenuDate(undefined);
+          setAddedCount(null);
+          setJustRead(false);
+          setDrinkMenu([]);
+          setMenuRanks({});
+        }}
+      />
       <p className="lead lead-phrases" style={{ paddingTop: 12 }}>
         料理を入れるか<wbr />メニューを撮ると、<wbr />合うお酒と、<wbr />記録や<wbr />家のお酒から<wbr />合いそうなものを出します。
       </p>
@@ -348,6 +372,7 @@ export default function PairPage() {
                   <details key={d} className="pair-dish" style={{ "--kind": genreColor(g) } as React.CSSProperties}>
                     <summary>
                       <span className="pair-dish-name">{d}</span>
+                      {menuRanks[d] && <span className="pair-dish-done">✓ 選んだ</span>}
                       <span className="pair-chevron" aria-hidden="true">
                         ›
                       </span>
@@ -369,6 +394,7 @@ export default function PairPage() {
                           busy={ranking === d}
                           error={rankError?.dish === d ? rankError.text : ""}
                           onAsk={() => rankDrinkMenu(d)}
+                          onPick={record(d)}
                         />
                       )}
                       <button type="button" className="text-btn pair-dish-more" onClick={() => choose(d)}>
@@ -412,6 +438,7 @@ export default function PairPage() {
                     busy={ranking === result.query}
                     error={rankError?.dish === result.query ? rankError.text : ""}
                     onAsk={() => rankDrinkMenu(result.query)}
+                    onPick={record(result.pairing.dish)}
                   />
                 </section>
               )}

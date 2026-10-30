@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { KINDS, STYLES_BY_KIND } from "./glossary";
-import { today } from "./lastScan";
+import { saveLastScan, today } from "./lastScan";
 import type { ScannedDrink } from "./menuScan";
 import { nameKey } from "./savedLookups";
 import type { Bottle, Kind, TastingRecord } from "./types";
@@ -429,4 +429,14 @@ export function saveDishRanks(menu: FoodMenu["dishes"], byDrink: Record<string, 
   try {
     localStorage.setItem(DISH_RANK_KEY, JSON.stringify({ date: today(), dishes: dishesKey(menu), byDrink }));
   } catch {}
+}
+
+/** 2軒目に行ったときなど、今日のお店のメニュー（飲み物・料理）と、そこから選んだ結果を消す。見ていた料理は残す */
+export function resetShop() {
+  try {
+    localStorage.removeItem(MENU_RANK_KEY);
+    localStorage.removeItem(DISH_RANK_KEY);
+  } catch {}
+  saveLastPair({ menu: null, query: loadLastPair()?.query ?? "" });
+  saveLastScan([]);
 }

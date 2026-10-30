@@ -29,7 +29,7 @@ import MoodPicker from "./MoodPicker";
 import { findSaved, forgetSaved, recentSaved, saveLookups } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
 import Hint from "./Hint";
-import MenuPicks from "./MenuPicks";
+import MenuPicks, { scoreWord } from "./MenuPicks";
 import TasteBars from "./TasteBars";
 
 /** 相棒が「好きなやつ」を教えた一覧。アプリを開いている間は同じ一覧で何度も言わない */
@@ -867,7 +867,7 @@ export default function MenuScan({
                   <p className={styles.match}>
                     <strong>
                       {pairing?.mood ? "気分に合う度" : `${pairing?.dish}との相性`}{" "}
-                      {"●".repeat(match.score) + "○".repeat(5 - match.score)}
+                      {scoreWord(match.score)} {"●".repeat(match.score) + "○".repeat(5 - match.score)}
                     </strong>
                     {match.reason}
                   </p>
