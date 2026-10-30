@@ -142,3 +142,30 @@ export function moodFromText(input: string): Mood | null {
     score: (d) => hit.reduce((s, m) => s + m.score(d), 0),
   };
 }
+
+/** ひらがな・カタカナ、全角・半角、大文字・小文字をそろえる */
+const norm = (s: string) =>
+  s
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[ぁ-ゖ]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60))
+    .replace(/\s+/g, "");
+
+/** 言葉としては入っているけれど別のもの（「ジン」と「ジンジャー」など） */
+const LOOKALIKE: Record<string, RegExp> = {
+  ジン: /ジンジャ/g,
+  ラム: /ラムネ/g,
+};
+
+/**
+ * 気分ではない言葉（「ジン」「梅」など）が、名前・種類・説明に入っているか。
+ * 入っていないお酒はおすすめの下に回す
+ */
+export function wordMatch(word: string): (d: ScannedDrink) => boolean {
+  const k = norm(word);
+  const skip = LOOKALIKE[k];
+  return (d) => {
+    const t = norm([text(d), d.origin, d.menuNote].filter(Boolean).join(" "));
+    return (skip ? t.replace(skip, "") : t).includes(k);
+  };
+}

@@ -1,51 +1,56 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
- * 今日の気分を選ぶプルダウン。一覧から選ぶか、文字で入れて「並べる」。
- * 入れた文字で候補が絞られる
+ * 今日の気分を選ぶプルダウン。一覧から選ぶか、文字で入れて足していく。
+ * いくつでも選べて、選んだものは下に並び、× で外せる。入れた文字で候補が絞られる
  */
 export default function MoodPicker({
   labels,
-  value,
+  values,
   busy,
-  onPick,
-  onText,
+  onChange,
   suggest,
-  placeholder = "今日の気分（選ぶ・入力）",
+  placeholder = "今日の気分（いくつでも・入力も）",
 }: {
   labels: string[];
-  /** いま並べている気分。なければ null */
-  value: string | null;
+  /** いま選んでいる気分（入れた言葉も含む） */
+  values: string[];
   busy?: boolean;
-  onPick: (label: string | null) => void;
-  onText: (text: string) => void;
+  onChange: (values: string[]) => void;
   /** 入れた文字に合う気分（言葉の言いかえも含めて探すとき） */
   suggest?: (q: string) => string[];
   placeholder?: string;
 }) {
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
-  const closing = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const box = useRef<HTMLDivElement>(null);
   const q = text.trim();
-  // 選んだ気分がそのまま入っているときは全部出す
-  const options =
-    q && !labels.includes(q)
-      ? (suggest?.(q) ?? labels.filter((l) => l.includes(q)))
-      : labels;
+  const options = q ? (suggest?.(q) ?? labels.filter((l) => l.includes(q))) : labels;
 
-  function pick(label: string) {
-    setText(label);
-    setOpen(false);
-    onPick(label);
+  // 続けていくつか選べるよう、選んでも閉じない。外を触ったら閉じる
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
+
+  function toggle(label: string) {
+    setText("");
+    onChange(values.includes(label) ? values.filter((v) => v !== label) : [...values, label]);
   }
 
   function submit() {
     if (!q) return;
     setOpen(false);
-    if (labels.includes(q)) onPick(q);
-    else onText(q);
+    setText("");
+    // 「甘口、ジン」のように区切って入れたら、別々の気分にする
+    const add = q.split(/[、,，・\/／\s]+/).filter((w) => w && !values.includes(w));
+    if (add.length > 0) onChange([...values, ...new Set(add)]);
   }
 
   return (
@@ -58,7 +63,7 @@ export default function MoodPicker({
           submit();
         }}
       >
-        <div className="mood-box">
+        <div className="mood-box" ref={box}>
           <label htmlFor="scan-mood" className="visually-hidden">
             今日の気分
           </label>
@@ -71,15 +76,9 @@ export default function MoodPicker({
             autoComplete="off"
             enterKeyHint="go"
             maxLength={40}
-            placeholder={placeholder}
+            placeholder={values.length > 0 ? "さらに足す（例：ジン）" : placeholder}
             value={text}
-            onFocus={() => {
-              if (closing.current) clearTimeout(closing.current);
-              setOpen(true);
-            }}
-            onBlur={() => {
-              closing.current = setTimeout(() => setOpen(false), 150);
-            }}
+            onFocus={() => setOpen(true)}
             onChange={(e) => {
               setText(e.target.value);
               setOpen(true);
@@ -95,14 +94,19 @@ export default function MoodPicker({
             ▾
           </button>
           {open && options.length > 0 && (
-            <ul id="scan-mood-list" role="listbox" className="mood-list">
+            <ul
+              id="scan-mood-list"
+              role="listbox"
+              aria-multiselectable="true"
+              className="mood-list"
+            >
               {options.map((l) => (
                 <li
                   key={l}
                   role="option"
-                  aria-selected={value === l}
+                  aria-selected={values.includes(l)}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => pick(l)}
+                  onClick={() => toggle(l)}
                 >
                   {l}
                 </li>
@@ -110,14 +114,14 @@ export default function MoodPicker({
             </ul>
           )}
         </div>
-        {value ? (
+        {values.length > 0 && !q ? (
           <button
             type="button"
             className="btn-ghost"
             style={{ flexShrink: 0, height: 44, padding: "0 12px" }}
             onClick={() => {
-              setText("");
-              onPick(null);
+              setOpen(false);
+              onChange([]);
             }}
           >
             戻す
@@ -129,10 +133,28 @@ export default function MoodPicker({
             style={{ flexShrink: 0 }}
             disabled={!q || busy}
           >
-            {busy ? "調べ中…" : "並べる"}
+            {busy ? "調べ中…" : values.length > 0 ? "足す" : "並べる"}
           </button>
         )}
       </form>
+      {values.length > 0 && (
+        <div className="mood-chosen" aria-label="選んでいる気分">
+          {values.map((v) => (
+            <button
+              key={v}
+              type="button"
+              className="chip"
+              aria-pressed="true"
+              aria-label={`「${v}」を外す`}
+              disabled={busy}
+              onClick={() => onChange(values.filter((x) => x !== v))}
+            >
+              {v}
+              <span aria-hidden="true" className="mood-x">×</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
