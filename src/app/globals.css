@@ -2747,3 +2747,48 @@ body::before {
   min-height: 32px;
   font-size: 13px;
 }
+
+/* 料理から選ぶ：メニューを撮る */
+.pair-shoot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.pair-shoot .btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  background: var(--surface);
+}
+.pair-shoot [aria-disabled="true"] {
+  opacity: 0.6;
+}
+.pair-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pair-menu-head .text-btn {
+  min-height: 32px;
+}
+.pair-menu-row {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pair-menu-row[aria-pressed="true"] {
+  background: var(--accent-soft);
+}
+.pair-menu-pick {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.pair-menu-row .muted {
+  line-height: 1.5;
+}
