@@ -1593,9 +1593,38 @@ button.stamp {
   font-size: 15px;
   cursor: pointer;
 }
+.mood-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 .mood-list li:hover,
 .mood-list li[aria-selected="true"] {
   background: var(--fill);
+}
+.mood-list li[aria-selected="true"] {
+  font-weight: 600;
+}
+.mood-list li[aria-selected="true"]::after {
+  content: "✓";
+  color: var(--accent);
+}
+.mood-chosen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.mood-chosen .chip {
+  min-height: 32px;
+  padding: 0 10px 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.mood-x {
+  font-size: 15px;
+  opacity: 0.8;
 }
 
 /* --- 使い方の説明（「わかった」で消える） --- */
