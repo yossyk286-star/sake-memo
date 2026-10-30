@@ -178,8 +178,11 @@
   gap: 8px;
 }
 
+/* 文字の長さによらず3つとも同じ幅にする */
 .shootRow > * {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 8px;
   height: 44px;
   font-size: 15px;
 }
@@ -187,9 +190,20 @@
 /* 撮る・写真から・文字で が何をするかの一言 */
 .howTo {
   margin: -4px 0 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
   font-size: 12px;
   line-height: 1.5;
   color: var(--muted);
+}
+
+.howTo dt {
+  font-weight: 600;
+}
+
+.howTo dd {
+  margin: 0;
 }
 
 /* AI を使わずに出したお酒のカードの中の一言と、調べ直すリンク */
@@ -212,7 +226,21 @@
   cursor: pointer;
 }
 
+/* 並び替えの隣の、一覧を絞る欄 */
+:global(.row) > input[type="search"]:global(.input).find {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+}
+
+.clearAll {
+  align-self: center;
+  height: 36px;
+  padding: 0 16px;
+}
+
 .sortNow {
+  margin: 0;
   font-size: 13px;
   color: var(--accent-dark);
   overflow: hidden;
@@ -311,15 +339,6 @@
 .name {
   font-size: 16px;
   font-weight: 700;
-}
-
-.forget {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.editChip {
-  color: var(--muted);
 }
 
 /* 一覧から外す ✕。度数や「＋記録」から離して、カードの右上の角に置く */
