@@ -3,6 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 import type { QA } from "@/lib/types";
+import Skeleton from "./Skeleton";
 
 /**
  * 記録の画面や調べた結果から AI に質問する。
@@ -80,6 +81,7 @@ export default function AskAI({
           <p className="ask-a">{h.a}</p>
         </div>
       ))}
+      {busy && <Skeleton plain label="考えています…" lines={3} />}
       <div className="scroll-row" style={{ margin: 0 }}>
         {suggestions.map((s) => (
           <button key={s} type="button" className="chip" disabled={busy} onClick={() => ask(s)}>

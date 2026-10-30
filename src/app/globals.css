@@ -20,6 +20,7 @@
   --surface-2: #f7f7fa;
   --fill: rgba(118, 118, 128, 0.12);
   --fill-strong: rgba(118, 118, 128, 0.2);
+  --skel-shine: rgba(255, 255, 255, 0.75);
   --text: #1c1c1e;
   --muted: #6e6e76;
   --line: rgba(60, 60, 67, 0.14);
@@ -60,6 +61,7 @@
     --surface-2: #232326;
     --fill: rgba(118, 118, 128, 0.24);
     --fill-strong: rgba(118, 118, 128, 0.36);
+    --skel-shine: rgba(255, 255, 255, 0.09);
     --text: #f2f2f7;
     --muted: #98989f;
     --line: rgba(84, 84, 88, 0.55);
@@ -91,6 +93,7 @@
   --surface-2: #232326;
   --fill: rgba(118, 118, 128, 0.24);
   --fill-strong: rgba(118, 118, 128, 0.36);
+  --skel-shine: rgba(255, 255, 255, 0.09);
   --text: #f2f2f7;
   --muted: #98989f;
   --line: rgba(84, 84, 88, 0.55);
@@ -2843,4 +2846,119 @@ body::before {
   color: var(--muted);
   word-break: normal;
   overflow-wrap: break-word;
+}
+
+/* --- 空っぽ画面の最初の一歩 --- */
+.empty-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+  margin-top: 8px;
+}
+.empty-actions .btn-primary,
+.empty-actions .btn-secondary {
+  width: 100%;
+  justify-content: center;
+  text-decoration: none;
+}
+.empty-actions .btn-primary {
+  height: 48px;
+  font-size: 16px;
+}
+
+/* --- 読み込み中の骨組み（形だけのカードが光る） --- */
+.skel-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.skel-label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.skel-label::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: skel-pulse 1.2s ease-in-out infinite;
+}
+.skel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: skel-in 0.35s ease-out both;
+}
+.skel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.skel-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+.skel {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+      100deg,
+      transparent 20%,
+      var(--skel-shine) 50%,
+      transparent 80%
+    )
+    var(--fill);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skel-shine 1.4s ease-in-out infinite;
+}
+.skel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.skel-chip {
+  height: 30px;
+  border-radius: 15px;
+}
+@keyframes skel-shine {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+@keyframes skel-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+@keyframes skel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel,
+  .skel-label::before,
+  .skel-card {
+    animation: none;
+  }
+}
+.skel-plain {
+  gap: 9px;
+  padding: 4px 0;
 }

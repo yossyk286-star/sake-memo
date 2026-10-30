@@ -12,6 +12,7 @@ import { abvText } from "@/lib/abv";
 import { today } from "@/lib/lastScan";
 import { bestServeNote, serveNoteText } from "@/lib/serveNote";
 import type { Bottle, Kind, TastingRecord } from "@/lib/types";
+import EmptyState from "@/components/EmptyState";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
   return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, abv: null, boughtAt: today(), finished: false };
@@ -256,7 +257,11 @@ export default function BottlesPage() {
       <p className="lead">買ったお酒を登録しておくと、飲むたびにすぐ記録できて、開けてからの味の変化も追えます。</p>
       <main className="content">
         <AddBottle onAdded={(b) => setBottles((bs) => [b, ...(bs ?? [])])} />
-        {bottles?.length === 0 && <p className="empty">まだ登録していません。</p>}
+        {bottles?.length === 0 && (
+          <EmptyState title="家のお酒、まだないよ">
+            買ったお酒を上の「＋ 買ったお酒を登録」から入れておくと、飲むたびにすぐ記録できるよ。
+          </EmptyState>
+        )}
         {open.map((b) => (
           <BottleCard key={b.id} bottle={b} records={records} onChange={change} onDelete={remove} />
         ))}

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import GenreSortBar from "@/components/GenreSortBar";
 import { deleteWish, listWishes, type WishDrink } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
+import EmptyState from "@/components/EmptyState";
 
 /** メニューで「気になる」と印を付けた、次に試したいお酒の一覧 */
 export default function WishlistPage() {
@@ -52,11 +53,12 @@ export default function WishlistPage() {
           </div>
         )}
         {wishes?.length === 0 && (
-          <p className="empty">
-            まだありません。
-            <br />
-            メニューを撮ったときに「☆ 気になる」を押すと、ここに残ります。
-          </p>
+          <EmptyState
+            title="気になるお酒、まだないよ"
+            actions={[{ href: "/scan", label: "メニューを撮って探す" }]}
+          >
+            お店でメニューを撮って「☆ 気になる」を押すと、ここに残るよ。
+          </EmptyState>
         )}
         {shown.map((w) => (
           <article key={w.id} className="card">

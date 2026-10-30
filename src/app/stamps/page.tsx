@@ -7,6 +7,7 @@ import { drinkTitle, stars } from "@/components/RecordCard";
 import { collectStamps, diaryNote, REGIONS, travelDiary, type DiaryEntry, type Stamp } from "@/lib/origins";
 import { listRecords } from "@/lib/db";
 import type { TastingRecord } from "@/lib/types";
+import EmptyState from "@/components/EmptyState";
 
 // 地図の形は大きいので、ボタンを押したときに読み込む
 const JapanMapSheet = dynamic(() => import("@/components/JapanMapSheet"), { ssr: false });
@@ -165,11 +166,9 @@ function DiaryDay({ entry, nth, pop }: { entry: DiaryEntry; nth: number; pop?: b
 function Diary({ entries, popOf }: { entries: DiaryEntry[]; popOf: (name: string) => boolean }) {
   if (entries.length === 0) {
     return (
-      <section className="card">
-        <p className="muted" style={{ margin: 0 }}>
-          産地の入った記録をつけると、ここに旅の記録が並びます。最初の一歩はどこから？
-        </p>
-      </section>
+      <EmptyState title="旅はこれから" actions={[{ href: "/new", label: "記録する" }]}>
+        産地の入った記録をつけると、ここに旅の記録が並ぶよ。最初の一歩はどこから？
+      </EmptyState>
     );
   }
   const first = entries[0].first.date;

@@ -15,6 +15,7 @@ import { loadLastScan, saveLastScan, today } from "@/lib/lastScan";
 import { loadPasscode, PASSCODE_KEY } from "@/lib/passcode";
 import { shrinkPhoto } from "@/lib/photo";
 import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
+import Skeleton from "./Skeleton";
 import { announceBuddy } from "@/lib/buddy";
 import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
 import type { TastingRecord } from "@/lib/types";
@@ -511,10 +512,12 @@ export default function MenuScan({
 
       </div>
 
-      {status === "reading" && searching && (
-        <p className={styles.lead} role="status">
-          「{searching}」を調べています…
-        </p>
+      {status === "reading" && (
+        <Skeleton
+          label={searching ? `「${searching}」を調べています…` : "メニューを読み取っています…"}
+          cards={searching ? 1 : 3}
+          lines={searching ? 3 : 2}
+        />
       )}
 
       {savedPhoto && status !== "reading" && (
@@ -732,6 +735,7 @@ export default function MenuScan({
       )}
         </div>
       )}
+      {pairingBusy && <Skeleton label="合う順を考えています…" cards={2} lines={1} />}
       {mood && !MOODS.some((m) => m.label === mood.label) && (
         <p className={styles.lead}>「{mood.label}」に合いそうな順に並べました（AI は使っていません）。</p>
       )}
