@@ -178,10 +178,10 @@ textarea {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 8px;
-  min-height: calc(48px + env(safe-area-inset-top));
-  padding: env(safe-area-inset-top) 8px 0;
+  /* iPhone は時計のすぐ下の帯をぼかすので、見出しと戻るはその帯より下に置く。下の線は引かず、背景の色だけで区切る */
+  min-height: calc(56px + env(safe-area-inset-top));
+  padding: calc(env(safe-area-inset-top) + 8px) 8px 0;
   background: var(--bg);
-  border-bottom: 0.5px solid var(--line);
 }
 .sub-header h1 {
   grid-column: 2;
