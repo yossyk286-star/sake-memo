@@ -2776,28 +2776,51 @@ body::before {
 .pair-menu-head .text-btn {
   min-height: 32px;
 }
-.pair-group {
+/* 結果の頭が上の見出しバーに隠れないように */
+.pair-menu {
+  scroll-margin-top: calc(env(safe-area-inset-top) + 64px);
+}
+.pair-done {
+  display: flex;
+  align-items: center;
   gap: 10px;
-}
-/* 角丸に上だけ太線を引くと端が曲がって見えるので、全体をうっすら色づけて縁を細く囲む */
-.pair-best {
-  background: color-mix(in srgb, var(--kind) 9%, var(--surface));
-  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--kind) 40%, transparent), var(--shadow);
-}
-.pair-best > .pair-best-label {
-  align-self: flex-start;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--kind);
-  color: #fff;
-}
-.pair-best-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--kind);
-}
-.pair-other-label {
+  margin: 0 4px;
+  font-size: 13px;
+  line-height: 1.4;
   color: var(--muted);
+}
+.pair-done-check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+.pair-done > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.pair-done strong {
+  color: var(--text);
+  font-size: 15px;
+}
+.pair-done-new .pair-done-check {
+  animation: pair-done-pop 0.5s ease-out;
+}
+@keyframes pair-done-pop {
+  0% { transform: scale(0.3); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+/* 「、」のあとで1文字だけ次の行に行かないよう、<wbr> の位置でだけ折り返す */
+.lead-phrases {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .pair-group-head {
   display: flex;
@@ -2807,9 +2830,6 @@ body::before {
 .pair-group-head h3 {
   font-size: 17px;
 }
-.pair-best .pair-group-head h3 {
-  font-size: 22px;
-}
 .pair-group-head .muted {
   font-size: 13px;
 }
@@ -2818,34 +2838,90 @@ body::before {
   font-size: 14px;
   line-height: 1.6;
 }
-.pair-dishes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+/* 読み取った料理の一覧。押すと、その料理に合うお酒がその場で開く */
+.pair-dish {
+  position: relative;
 }
-.pair-why summary {
-  font-size: 13px;
-  color: var(--accent);
+.pair-dish + .pair-dish::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  border-top: 0.5px solid var(--line);
+}
+.pair-dish summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 14px 12px 16px;
+  list-style: none;
   cursor: pointer;
 }
-.pair-why dl {
-  margin: 8px 0 0;
+.pair-dish summary::-webkit-details-marker {
+  display: none;
+}
+.pair-dish-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.pair-dish .pair-chevron {
+  transition: transform 0.2s ease;
+}
+.pair-dish[open] .pair-chevron {
+  transform: rotate(90deg);
+}
+.pair-dish[open] summary {
+  padding-bottom: 6px;
+}
+/* 開いた中身は、合うお酒の色でうっすら囲む */
+.pair-dish-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  margin: 0 12px 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--kind) 9%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind) 35%, transparent);
 }
-.pair-why dt {
-  font-size: 14px;
-  font-weight: 700;
-}
-/* dt・dd は短い言葉向けに「、」で折り返す設定なので、説明文はふつうの文章として折り返す */
-.pair-why dd {
+.pair-dish-body p,
+.pair-dish-body h3 {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--muted);
+}
+/* 説明文はふつうの文章として折り返す */
+.pair-dish-body .pair-group-reason {
   word-break: normal;
   overflow-wrap: break-word;
+}
+.pair-dish-body .muted {
+  font-size: 13px;
+}
+.pair-dish-for {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--kind);
+}
+.pair-dish-body .pair-group-head {
+  flex-wrap: wrap;
+  row-gap: 2px;
+}
+.pair-dish-body .pair-group-head h3 {
+  font-size: 20px;
+}
+.pair-dish-more {
+  align-self: flex-start;
+  min-height: 36px;
+  padding: 0;
+  font-size: 14px;
+}
+.pair-top {
+  margin-left: 4px;
+  color: var(--text);
 }
 
 /* --- 空っぽ画面の最初の一歩 --- */
