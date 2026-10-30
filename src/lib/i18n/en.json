@@ -1,6 +1,7 @@
 {
 "読み取り機能の設定がまだです（API キーと合言葉を登録してください）": "Reading isn't set up yet (register the API key and passcode).",
 "合言葉が違います": "Wrong passcode.",
+"合言葉を何度も間違えたので、15分ほど待ってからお試しください": "Too many wrong passcodes. Please wait about 15 minutes and try again.",
 "うまく答えられませんでした。聞き方を変えてみてください": "Couldn't answer that. Try asking another way.",
 "調べたい言葉を入れてください": "Enter a word to look up.",
 "お酒の言葉として見つかりませんでした。書き方を変えて試してみてください": "Couldn't find that as a drinks term. Try spelling it another way.",
@@ -243,6 +244,7 @@
 "書き出しました。ファイルを iCloud やメールなどに保存しておくと安心です。": "Exported. Keep the file somewhere safe, like iCloud or email.",
 "{0}件の記録を読み込みました。": "Imported {0} entries.",
 "読み込めませんでした": "Couldn't import.",
+"読み込むと、同じ記録は読み込んだ内容で上書きされます。読み込みますか？": "Importing replaces any matching entries with the ones in the file. Import now?",
 "見た目": "Appearance",
 "明るさ": "Brightness",
 "「自動」はスマホの設定に合わせて、夜は暗い画面になります。": "“Auto” follows your phone's setting and goes dark at night.",

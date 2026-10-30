@@ -3,8 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { timingSafeEqual } from "node:crypto";
 import { COCKTAIL_REFERENCE } from "@/lib/cocktails";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
-import { FoodMenuSchema, FoodPairingSchema } from "@/lib/foodPairing";
-import { MenuScanResultSchema, PairingResultSchema, DishIdeasSchema, TermLookupSchema } from "@/lib/menuScan";
+import { FoodMenuSchema, FoodPairingSchema, MenuScanResultSchema, PairingResultSchema, DishIdeasSchema, TermLookupSchema } from "@/lib/schemas";
 
 // 名前で調べてネット検索までしたときは時間がかかるので、待ち時間の上限を長めにする
 export const maxDuration = 60;
@@ -122,6 +121,12 @@ function passcodeOK(given: unknown) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+// 合言葉を当てずっぽうで試され続けないよう、同じ接続元からの間違いは15分で10回までにする
+// shortcut: Vercel でサーバーが複数動くと数はサーバーごと。それでも破られるなら Vercel KV などで数える
+const FAIL_WINDOW = 15 * 60_000;
+const MAX_FAILS = 10;
+const fails = new Map<string, { n: number; since: number }>();
+
 function error(status: number, message: string) {
   return Response.json({ error: message }, { status });
 }
@@ -132,7 +137,17 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json().catch(() => null);
-  if (!passcodeOK(body?.passcode)) return error(401, "合言葉が違います");
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
+  const now = Date.now();
+  const fail = fails.get(ip);
+  const recent = fail && now - fail.since < FAIL_WINDOW ? fail : null;
+  if (recent && recent.n >= MAX_FAILS) return error(429, "合言葉を何度も間違えたので、15分ほど待ってからお試しください");
+  if (!passcodeOK(body?.passcode)) {
+    if (fails.size > 1000) fails.clear();
+    fails.set(ip, recent ? { n: recent.n + 1, since: recent.since } : { n: 1, since: now });
+    return error(401, "合言葉が違います");
+  }
+  fails.delete(ip);
 
   const client = new Anthropic();
   // 英語で使っているときは、AI にも英語で答えさせる
@@ -310,11 +325,13 @@ export async function POST(req: Request) {
   if (typeof body?.dish === "string" || typeof body?.mood === "string") {
     const isMood = typeof body?.mood === "string";
     const dish = String(isMood ? body.mood : body.dish).trim();
-    const drinks = Array.isArray(body.drinks) ? body.drinks.slice(0, MAX_PAIRING_DRINKS) : [];
+    const drinks: Record<string, unknown>[] = Array.isArray(body.drinks)
+      ? body.drinks.filter((d: unknown) => d && typeof d === "object").slice(0, MAX_PAIRING_DRINKS)
+      : [];
     if (!dish || dish.length > MAX_DISH) return error(400, isMood ? "気分を入れてください" : "料理の名前を入れてください");
     if (drinks.length === 0) return error(400, "お酒がありません");
     const list = drinks
-      .map((d: Record<string, unknown>, i: number) =>
+      .map((d, i) =>
         `${i}. ${[d.name, d.kind, d.style].filter((x) => typeof x === "string" && x).join(" / ")}`.slice(0, 120),
       )
       .join("\n");

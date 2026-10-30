@@ -50,19 +50,21 @@ export default function SettingsPage() {
     a.href = URL.createObjectURL(blob);
     a.download = `sake-memo-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
-    URL.revokeObjectURL(a.href);
-    setMessage("書き出しました。ファイルを iCloud やメールなどに保存しておくと安心です。");
+    // すぐ片付けると iPhone で保存が始まらないことがあるので、少し待つ
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setMessage(tr("書き出しました。ファイルを iCloud やメールなどに保存しておくと安心です。"));
   }
 
   async function upload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    if (!confirm(tr("読み込むと、同じ記録は読み込んだ内容で上書きされます。読み込みますか？"))) return;
     try {
       const n = await importJSON(await file.text());
       setMessage(tr("{0}件の記録を読み込みました。", n));
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "読み込めませんでした");
+      setMessage(tr(err instanceof Error ? err.message : "読み込めませんでした"));
     }
   }
 
