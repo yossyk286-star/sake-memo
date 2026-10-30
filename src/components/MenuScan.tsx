@@ -334,6 +334,7 @@ export default function MenuScan({
     setError("");
     setUndo(null);
     setLocalHit({ name: d.name, how, query: q });
+    setOpenCard(d.name);
   }
 
   async function lookup(fresh = false, text = query) {
@@ -566,6 +567,11 @@ export default function MenuScan({
           </button>
         )}
       </div>
+      {status === "done" && (
+        <p className={styles.howTo}>
+          「撮る」「写真から」はメニューやラベルを読み取り、「文字で」はお酒の名前を打って調べます。
+        </p>
+      )}
 
       {status === "reading" && (
         <Skeleton
@@ -654,16 +660,6 @@ export default function MenuScan({
             {editRecent ? "完了" : "✎ 消す"}
           </button>
         </div>
-      )}
-      {localHit && (
-        <p className={styles.lead} style={{ margin: 0 }}>
-          「{localHit.name}」は{localHit.how}から出しました（AI は使っていません）。{" "}
-          {passcode && (
-            <button type="button" className="btn-ghost" style={{ height: 28, padding: "0 8px", fontSize: 12 }} onClick={() => lookup(true, localHit.query)}>
-              AI で調べ直す
-            </button>
-          )}
-        </p>
       )}
       {undo && (
         <div className="row" style={{ alignItems: "center", flexWrap: "nowrap" }}>
@@ -916,6 +912,19 @@ export default function MenuScan({
                   <p className={styles.text}>
                     <strong>合う料理：</strong>
                     {b.pairing}
+                  </p>
+                )}
+                {localHit?.name === b.name && (
+                  <p className={styles.localNote}>
+                    {localHit.how}から出しました（AI は使っていません）
+                    {passcode && (
+                      <>
+                        {" "}
+                        <button type="button" className={styles.relook} onClick={() => lookup(true, localHit.query)}>
+                          AI で調べ直す
+                        </button>
+                      </>
+                    )}
                   </p>
                 )}
                 <div style={{ "--kind": genreColor(genreOf(b)) } as React.CSSProperties}>

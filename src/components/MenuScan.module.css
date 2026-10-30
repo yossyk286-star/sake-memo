@@ -184,6 +184,34 @@
   font-size: 15px;
 }
 
+/* 撮る・写真から・文字で が何をするかの一言 */
+.howTo {
+  margin: -4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* AI を使わずに出したお酒のカードの中の一言と、調べ直すリンク */
+.localNote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.relook {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 .sortNow {
   font-size: 13px;
   color: var(--accent-dark);
