@@ -48,7 +48,7 @@ export default function ScanPage() {
         }}
       />
 
-      <Hint id="scan-page" className="lead">
+      <Hint id="scan-page" className="lead scan-hint">
         撮ったり調べたりした結果は今日のあいだ残るので、あとから「記録する」でも同じお酒から選べます。
         次に試したいお酒は「☆」で<Link href="/wishlist">気になるお酒</Link>に残せます。
       </Hint>

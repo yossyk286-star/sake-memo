@@ -323,7 +323,7 @@ export default function PairPage() {
             value={dish}
             onChange={(e) => setDish(e.target.value)}
           />
-          <button type="submit" className="btn-primary" style={{ flexShrink: 0, width: "auto", height: 46, padding: "0 20px", fontSize: 16 }} disabled={!dish.trim() || busy}>
+          <button type="submit" className="btn-secondary" style={{ flexShrink: 0, padding: "0 20px", fontSize: 16 }} disabled={!dish.trim() || busy}>
             {busy ? "選び中…" : "選ぶ"}
           </button>
         </form>
@@ -341,8 +341,8 @@ export default function PairPage() {
           ))}
         </div>
         <div className="pair-shoot">
-          <label className="btn-secondary" aria-disabled={reading}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <label className="btn-primary" aria-disabled={reading}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
                 <circle cx="12" cy="13" r="3.5" />
             </svg>
