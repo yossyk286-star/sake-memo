@@ -2776,6 +2776,52 @@ body::before {
 .pair-group {
   gap: 10px;
 }
+/* 結果の頭が上の見出しバーに隠れないように */
+.pair-menu {
+  scroll-margin-top: calc(env(safe-area-inset-top) + 64px);
+}
+.pair-done {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.pair-done-check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+.pair-done > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.pair-done strong {
+  color: var(--text);
+  font-size: 15px;
+}
+.pair-done-new .pair-done-check {
+  animation: pair-done-pop 0.5s ease-out;
+}
+@keyframes pair-done-pop {
+  0% { transform: scale(0.3); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+/* 「、」のあとで1文字だけ次の行に行かないよう、<wbr> の位置でだけ折り返す */
+.lead-phrases {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
 /* 角丸に上だけ太線を引くと端が曲がって見えるので、全体をうっすら色づけて縁を細く囲む */
 .pair-best {
   background: color-mix(in srgb, var(--kind) 9%, var(--surface));

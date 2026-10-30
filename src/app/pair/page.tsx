@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
 import { announceBuddy } from "@/lib/buddy";
 import { listBottles, listRecords } from "@/lib/db";
@@ -71,6 +71,9 @@ export default function PairPage() {
   const [menu, setMenu] = useState<FoodMenu["dishes"] | null>(null);
   const [reading, setReading] = useState(false);
   const [restored, setRestored] = useState(false);
+  // 読み取りが終わったら結果まで動かして、終わったことがわかるようにする
+  const [justRead, setJustRead] = useState(false);
+  const menuRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const p = loadPasscode();
@@ -93,6 +96,10 @@ export default function PairPage() {
       setRestored(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (justRead) menuRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [justRead, menu]);
 
   useEffect(() => {
     if (restored) saveLastPair({ menu, query: result?.query ?? "" });
@@ -137,6 +144,7 @@ export default function PairPage() {
       const data = (await post({ foodImage: image })) as FoodMenu;
       setMenu(data.dishes);
       setResult(null);
+      setJustRead(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "読み取れませんでした");
     } finally {
@@ -181,8 +189,8 @@ export default function PairPage() {
         </Link>
         <h1>料理から選ぶ</h1>
       </header>
-      <p className="lead" style={{ paddingTop: 12 }}>
-        食べる料理を入れるかメニューを撮ると、合うお酒と、これまでの記録や家のお酒から合いそうなものを出します。
+      <p className="lead lead-phrases" style={{ paddingTop: 12 }}>
+        料理を入れるか<wbr />メニューを撮ると、<wbr />合うお酒と、<wbr />記録や<wbr />家のお酒から<wbr />合いそうなものを出します。
       </p>
 
       <main className="content" style={{ paddingBottom: 110 }}>
@@ -258,13 +266,23 @@ export default function PairPage() {
           </label>
         </div>
         {menu && (
-          <section className="pair-mine" aria-live="polite">
+          <section ref={menuRef} className="pair-mine pair-menu" aria-live="polite">
             <div className="pair-menu-head">
               <h2 className="pair-head">メニューの料理に合うお酒</h2>
-              <button type="button" className="text-btn" onClick={() => setMenu(null)}>
+              <button type="button" className="text-btn" onClick={() => {
+                  setMenu(null);
+                  setJustRead(false);
+                }}>
                 閉じる
               </button>
             </div>
+            <p className={justRead ? "pair-done pair-done-new" : "pair-done"}>
+              <span className="pair-done-check" aria-hidden="true">✓</span>
+              <span>
+                <strong>{menu.length}品読み取りました</strong>
+                <span className="muted">{groupMenu(menu).length}種類のお酒にまとめています</span>
+              </span>
+            </p>
             {groupMenu(menu).map((g, gi) => (
               <div key={g.key} className={gi === 0 ? "card pair-group pair-best" : "card pair-group"} style={{ "--kind": genreColor(genreOf({ kind: g.pick.kind, style: g.pick.style, name: "" })) } as React.CSSProperties}>
                 {gi === 0 && <span className="pair-best-label">このメニューならまずこれ</span>}
