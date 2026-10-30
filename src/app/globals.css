@@ -1771,6 +1771,37 @@ input[type="search"].input:focus {
   border-radius: 12px;
 }
 
+/* 入力中の欄の右端に出す ×（ClearField）。文字が × の下にもぐらないよう右をあける */
+.input[data-clearing] {
+  padding-right: 40px;
+}
+.mood-box .input[data-clearing] {
+  padding-right: 70px;
+}
+.clear-field {
+  position: fixed;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: color-mix(in srgb, var(--muted) 70%, transparent);
+  -webkit-tap-highlight-color: transparent;
+}
+.clear-field:active {
+  color: var(--muted);
+}
+/* ブラウザ標準の検索欄の × は出さない（二重になるので） */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
 /* --- 設定画面 --- */
 .section-title {
   margin: 8px 4px -6px;
