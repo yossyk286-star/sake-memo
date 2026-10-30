@@ -421,13 +421,23 @@ textarea {
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-/* iPhone の日付欄は中身の幅が最小になり、画面からはみ出すので抑える */
+/* iPhone の日付欄は中身の幅が最小になり、画面からはみ出すので抑える。
+   中の日付の文字は上寄せ・中央寄せになるので、他の欄と同じ縦中央・左寄せにそろえる */
 input[type="date"].input {
   display: block;
   min-width: 0;
   max-width: 100%;
   -webkit-appearance: none;
   appearance: none;
+  text-align: left;
+  line-height: 44px;
+}
+input[type="date"].input::-webkit-date-and-time-value {
+  display: block;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  line-height: 44px;
   text-align: left;
 }
 textarea.input {
