@@ -95,6 +95,9 @@ export default function PairPage() {
   // 読み取りが終わったら結果まで動かして、終わったことがわかるようにする
   const [justRead, setJustRead] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
+  // 料理を選んだら、一覧の下に出る候補（調べている間は骨組み）まで動かす
+  const [jump, setJump] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const p = loadPasscode();
@@ -123,6 +126,12 @@ export default function PairPage() {
       setRestored(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (!jump || (!busy && !result)) return;
+    resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!busy) setJump(false);
+  }, [jump, busy, result]);
 
   useEffect(() => {
     if (justRead) menuRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -219,6 +228,7 @@ export default function PairPage() {
     const q = input.trim();
     if (!q || busy) return;
     setDish(q);
+    setJump(true);
     setError("");
     const local = builtInPairing(q);
     if (local) return show(q, local, "built-in");
@@ -237,6 +247,7 @@ export default function PairPage() {
       show(q, pairing, "ai");
     } catch (e) {
       setError(e instanceof Error ? e.message : "調べられませんでした");
+      setJump(false);
     } finally {
       setBusy(false);
     }
@@ -418,111 +429,113 @@ export default function PairPage() {
           </p>
         )}
 
-        {busy && <Skeleton label={`「${dish.trim()}」に合うお酒を選んでいます…`} cards={2} chips />}
-        {result && !busy && (
-          <>
-            <section className="pair-result" aria-live="polite">
-              <h2 className="pair-head">「{result.pairing.dish}」に合うお酒</h2>
-              {result.pairing.tip && (
-                <div className="pair-tip">
-                  <BuddyFace mood="happy" size={52} />
-                  <p>{result.pairing.tip}</p>
-                </div>
-              )}
-              {drinkMenu.length > 0 && !menu?.some((m) => m.dish === result.query) && (
-                <section className="card pair-menu-card">
-                  <MenuPicks
-                    label="さっきの飲み物メニューなら"
-                    button="さっきの飲み物メニューから選ぶ"
-                    ranks={menuRanks[result.query]}
-                    busy={ranking === result.query}
-                    error={rankError?.dish === result.query ? rankError.text : ""}
-                    onAsk={() => rankDrinkMenu(result.query)}
-                    onPick={record(result.pairing.dish)}
-                  />
+        <div ref={resultRef} className="pair-jump">
+          {busy && <Skeleton label={`「${dish.trim()}」に合うお酒を選んでいます…`} cards={2} chips />}
+          {result && !busy && (
+            <>
+              <section className="pair-result" aria-live="polite">
+                <h2 className="pair-head">「{result.pairing.dish}」に合うお酒</h2>
+                {result.pairing.tip && (
+                  <div className="pair-tip">
+                    <BuddyFace mood="happy" size={52} />
+                    <p>{result.pairing.tip}</p>
+                  </div>
+                )}
+                {drinkMenu.length > 0 && !menu?.some((m) => m.dish === result.query) && (
+                  <section className="card pair-menu-card">
+                    <MenuPicks
+                      label="さっきの飲み物メニューなら"
+                      button="さっきの飲み物メニューから選ぶ"
+                      ranks={menuRanks[result.query]}
+                      busy={ranking === result.query}
+                      error={rankError?.dish === result.query ? rankError.text : ""}
+                      onAsk={() => rankDrinkMenu(result.query)}
+                      onPick={record(result.pairing.dish)}
+                    />
+                  </section>
+                )}
+                <ol className="pair-list">
+                  {result.pairing.picks.map((p, i) => {
+                    const g = genreOf({ kind: p.kind, style: p.style, name: p.title });
+                    return (
+                      <li key={p.title} className="card pair-pick" style={{ "--kind": genreColor(g) } as React.CSSProperties}>
+                        <span className="pair-rank" aria-label={`${i + 1}番目`}>
+                          {i + 1}
+                        </span>
+                        <div className="pair-body">
+                          <div className="tags">
+                            <span className="tag kind-tag">{g ?? p.kind}</span>
+                            {p.style && p.style !== g && <span className="tag tag-plain">{p.style}</span>}
+                          </div>
+                          <h3>{p.title}</h3>
+                          <p>{p.reason}</p>
+                          {p.examples && <p className="muted">例：{p.examples}</p>}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </section>
+
+              {result.bottles.length > 0 && (
+                <section className="pair-mine">
+                  <h2 className="pair-head">家にあるお酒なら</h2>
+                  <div className="list-group">
+                    {result.bottles.map(({ item: b, why }) => (
+                      <Link key={b.id} href="/bottles" className="pair-row">
+                        <span className="kind-dot" style={{ background: genreColor(genreOf(b)) }} aria-hidden="true" />
+                        <span className="pair-row-body">
+                          <strong>{b.name}</strong>
+                          <span className="muted">
+                            {why}
+                            {b.low ? "・残りわずか" : ""}
+                          </span>
+                        </span>
+                        <span className="pair-chevron" aria-hidden="true">
+                          ›
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
                 </section>
               )}
-              <ol className="pair-list">
-                {result.pairing.picks.map((p, i) => {
-                  const g = genreOf({ kind: p.kind, style: p.style, name: p.title });
-                  return (
-                    <li key={p.title} className="card pair-pick" style={{ "--kind": genreColor(g) } as React.CSSProperties}>
-                      <span className="pair-rank" aria-label={`${i + 1}番目`}>
-                        {i + 1}
-                      </span>
-                      <div className="pair-body">
-                        <div className="tags">
-                          <span className="tag kind-tag">{g ?? p.kind}</span>
-                          {p.style && p.style !== g && <span className="tag tag-plain">{p.style}</span>}
-                        </div>
-                        <h3>{p.title}</h3>
-                        <p>{p.reason}</p>
-                        {p.examples && <p className="muted">例：{p.examples}</p>}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            </section>
 
-            {result.bottles.length > 0 && (
               <section className="pair-mine">
-                <h2 className="pair-head">家にあるお酒なら</h2>
-                <div className="list-group">
-                  {result.bottles.map(({ item: b, why }) => (
-                    <Link key={b.id} href="/bottles" className="pair-row">
-                      <span className="kind-dot" style={{ background: genreColor(genreOf(b)) }} aria-hidden="true" />
-                      <span className="pair-row-body">
-                        <strong>{b.name}</strong>
-                        <span className="muted">
-                          {why}
-                          {b.low ? "・残りわずか" : ""}
+                <h2 className="pair-head">これまでの記録から</h2>
+                {result.records.length > 0 ? (
+                  <div className="list-group">
+                    {result.records.map(({ item: r, why }) => (
+                      <Link key={r.id} href={`/record?id=${r.id}`} className="pair-row">
+                        <span className="kind-dot" style={{ background: genreColor(genreOf(r)) }} aria-hidden="true" />
+                        <span className="pair-row-body">
+                          <strong>{r.name}</strong>
+                          <span className="muted">{why}</span>
                         </span>
-                      </span>
-                      <span className="pair-chevron" aria-hidden="true">
-                        ›
-                      </span>
-                    </Link>
-                  ))}
-                </div>
+                        <span className="pair-chevron" aria-hidden="true">
+                          ›
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted pair-none">
+                    {records.length === 0
+                      ? "記録がたまると、飲んだお酒の中からも合いそうなものを選びます。"
+                      : "合いそうな記録はまだありません。記録の「合わせた料理」を書いておくと、次から出てきます。"}
+                  </p>
+                )}
               </section>
-            )}
 
-            <section className="pair-mine">
-              <h2 className="pair-head">これまでの記録から</h2>
-              {result.records.length > 0 ? (
-                <div className="list-group">
-                  {result.records.map(({ item: r, why }) => (
-                    <Link key={r.id} href={`/record?id=${r.id}`} className="pair-row">
-                      <span className="kind-dot" style={{ background: genreColor(genreOf(r)) }} aria-hidden="true" />
-                      <span className="pair-row-body">
-                        <strong>{r.name}</strong>
-                        <span className="muted">{why}</span>
-                      </span>
-                      <span className="pair-chevron" aria-hidden="true">
-                        ›
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <p className="muted pair-none">
-                  {records.length === 0
-                    ? "記録がたまると、飲んだお酒の中からも合いそうなものを選びます。"
-                    : "合いそうな記録はまだありません。記録の「合わせた料理」を書いておくと、次から出てきます。"}
-                </p>
-              )}
-            </section>
-
-            <p className="muted pair-from">
-              {result.from === "ai"
-                ? "AI が選びました。"
-                : result.from === "saved"
-                  ? "前に AI が選んだ結果から出しました（AI は使っていません）。"
-                  : "よくある料理なので、内蔵の表から出しました（AI は使っていません）。"}
-            </p>
-          </>
-        )}
+              <p className="muted pair-from">
+                {result.from === "ai"
+                  ? "AI が選びました。"
+                  : result.from === "saved"
+                    ? "前に AI が選んだ結果から出しました（AI は使っていません）。"
+                    : "よくある料理なので、内蔵の表から出しました（AI は使っていません）。"}
+              </p>
+            </>
+          )}
+        </div>
       </main>
     </>
   );
