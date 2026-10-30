@@ -209,6 +209,7 @@ export default function MenuScan({
     }
   }
   function hide(names: string[], label: string) {
+    if (!confirm(`${label}を一覧から消しますか？`)) return;
     setUndo({ label, drinks });
     setLocalHit(null);
     replaceDrinks(drinks.filter((d) => !names.includes(d.name)));

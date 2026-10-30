@@ -13,7 +13,7 @@ export function PhotoRow({ photos, onRemove }: { photos: Blob[]; onRemove?: (i: 
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={u} alt={`記録の写真 ${i + 1}`} />
           {onRemove && (
-            <button type="button" className="photo-remove" aria-label={`写真 ${i + 1} を外す`} onClick={() => onRemove(i)}>
+            <button type="button" className="photo-remove" aria-label={`写真 ${i + 1} を外す`} onClick={() => confirm("この写真を外しますか？") && onRemove(i)}>
               ×
             </button>
           )}
