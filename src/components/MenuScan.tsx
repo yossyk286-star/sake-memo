@@ -22,6 +22,7 @@ import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
 import { abvText } from "@/lib/abv";
 import { findCocktail } from "@/lib/cocktails";
+import { dishesForDrink, loadTodayMenu, type FoodMenu } from "@/lib/foodPairing";
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { MOODS, moodFromText, type Mood } from "@/lib/moods";
 import MoodPicker from "./MoodPicker";
@@ -158,6 +159,8 @@ export default function MenuScan({
     byName: Map<string, { score: number; reason: string }>;
   } | null>(null);
   const [pairingBusy, setPairingBusy] = useState(false);
+  // 同じお店で今日読み取った料理メニュー。お酒ごとに合う料理を出し、料理で並べるときの候補にする
+  const [foodMenu, setFoodMenu] = useState<FoodMenu["dishes"]>([]);
 
   // localStorage はブラウザでしか読めないので、表示後に読み込む
   useEffect(() => {
@@ -169,6 +172,7 @@ export default function MenuScan({
     listWishes().then(setWishes);
     setPrefs(loadPrefs());
     setRecent(recentSaved(8));
+    setFoodMenu(loadTodayMenu());
   }, []);
 
   // 調べた結果を一覧から外す（今日の一覧からだけ。前に調べた情報は残るので、また調べても AI は使わない）
@@ -733,6 +737,25 @@ export default function MenuScan({
           </button>
         </form>
       )}
+      {drinks.length > 1 && foodMenu.length > 0 && (
+        <div className="scroll-row" aria-label="さっき読み取った料理">
+          {foodMenu.map(({ dish: d }) => (
+            <button
+              key={d}
+              type="button"
+              className="chip"
+              aria-pressed={!pairing?.mood && pairing?.dish === d}
+              disabled={pairingBusy}
+              onClick={() => {
+                setDish(d);
+                pairWith(d);
+              }}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      )}
         </div>
       )}
       {pairingBusy && <Skeleton label="合う順を考えています…" cards={2} lines={1} />}
@@ -836,6 +859,12 @@ export default function MenuScan({
                   <p className={styles.text}>
                     <strong>合う料理：</strong>
                     {b.pairing}
+                  </p>
+                )}
+                {foodMenu.length > 0 && (
+                  <p className={styles.text}>
+                    <strong>さっきの料理メニューなら：</strong>
+                    {dishesForDrink(foodMenu, b).slice(0, 3).join("、") || "合うと出た料理はありません"}
                   </p>
                 )}
                 {b.serveNotes.length > 0 && (
