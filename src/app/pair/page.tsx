@@ -403,7 +403,7 @@ export default function PairPage() {
                   <p>{result.pairing.tip}</p>
                 </div>
               )}
-              {drinkMenu.length > 0 && (
+              {drinkMenu.length > 0 && !menu?.some((m) => m.dish === result.query) && (
                 <section className="card pair-menu-card">
                   <MenuPicks
                     label="さっきの飲み物メニューなら"
