@@ -178,10 +178,10 @@ export default function PairPage() {
       // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
       const image = await blobToBase64(await shrinkPhoto(file, 1000));
       const data = (await post({ foodImage: image })) as FoodMenu;
-      // 同じ日に続けて撮ったメニュー（表と裏、フードとおつまみなど）は入れ替えずに足す
+      // 同じ日に続けて撮ったメニュー（表と裏、フードとおつまみなど）は入れ替えずに、新しい分を上に足す
       const before = menu && menuDate === today() ? menu : [];
       const added = data.dishes.filter((d) => !before.some((m) => m.dish === d.dish));
-      setMenu([...before, ...added]);
+      setMenu([...added, ...before]);
       setAddedCount(before.length > 0 ? added.length : null);
       setMenuDate(today());
       setResult(null);
