@@ -1,3 +1,4 @@
+import { tr, trv } from "@/lib/i18n";
 /** 比べる2つの色（1つ目はアプリの色、2つ目は見分けやすい暖色）。ダークモードでも見えるよう CSS の変数を使う */
 export const SERIES_COLORS = ["var(--accent)", "var(--compare)"];
 
@@ -26,11 +27,11 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
     <svg
       viewBox={`0 0 ${SIZE} ${SIZE}`}
       width="100%"
-      style={{ maxWidth: 360, display: "block", margin: "0 auto" }}
+      style={{ maxWidth: 360, display: "block", margin: "0 auto", overflow: "visible" }}
       role="img"
       aria-label={series
-        .map((s) => `${s.label}：${axes.map((a, i) => `${a}${s.values[i] ?? "未入力"}`).join("、")}`)
-        .join("。")}
+        .map((s) => `${tr(s.label)}：${axes.map((a, i) => `${tr(a)}${s.values[i] ?? tr("未入力")}`).join(tr("、"))}`)
+        .join(tr("。"))}
     >
       {[0, 1, 2, 3, 4, 5].map((level) => (
         <polygon
@@ -72,7 +73,7 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
         const empty = series.every((s) => !s.values[i]);
         return (
           <text key={a} x={x} y={y} textAnchor={anchor} dominantBaseline={baseline} fontSize="13" fill={empty ? "var(--muted)" : "var(--text)"}>
-            {a}
+            {trv(a)}
           </text>
         );
       })}

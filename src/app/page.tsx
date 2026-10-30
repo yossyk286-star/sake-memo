@@ -9,6 +9,7 @@ import { listRecords } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
+import { getLang, tr } from "@/lib/i18n";
 
 const WEEKDAYS = "日月火水木金土";
 
@@ -16,8 +17,11 @@ const WEEKDAYS = "日月火水木金土";
 function dateHead(date: string) {
   const [y, m, d] = date.split("-").map(Number);
   const w = WEEKDAYS[new Date(y, m - 1, d).getDay()];
-  const md = `${m}月${d}日（${w}）`;
-  return y === new Date().getFullYear() ? md : `${y}年${md}`;
+  const thisYear = y === new Date().getFullYear();
+  if (getLang() === "en")
+    return new Date(y, m - 1, d).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: thisYear ? undefined : "numeric" });
+  const md = tr("{0}月{1}日（{2}）", m, d, w);
+  return thisYear ? md : tr("{0}年{1}", y, md);
 }
 
 export default function RecordsPage() {
@@ -76,8 +80,8 @@ export default function RecordsPage() {
   return (
     <>
       <header className="page-header">
-        <h1>さけメモ</h1>
-        <Link href="/settings" className="icon-btn" aria-label="設定">
+        <h1>{tr("さけメモ")}</h1>
+        <Link href="/settings" className="icon-btn" aria-label={tr("設定")}>
           <svg
             width="22"
             height="22"
@@ -96,12 +100,12 @@ export default function RecordsPage() {
 
       {records && records.length > 0 && (
         <p className="lead">
-          これまでの記録 {records.length}件
+          {tr("これまでの記録 {0}件", records.length)}
         </p>
       )}
       {records && records.length > 0 && (
         <Hint id="home-swipe" className="lead">
-          記録を左にスライドすると削除、右にスライドすると編集できます。
+          {tr("記録を左にスライドすると削除、右にスライドすると編集できます。")}
         </Hint>
       )}
 
@@ -109,13 +113,13 @@ export default function RecordsPage() {
         {records && records.length > 0 && (
           <div className="filter-bar">
             <label htmlFor="r-search" className="visually-hidden">
-              記録を検索
+              {tr("記録を検索")}
             </label>
             <input
               id="r-search"
               type="search"
               className="input"
-              placeholder="名前・店・味で探す"
+              placeholder={tr("名前・店・味で探す")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -126,7 +130,7 @@ export default function RecordsPage() {
               sort={sort}
               onSort={setSort}
               sorts={["sweet", "dry", "rating", "abvLow", "abvHigh"]}
-              defaultLabel="日付順"
+              defaultLabel={tr("日付順")}
               extra={
                 <button
                   type="button"
@@ -134,7 +138,7 @@ export default function RecordsPage() {
                   aria-pressed={goodOnly}
                   onClick={() => setGoodOnly(!goodOnly)}
                 >
-                  ★4以上
+                  {tr("★4以上")}
                 </button>
               }
             />
@@ -142,17 +146,17 @@ export default function RecordsPage() {
         )}
         {records?.length === 0 && (
           <EmptyState
-            title="最初の1杯、いっしょに記録しよう"
+            title={tr("最初の1杯、いっしょに記録しよう")}
             actions={[
-              { href: "/new", label: "1杯目を記録する" },
-              { href: "/scan", label: "メニューを撮って選ぶ" },
+              { href: "/new", label: tr("1杯目を記録する") },
+              { href: "/scan", label: tr("メニューを撮って選ぶ") },
             ]}
           >
-            飲んだお酒を残していくと、好みや産地のスタンプがたまっていくよ。
+            {tr("飲んだお酒を残していくと、好みや産地のスタンプがたまっていくよ。")}
           </EmptyState>
         )}
         {records && records.length > 0 && filtering && days.length === 0 && (
-          <p className="empty">当てはまる記録がありません。</p>
+          <p className="empty">{tr("当てはまる記録がありません。")}</p>
         )}
         {days.map((day) => (
           <section key={day.date} className="day">
@@ -186,7 +190,7 @@ export default function RecordsPage() {
         >
           <path d="M12 5v14M5 12h14" />
         </svg>
-        記録する
+        {tr("記録する")}
       </Link>
     </>
   );

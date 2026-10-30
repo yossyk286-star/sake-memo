@@ -13,6 +13,7 @@ import { today } from "@/lib/lastScan";
 import { bestServeNote, serveNoteText } from "@/lib/serveNote";
 import type { Bottle, Kind, TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
+import { tr, trJoin, trv } from "@/lib/i18n";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
   return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, abv: null, boughtAt: today(), finished: false };
@@ -36,7 +37,7 @@ function AddBottle({ onAdded }: { onAdded: (b: Bottle) => void }) {
   if (!open) {
     return (
       <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
-        ＋ 買ったお酒を登録
+        {tr("＋ 買ったお酒を登録")}
       </button>
     );
   }
@@ -51,12 +52,12 @@ function AddBottle({ onAdded }: { onAdded: (b: Bottle) => void }) {
     >
       <div className="field">
         <label className="label" htmlFor="b-name">
-          名前 <span className="req">必須</span>
+          {tr("名前")}{" "}<span className="req">{tr("必須")}</span>
         </label>
-        <input id="b-name" className="input" placeholder="例：獺祭 純米大吟醸45" value={draft.name} onChange={(e) => set("name", e.target.value)} />
+        <input id="b-name" className="input" placeholder={tr("例：獺祭 純米大吟醸45")} value={draft.name} onChange={(e) => set("name", e.target.value)} />
       </div>
       <fieldset className="field">
-        <legend className="label">種類</legend>
+        <legend className="label">{tr("種類")}</legend>
         <SingleChips
           options={KINDS}
           value={draft.kind}
@@ -65,39 +66,39 @@ function AddBottle({ onAdded }: { onAdded: (b: Bottle) => void }) {
       </fieldset>
       {draft.kind && (
         <fieldset className="field">
-          <legend className="label">タイプ</legend>
+          <legend className="label">{tr("タイプ")}</legend>
           <SingleChips options={STYLES_BY_KIND[draft.kind]} value={draft.style} onChange={(v) => set("style", v)} />
         </fieldset>
       )}
       <div className="row" style={{ flexWrap: "nowrap" }}>
         <div className="field" style={{ flex: 1 }}>
           <label className="label" htmlFor="b-maker">
-            蔵元・醸造所
+            {tr("蔵元・醸造所")}
           </label>
           <input id="b-maker" className="input" value={draft.maker} onChange={(e) => set("maker", e.target.value)} />
         </div>
         <div className="field" style={{ flex: 1 }}>
           <label className="label" htmlFor="b-origin">
-            産地
+            {tr("産地")}
           </label>
           <input id="b-origin" className="input" value={draft.origin} onChange={(e) => set("origin", e.target.value)} />
         </div>
       </div>
       <div className="field">
         <label className="label" htmlFor="b-abv">
-          度数（%）
+          {tr("度数（%）")}
         </label>
         <AbvInput id="b-abv" value={draft.abv} onChange={(v) => set("abv", v)} />
       </div>
       <div className="field">
         <label className="label" htmlFor="b-price">
-          買った値段（円）
+          {tr("買った値段（円）")}
         </label>
         <input
           id="b-price"
           className="input"
           inputMode="numeric"
-          placeholder="例：2200"
+          placeholder={tr("例：2200")}
           value={draft.price ?? ""}
           onChange={(e) => {
             const digits = e.target.value.normalize("NFKC").replace(/\D/g, "");
@@ -107,14 +108,14 @@ function AddBottle({ onAdded }: { onAdded: (b: Bottle) => void }) {
       </div>
       <div className="row">
         <button type="submit" className="btn-primary" style={{ flex: 1 }} disabled={!draft.name.trim()}>
-          登録する
+          {tr("登録する")}
         </button>
         <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>
-          やめる
+          {tr("やめる")}
         </button>
       </div>
       <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-        ラベルを撮って調べた結果からも「家のお酒に登録」で入れられます。
+        {tr("ラベルを撮って調べた結果からも「家のお酒に登録」で入れられます。")}
       </p>
     </form>
   );
@@ -139,48 +140,48 @@ function BottleCard({
       <div className="card-top">
         <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <i className="kind-dot" style={{ background: kindColor(b.kind) }} aria-hidden="true" />
-          {b.name}
+          {trv(b.name)}
         </h2>
         <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-          {b.finished && <span className="muted">飲みきった</span>}
-          {!b.finished && b.low && <span className="muted">残りわずか</span>}
+          {b.finished && <span className="muted">{tr("飲みきった")}</span>}
+          {!b.finished && b.low && <span className="muted">{tr("残りわずか")}</span>}
           {/* 削除はあまり使わないので、ボタンの列から外して右上に小さく置く */}
           <button type="button" className="text-btn text-danger" onClick={() => onDelete(b.id)}>
-            削除
+            {tr("削除")}
           </button>
         </span>
       </div>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {/* 「1,500/円」のように1つの項目の途中で折り返さないよう、項目ごとにまとめる */}
-        {[[b.kind, b.style].filter(Boolean).join("・"), b.maker, b.origin, b.abv && abvText(b.abv), b.price && yen(b.price), `${b.boughtAt.slice(5).replace("-", "/")}に購入`]
+        {[trJoin([b.kind, b.style]), b.maker, trv(b.origin), b.abv && abvText(b.abv), b.price && yen(b.price), tr("{0}に購入", b.boughtAt.slice(5).replace("-", "/"))]
           .filter(Boolean)
           .map((t, i, all) => (
             // 「・」は行の頭に来られないので、前の項目の後ろに付けて、そこで折り返せるようにする
             <span key={i} style={{ whiteSpace: "nowrap" }}>
-              {t}
-              {i < all.length - 1 && "・"}
+              {trv(t)}
+              {i < all.length - 1 && tr("・")}
             </span>
           ))}
       </p>
       <p style={{ margin: 0, fontSize: 14 }}>
         {mine.length > 0 ? (
           <>
-            {mine.length}回記録・平均 <span className="stars">{stars(Math.round(avg))}</span>
+            {tr("{0}回記録・平均", mine.length)}{" "}<span className="stars">{stars(Math.round(avg))}</span>
           </>
         ) : (
-          <span className="muted">まだ記録していません</span>
+          <span className="muted">{tr("まだ記録していません")}</span>
         )}
       </p>
       {best?.serveNote && (
         <p className="best-recipe">
-          <strong>いちばん良かった飲み方</strong>（{stars(best.overall)}・{best.serve ?? "飲み方未入力"}）
+          <strong>{tr("いちばん良かった飲み方")}</strong>{tr("（{0}・{1}）", stars(best.overall), best.serve ?? tr("飲み方未入力"))}
           <br />
           {serveNoteText(best.serveNote)}
         </p>
       )}
       {mine.length > 0 && (
         <details className="bottle-history">
-          <summary>記録を見る</summary>
+          <summary>{tr("記録を見る")}</summary>
           {mine.map((r) => (
             <Link key={r.id} href={`/record?id=${r.id}`}>
               {r.date.slice(5).replace("-", "/")} {stars(r.overall)} {r.serve ?? ""} {r.serveNote ? serveNoteText(r.serveNote) : r.memo.slice(0, 20)}
@@ -191,7 +192,7 @@ function BottleCard({
       <div className="row">
         {!b.finished && (
           <Link href={`/new?bottle=${b.id}`} className="btn-secondary" style={{ flex: "1 0 100%", whiteSpace: "nowrap" }}>
-            飲んだ・記録する
+            {tr("飲んだ・記録する")}
           </Link>
         )}
         {!b.finished && (
@@ -202,11 +203,11 @@ function BottleCard({
             onClick={() => onChange({ ...b, low: !b.low })}
             style={{ flex: 1, whiteSpace: "nowrap" }}
           >
-            {b.low && "✓ "}残りわずか
+            {b.low && "✓ "}{tr("残りわずか")}
           </button>
         )}
         <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => onChange({ ...b, finished: !b.finished })}>
-          {b.finished ? "まだある" : "飲みきった"}
+          {b.finished ? tr("まだある") : tr("飲みきった")}
         </button>
       </div>
     </article>
@@ -233,15 +234,15 @@ export default function BottlesPage() {
     if (b.low && !bottles?.find((x) => x.id === b.id)?.low)
       announceBuddy({
         mood: "normal",
-        text: `${b.name}、そろそろなくなりそう？次の1本探す？`,
-        action: { label: "調べる", href: "/scan" },
+        text: tr("{0}、そろそろなくなりそう？次の1本探す？", b.name),
+        action: { label: tr("調べる"), href: "/scan" },
       });
     await putBottle(b);
     setBottles((bs) => bs?.map((x) => (x.id === b.id ? b : x)) ?? null);
   }
 
   async function remove(id: string) {
-    if (!confirm("このお酒を削除しますか？（記録は残ります）")) return;
+    if (!confirm(tr("このお酒を削除しますか？（記録は残ります）"))) return;
     await deleteBottle(id);
     setBottles((bs) => bs?.filter((x) => x.id !== id) ?? null);
   }
@@ -250,22 +251,22 @@ export default function BottlesPage() {
     <>
       <header className="sub-header">
         <Link href="/taste" className="back">
-          ‹ 戻る
+          {tr("‹ 戻る")}
         </Link>
-        <h1>家のお酒</h1>
+        <h1>{tr("家のお酒")}</h1>
       </header>
-      <p className="lead">買ったお酒を登録しておくと、飲むたびにすぐ記録できて、開けてからの味の変化も追えます。</p>
+      <p className="lead">{tr("買ったお酒を登録しておくと、飲むたびにすぐ記録できて、開けてからの味の変化も追えます。")}</p>
       <main className="content">
         <AddBottle onAdded={(b) => setBottles((bs) => [b, ...(bs ?? [])])} />
         {bottles?.length === 0 && (
-          <EmptyState title="家のお酒、まだないよ">
-            買ったお酒を上の「＋ 買ったお酒を登録」から入れておくと、飲むたびにすぐ記録できるよ。
+          <EmptyState title={tr("家のお酒、まだないよ")}>
+            {tr("買ったお酒を上の「＋ 買ったお酒を登録」から入れておくと、飲むたびにすぐ記録できるよ。")}
           </EmptyState>
         )}
         {open.map((b) => (
           <BottleCard key={b.id} bottle={b} records={records} onChange={change} onDelete={remove} />
         ))}
-        {done.length > 0 && <h2 className="date-head">飲みきったお酒</h2>}
+        {done.length > 0 && <h2 className="date-head">{tr("飲みきったお酒")}</h2>}
         {done.map((b) => (
           <BottleCard key={b.id} bottle={b} records={records} onChange={change} onDelete={remove} />
         ))}

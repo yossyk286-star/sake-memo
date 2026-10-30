@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 // 記録や比較を、友達や SNS に送れる画像にする。画面のダークモードに関係なく、いつも明るい色で描く
 
 const APP_NAME = "さけメモ";
@@ -232,7 +233,7 @@ export async function recordImage(r: RecordShare) {
   ctx.font = font(32);
   if (r.flavors.length) {
     ctx.fillStyle = COLORS.text;
-    ctx.fillText(wrap(ctx, `感じた味：${r.flavors.join("・")}`, W - PAD * 2, 1)[0], PAD, y + 32);
+    ctx.fillText(wrap(ctx, tr("感じた味：{0}", r.flavors.join("・")), W - PAD * 2, 1)[0], PAD, y + 32);
     y += 50;
   }
   if (r.memo) {

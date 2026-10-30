@@ -36,6 +36,7 @@ import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 import { shrinkPhoto } from "@/lib/photo";
 import { loadPrefs } from "@/lib/prefs";
 import type { Bottle, TastingRecord } from "@/lib/types";
+import { getLang, tr, trv } from "@/lib/i18n";
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -50,9 +51,9 @@ function blobToBase64(blob: Blob): Promise<string> {
 function likesText() {
   const p = loadPrefs();
   return [
-    p.kinds.length > 0 && `好きな種類：${p.kinds.join("、")}`,
-    p.styles.length > 0 && `好きなタイプ：${p.styles.join("、")}`,
-    p.avoidKinds.length > 0 && `苦手な種類：${p.avoidKinds.join("、")}`,
+    p.kinds.length > 0 && tr("好きな種類：{0}", p.kinds.join("、")),
+    p.styles.length > 0 && tr("好きなタイプ：{0}", p.styles.join("、")),
+    p.avoidKinds.length > 0 && tr("苦手な種類：{0}", p.avoidKinds.join("、")),
   ]
     .filter(Boolean)
     .join("。");
@@ -151,7 +152,7 @@ export default function PairPage() {
     const home = matchBottles(bottles, pairing);
     setResult({ query, pairing, from, records: mine, bottles: home });
     if (home[0]) {
-      announceBuddy({ text: `家にある「${home[0].item.name}」、${pairing.dish}に合いそう！`, mood: "happy" });
+      announceBuddy({ text: tr("家にある「{0}」、{1}に合いそう！", home[0].item.name, pairing.dish), mood: "happy" });
     }
   }
 
@@ -160,7 +161,7 @@ export default function PairPage() {
     const res = await fetch("/api/read-menu", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, likes: likesText(), passcode: code }),
+      body: JSON.stringify({ ...payload, likes: likesText(), passcode: code, lang: getLang() }),
     });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) setSavedPasscode(false);
@@ -207,8 +208,8 @@ export default function PairPage() {
     setProgress(null);
     setReading(false);
     if (failed > 0)
-      setError(files.length > 1 ? `${files.length}枚のうち${failed}枚は読み取れませんでした。その写真だけ撮り直してみてください` : lastError);
-    else if (picked.length > MAX_PHOTOS) setError(`一度に読み取れるのは${MAX_PHOTOS}枚までです。残りはもう一度選んでください`);
+      setError(files.length > 1 ? tr("{0}枚のうち{1}枚は読み取れませんでした。その写真だけ撮り直してみてください", files.length, failed) : lastError);
+    else if (picked.length > MAX_PHOTOS) setError(tr("一度に読み取れるのは{0}枚までです。残りはもう一度選んでください", MAX_PHOTOS));
   }
 
   /** 今日読み取った飲み物メニューを、この料理に合う順に AI に並べてもらう */
@@ -278,9 +279,9 @@ export default function PairPage() {
   return (
     <>
       <header className="page-header">
-        <h1>お酒を調べる</h1>
+        <h1>{tr("お酒を調べる")}</h1>
         <Link href="/show" className="header-pill">
-          店員さんに見せる
+          {tr("店員さんに見せる")}
         </Link>
       </header>
       <ScanTabs current="food" />
@@ -298,14 +299,14 @@ export default function PairPage() {
         }}
       />
       <p className="lead lead-phrases" style={{ paddingTop: 12 }}>
-        料理を入れるか<wbr />メニューを撮ると、<wbr />合うお酒と、<wbr />記録や<wbr />家のお酒から<wbr />合いそうなものを出します。
+        {tr("料理を入れるか")}<wbr />{tr("メニューを撮ると、")}<wbr />{tr("合うお酒と、")}<wbr />{tr("記録や")}<wbr />{tr("家のお酒から")}<wbr />{tr("合いそうなものを出します。")}
       </p>
 
       <main className="content" style={{ paddingBottom: 110 }}>
         {!savedPasscode && (
           <div className="field">
             <label className="label" htmlFor="pair-pass">
-              合言葉（よくある料理なら、なくても使えます）
+              {tr("合言葉（よくある料理なら、なくても使えます）")}
             </label>
             <input
               id="pair-pass"
@@ -328,7 +329,7 @@ export default function PairPage() {
           }}
         >
           <label htmlFor="pair-dish" className="visually-hidden">
-            料理・食べ物
+            {tr("料理・食べ物")}
           </label>
           <input
             id="pair-dish"
@@ -337,15 +338,15 @@ export default function PairPage() {
             type="search"
             enterKeyHint="search"
             maxLength={40}
-            placeholder="料理・食べ物（例：焼き鳥）"
+            placeholder={tr("料理・食べ物（例：焼き鳥）")}
             value={dish}
             onChange={(e) => setDish(e.target.value)}
           />
           <button type="submit" className="btn-secondary" style={{ flexShrink: 0, padding: "0 20px", fontSize: 16 }} disabled={!dish.trim() || busy}>
-            {busy ? "選び中…" : "選ぶ"}
+            {busy ? tr("選び中…") : tr("選ぶ")}
           </button>
         </form>
-        <div className="scroll-row" aria-label="よく食べる料理">
+        <div className="scroll-row" aria-label={tr("よく食べる料理")}>
           {suggestions.map((d) => (
             <button
               key={d}
@@ -354,7 +355,7 @@ export default function PairPage() {
               aria-pressed={result?.pairing.dish === d}
               onClick={() => choose(d)}
             >
-              {d}
+              {trv(d)}
             </button>
           ))}
         </div>
@@ -364,34 +365,34 @@ export default function PairPage() {
               <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
                 <circle cx="12" cy="13" r="3.5" />
             </svg>
-            {reading ? (progress ? `読み取り中…（${progress.at}/${progress.of}枚）` : "読み取り中…") : "メニューを撮る"}
+            {reading ? (progress ? tr("読み取り中…（{0}/{1}枚）", progress.at, progress.of) : tr("読み取り中…")) : tr("メニューを撮る")}
             <input type="file" accept="image/*" capture="environment" onChange={onPhoto} disabled={reading} className="visually-hidden" />
           </label>
           <label className="btn-secondary" aria-disabled={reading}>
-            写真から
+            {tr("写真から")}
             {/* capture を付けないとカメラではなく写真の一覧が開く */}
             <input type="file" accept="image/*" multiple onChange={onPhoto} disabled={reading} className="visually-hidden" />
           </label>
         </div>
-        {reading && <Skeleton label="メニューを読み取っています…" chips />}
+        {reading && <Skeleton label={tr("メニューを読み取っています…")} chips />}
         {menu && !reading && (
           <section ref={menuRef} className="pair-mine pair-menu" aria-live="polite">
             <div className="pair-menu-head">
-              <h2 className="pair-head">読み取った料理</h2>
+              <h2 className="pair-head">{tr("読み取った料理")}</h2>
               <button type="button" className="text-btn" onClick={() => {
                   setMenu(null);
                   setJustRead(false);
                 }}>
-                閉じる
+                {tr("閉じる")}
               </button>
             </div>
             <p className={justRead ? "pair-done pair-done-new" : "pair-done"}>
               <span className="pair-done-check" aria-hidden="true">✓</span>
               <span>
                 <strong>
-                  {menu.length}品読み取りました{addedCount != null && `（今回 +${addedCount}品）`}
+                  {tr("{0}品読み取りました", menu.length)}{addedCount != null && tr("（今回 +{0}品）", addedCount)}
                 </strong>
-                <span className="muted">料理を押すと、合うお酒が出ます</span>
+                <span className="muted">{tr("料理を押すと、合うお酒が出ます")}</span>
               </span>
             </p>
             <div className="list-group pair-dish-list">
@@ -400,25 +401,25 @@ export default function PairPage() {
                 return (
                   <details key={d} className="pair-dish" style={{ "--kind": genreColor(g) } as React.CSSProperties}>
                     <summary>
-                      <span className="pair-dish-name">{d}</span>
-                      {menuRanks[d] && <span className="pair-dish-done">✓ 選んだ</span>}
+                      <span className="pair-dish-name">{trv(d)}</span>
+                      {menuRanks[d] && <span className="pair-dish-done">{tr("✓ 選んだ")}</span>}
                       <span className="pair-chevron" aria-hidden="true">
                         ›
                       </span>
                     </summary>
                     <div className="pair-dish-body">
-                      <p className="pair-dish-for">この料理に合うのは</p>
+                      <p className="pair-dish-for">{tr("この料理に合うのは")}</p>
                       <div className="pair-group-head">
                         <span className="kind-dot" style={{ background: "var(--kind)" }} aria-hidden="true" />
-                        <h3>{pick.title}</h3>
+                        <h3>{trv(pick.title)}</h3>
                         <span className="muted">{pick.style && pick.style !== pick.title ? pick.style : (g ?? pick.kind)}</span>
                       </div>
-                      <p className="pair-group-reason">{pick.reason}</p>
-                      {pick.examples && <p className="muted">例：{pick.examples}</p>}
+                      <p className="pair-group-reason">{trv(pick.reason)}</p>
+                      {pick.examples && <p className="muted">{tr("例：{0}", pick.examples)}</p>}
                       {drinkMenu.length > 0 && (
                         <MenuPicks
-                          label="さっきの飲み物メニューなら"
-                          button="さっきの飲み物メニューから選ぶ"
+                          label={tr("さっきの飲み物メニューなら")}
+                          button={tr("さっきの飲み物メニューから選ぶ")}
                           ranks={menuRanks[d]}
                           busy={ranking === d}
                           error={rankError?.dish === d ? rankError.text : ""}
@@ -427,7 +428,7 @@ export default function PairPage() {
                         />
                       )}
                       <button type="button" className="text-btn pair-dish-more" onClick={() => choose(d)}>
-                        ほかの候補と、記録・家のお酒から探す ›
+                        {tr("ほかの候補と、記録・家のお酒から探す ›")}
                       </button>
                     </div>
                   </details>
@@ -436,34 +437,34 @@ export default function PairPage() {
             </div>
             {top && top.items.length > 1 && (
               <p className="muted pair-none">
-                迷ったら<strong className="pair-top">{top.label}</strong>。{top.items.length}品に合います。
+                {tr("迷ったら")}<strong className="pair-top">{trv(top.label)}</strong>{tr("。{0}品に合います。", top.items.length)}
               </p>
             )}
           </section>
         )}
         {error && (
           <p className="error" role="alert">
-            {error}
+            {trv(error)}
           </p>
         )}
 
         <div ref={resultRef} className="pair-jump">
-          {busy && <Skeleton label={`「${dish.trim()}」に合うお酒を選んでいます…`} cards={2} chips />}
+          {busy && <Skeleton label={tr("「{0}」に合うお酒を選んでいます…", dish.trim())} cards={2} chips />}
           {result && !busy && (
             <>
               <section className="pair-result" aria-live="polite">
-                <h2 className="pair-head">「{result.pairing.dish}」に合うお酒</h2>
+                <h2 className="pair-head">{tr("「{0}」に合うお酒", result.pairing.dish)}</h2>
                 {result.pairing.tip && (
                   <div className="pair-tip">
                     <BuddyFace mood="happy" size={52} />
-                    <p>{result.pairing.tip}</p>
+                    <p>{trv(result.pairing.tip)}</p>
                   </div>
                 )}
                 {drinkMenu.length > 0 && !menu?.some((m) => m.dish === result.query) && (
                   <section className="card pair-menu-card">
                     <MenuPicks
-                      label="さっきの飲み物メニューなら"
-                      button="さっきの飲み物メニューから選ぶ"
+                      label={tr("さっきの飲み物メニューなら")}
+                      button={tr("さっきの飲み物メニューから選ぶ")}
                       ranks={menuRanks[result.query]}
                       busy={ranking === result.query}
                       error={rankError?.dish === result.query ? rankError.text : ""}
@@ -477,17 +478,17 @@ export default function PairPage() {
                     const g = genreOf({ kind: p.kind, style: p.style, name: p.title });
                     return (
                       <li key={p.title} className="card pair-pick" style={{ "--kind": genreColor(g) } as React.CSSProperties}>
-                        <span className="pair-rank" aria-label={`${i + 1}番目`}>
+                        <span className="pair-rank" aria-label={tr("{0}番目", i + 1)}>
                           {i + 1}
                         </span>
                         <div className="pair-body">
                           <div className="tags">
-                            <span className="tag kind-tag">{g ?? p.kind}</span>
-                            {p.style && p.style !== g && <span className="tag tag-plain">{p.style}</span>}
+                            <span className="tag kind-tag">{tr(g ?? p.kind)}</span>
+                            {p.style && p.style !== g && <span className="tag tag-plain">{trv(p.style)}</span>}
                           </div>
-                          <h3>{p.title}</h3>
-                          <p>{p.reason}</p>
-                          {p.examples && <p className="muted">例：{p.examples}</p>}
+                          <h3>{trv(p.title)}</h3>
+                          <p>{trv(p.reason)}</p>
+                          {p.examples && <p className="muted">{tr("例：{0}", p.examples)}</p>}
                         </div>
                       </li>
                     );
@@ -497,16 +498,16 @@ export default function PairPage() {
 
               {result.bottles.length > 0 && (
                 <section className="pair-mine">
-                  <h2 className="pair-head">家にあるお酒なら</h2>
+                  <h2 className="pair-head">{tr("家にあるお酒なら")}</h2>
                   <div className="list-group">
                     {result.bottles.map(({ item: b, why }) => (
                       <Link key={b.id} href="/bottles" className="pair-row">
                         <span className="kind-dot" style={{ background: genreColor(genreOf(b)) }} aria-hidden="true" />
                         <span className="pair-row-body">
-                          <strong>{b.name}</strong>
+                          <strong>{trv(b.name)}</strong>
                           <span className="muted">
-                            {why}
-                            {b.low ? "・残りわずか" : ""}
+                            {trv(why)}
+                            {b.low ? tr("・残りわずか") : ""}
                           </span>
                         </span>
                         <span className="pair-chevron" aria-hidden="true">
@@ -519,15 +520,15 @@ export default function PairPage() {
               )}
 
               <section className="pair-mine">
-                <h2 className="pair-head">これまでの記録から</h2>
+                <h2 className="pair-head">{tr("これまでの記録から")}</h2>
                 {result.records.length > 0 ? (
                   <div className="list-group">
                     {result.records.map(({ item: r, why }) => (
                       <Link key={r.id} href={`/record?id=${r.id}`} className="pair-row">
                         <span className="kind-dot" style={{ background: genreColor(genreOf(r)) }} aria-hidden="true" />
                         <span className="pair-row-body">
-                          <strong>{r.name}</strong>
-                          <span className="muted">{why}</span>
+                          <strong>{trv(r.name)}</strong>
+                          <span className="muted">{trv(why)}</span>
                         </span>
                         <span className="pair-chevron" aria-hidden="true">
                           ›
@@ -538,18 +539,18 @@ export default function PairPage() {
                 ) : (
                   <p className="muted pair-none">
                     {records.length === 0
-                      ? "記録がたまると、飲んだお酒の中からも合いそうなものを選びます。"
-                      : "合いそうな記録はまだありません。記録の「合わせた料理」を書いておくと、次から出てきます。"}
+                      ? tr("記録がたまると、飲んだお酒の中からも合いそうなものを選びます。")
+                      : tr("合いそうな記録はまだありません。記録の「合わせた料理」を書いておくと、次から出てきます。")}
                   </p>
                 )}
               </section>
 
               <p className="muted pair-from">
                 {result.from === "ai"
-                  ? "AI が選びました。"
+                  ? tr("AI が選びました。")
                   : result.from === "saved"
-                    ? "前に AI が選んだ結果から出しました（AI は使っていません）。"
-                    : "よくある料理なので、内蔵の表から出しました（AI は使っていません）。"}
+                    ? tr("前に AI が選んだ結果から出しました（AI は使っていません）。")
+                    : tr("よくある料理なので、内蔵の表から出しました（AI は使っていません）。")}
               </p>
             </>
           )}

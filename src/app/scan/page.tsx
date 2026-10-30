@@ -10,6 +10,7 @@ import ShopBar from "@/components/ShopBar";
 import { loadTodayMenu, resetShop } from "@/lib/foodPairing";
 import { LAST_SCAN_EVENT, loadLastScan } from "@/lib/lastScan";
 import type { ScannedDrink } from "@/lib/menuScan";
+import { tr } from "@/lib/i18n";
 
 /** お店でメニューやラベルを撮ったり名前で調べたりして、注文を決めるために確認するだけの画面。記録はあとからでもできる */
 export default function ScanPage() {
@@ -31,9 +32,9 @@ export default function ScanPage() {
   return (
     <>
       <header className="page-header">
-        <h1>お酒を調べる</h1>
+        <h1>{tr("お酒を調べる")}</h1>
         <Link href="/show" className="header-pill">
-          店員さんに見せる
+          {tr("店員さんに見せる")}
         </Link>
       </header>
 
@@ -49,8 +50,7 @@ export default function ScanPage() {
       />
 
       <Hint id="scan-page" className="lead scan-hint">
-        撮ったり調べたりした結果は今日のあいだ残るので、あとから「記録する」でも同じお酒から選べます。
-        次に試したいお酒は「☆」で<Link href="/wishlist">気になるお酒</Link>に残せます。
+        {tr("撮ったり調べたりした結果は今日のあいだ残るので、あとから「記録する」でも同じお酒から選べます。 次に試したいお酒は「☆」で")}<Link href="/wishlist">{tr("気になるお酒")}</Link>{tr("に残せます。")}
       </Hint>
 
       {drinks && (

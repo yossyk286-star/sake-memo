@@ -7,6 +7,7 @@ import RecordForm from "@/components/RecordForm";
 import { drinkToDraft, type ScannedDrink } from "@/lib/menuScan";
 import { photosOf } from "@/lib/photo";
 import { useRecordFromQuery } from "@/lib/useRecord";
+import { tr } from "@/lib/i18n";
 
 function EditBody() {
   const record = useRecordFromQuery();
@@ -17,11 +18,11 @@ function EditBody() {
     <>
       <header className="sub-header">
         <Link href={record ? `/record?id=${record.id}` : "/"} className="back">
-          ‹ 戻る
+          {tr("‹ 戻る")}
         </Link>
-        <h1>記録を編集</h1>
+        <h1>{tr("記録を編集")}</h1>
       </header>
-      {record === null && <p className="empty">記録が見つかりませんでした。</p>}
+      {record === null && <p className="empty">{tr("記録が見つかりませんでした。")}</p>}
       {record && (
         <>
           {picked && <PickedDrink drink={picked} />}
@@ -29,7 +30,7 @@ function EditBody() {
           {!picked && !scanOpen && (
             <div style={{ padding: "16px 16px 0" }}>
               <button type="button" className="btn-secondary" style={{ width: "100%" }} onClick={() => setScanOpen(true)}>
-                メニュー・ラベル・名前から入れる
+                {tr("メニュー・ラベル・名前から入れる")}
               </button>
             </div>
           )}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { fitBox, useViewBox } from "@/lib/useViewBox";
 import { WORLD_AREAS, WORLD_PATHS, WORLD_PLACES, WORLD_VIEWBOX } from "@/lib/worldMap";
+import { tr, trv } from "@/lib/i18n";
 
 const [, , FULL_W, FULL_H] = WORLD_VIEWBOX.split(" ").map(Number);
 
@@ -41,7 +42,7 @@ export default function WorldMap({
 
   return (
     <>
-      <svg className="wmap" viewBox={viewBox} role="img" aria-label="飲んだ国の世界地図">
+      <svg className="wmap" viewBox={viewBox} role="img" aria-label={tr("飲んだ国の世界地図")}>
         {Object.entries(WORLD_PATHS).map(([iso, d]) => {
           const name = onIso.get(iso);
           return (
@@ -66,15 +67,15 @@ export default function WorldMap({
               className={visited(n) ? "wmap-dot on" : "wmap-dot"}
               onClick={() => onPick(n)}
             >
-              <title>{n}</title>
+              <title>{trv(n)}</title>
             </circle>
           );
         })}
       </svg>
-      <div className="row wmap-areas" role="group" aria-label="地域に寄る">
+      <div className="row wmap-areas" role="group" aria-label={tr("地域に寄る")}>
         {[null, ...areas].map((a) => (
           <button key={a ?? "all"} type="button" className="chip" aria-pressed={area === a} onClick={() => setArea(a)}>
-            {a ?? "ぜんぶ"}
+            {a ?? tr("ぜんぶ")}
           </button>
         ))}
       </div>

@@ -7,6 +7,7 @@ import { listRecords } from "@/lib/db";
 import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
+import { tr, trv } from "@/lib/i18n";
 
 /** 行ったお店の一覧と、その店でいちばんおいしかったお酒 */
 export default function ShopsPage() {
@@ -22,27 +23,27 @@ export default function ShopsPage() {
     <>
       <header className="sub-header">
         <Link href="/taste" className="back">
-          ‹ 戻る
+          {tr("‹ 戻る")}
         </Link>
-        <h1>お店</h1>
+        <h1>{tr("お店")}</h1>
       </header>
 
-      {shops.length > 0 && <p className="lead">行ったお店 {shops.length}軒（最近行った順）</p>}
+      {shops.length > 0 && <p className="lead">{tr("行ったお店 {0}軒（最近行った順）", shops.length)}</p>}
 
       <main className="content">
         {records && shops.length === 0 && (
-          <EmptyState title="行ったお店、まだないよ" actions={[{ href: "/new", label: "記録する" }]}>
-            記録に「お店」を書いておくと、ここにお店ごとにまとまるよ。
+          <EmptyState title={tr("行ったお店、まだないよ")} actions={[{ href: "/new", label: tr("記録する") }]}>
+            {tr("記録に「お店」を書いておくと、ここにお店ごとにまとまるよ。")}
           </EmptyState>
         )}
         {shops.map((s) => (
           <Link key={s.name} href={`/shop?name=${encodeURIComponent(s.name)}`} className="card">
             <div className="card-top">
-              <h2>{s.name}</h2>
-              <span className="muted">{s.records.length}杯</span>
+              <h2>{trv(s.name)}</h2>
+              <span className="muted">{tr("{0}杯", s.records.length)}</span>
             </div>
-            <p className="muted">いちばん：{drinkTitle(s.best)}</p>
-            <span className="stars" aria-label={`5段階中${s.best.overall}`} style={{ fontSize: 13 }}>
+            <p className="muted">{tr("いちばん：{0}", drinkTitle(s.best))}</p>
+            <span className="stars" aria-label={tr("5段階中{0}", s.best.overall)} style={{ fontSize: 13 }}>
               {stars(s.best.overall)}
             </span>
           </Link>

@@ -1,5 +1,6 @@
 import type { DrinkTaste } from "@/lib/menuScan";
 import styles from "./MenuScan.module.css";
+import { tr, trv } from "@/lib/i18n";
 
 const ROWS: [keyof DrinkTaste, string][] = [
   ["sweetness", "甘さ"],
@@ -16,12 +17,12 @@ export function level(n: number) {
 /** 味の予想を5段階のバーで並べる */
 export default function TasteBars({ taste }: { taste: DrinkTaste }) {
   return (
-    <div className={styles.taste} aria-label="味の予想">
+    <div className={styles.taste} aria-label={tr("味の予想")}>
       {ROWS.map(([key, label]) => {
         const v = level(taste[key]);
         return (
-          <div key={key} className={styles.tasteRow} aria-label={`${label} 5段階中${v}`}>
-            <span>{label}</span>
+          <div key={key} className={styles.tasteRow} aria-label={tr("{0} 5段階中{1}", label, v)}>
+            <span>{trv(label)}</span>
             <span className={styles.dots} aria-hidden="true">
               {[1, 2, 3, 4, 5].map((n) => (
                 <i key={n} className={n <= v ? styles.on : ""} />
@@ -30,7 +31,7 @@ export default function TasteBars({ taste }: { taste: DrinkTaste }) {
           </div>
         );
       })}
-      <span className={styles.tasteNote}>味の予想</span>
+      <span className={styles.tasteNote}>{tr("味の予想")}</span>
     </div>
   );
 }

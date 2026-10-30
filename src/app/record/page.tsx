@@ -15,6 +15,7 @@ import { mapsUrl } from "@/lib/shops";
 import { recordImage, shareImage } from "@/lib/shareImage";
 import { useRecordFromQuery } from "@/lib/useRecord";
 import type { QA } from "@/lib/types";
+import { tr, trJoin, trv } from "@/lib/i18n";
 
 /** AI に聞くときにタップで入る質問 */
 const SUGGESTIONS = ["おいしい飲み方は？", "合う料理は？", "似た味のお酒は？", "どんな造りのお酒？"];
@@ -27,12 +28,12 @@ function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
   if (filled.length === 0) return null;
   return (
     <>
-      <h2 className="section-title">{title}</h2>
+      <h2 className="section-title">{trv(title)}</h2>
       <dl className="card detail-list">
         {filled.map(([k, v]) => (
           <div key={k} style={{ display: "contents" }}>
-            <dt>{k}</dt>
-            <dd>{v}</dd>
+            <dt>{trv(k)}</dt>
+            <dd>{trv(v)}</dd>
           </div>
         ))}
       </dl>
@@ -73,10 +74,10 @@ function DetailBody() {
       values: TASTE_AXES.map(([, get]) => get(r)),
       flavors: r.flavors,
       memo: r.memo,
-      footer: [r.shop, r.date.replaceAll("-", "/")].filter(Boolean).join("・"),
+      footer: trJoin([r.shop, r.date.replaceAll("-", "/")]),
       photo: photos[0] ?? null,
     });
-    await shareImage(blob, drinkTitle(r)).catch(() => alert("共有できませんでした"));
+    await shareImage(blob, drinkTitle(r)).catch(() => alert(tr("共有できませんでした")));
   }
 
   async function addQA(qa: QA) {
@@ -89,17 +90,17 @@ function DetailBody() {
   // 空の欄は出さない。まとまりごとに分けて表で見せる
   const drinkRows: Row[] = r
     ? [
-        ["種類", [r.kind, r.style].filter(Boolean).join("・")],
+        ["種類", trJoin([r.kind, r.style])],
         ["銘柄", r.name],
         ["蔵元・醸造所", r.maker],
-        ["産地", r.origin],
+        ["産地", tr(r.origin)],
         ["度数", r.abv ? abvText(r.abv) : ""],
         ["お店の説明", r.menuNote],
       ]
     : [];
   const servedRows: Row[] = r
     ? [
-        ["飲み方", r.serve ?? ""],
+        ["飲み方", tr(r.serve ?? "")],
         ["飲み方メモ", hasServeNote(r.serveNote) ? serveNoteText(r.serveNote) : ""],
         ["合わせた料理", r.pairing],
         ["値段", r.price ? yen(r.price) : ""],
@@ -115,7 +116,7 @@ function DetailBody() {
         ["飲んだ場所", r.shop],
         ...drinkRows,
         ...servedRows,
-        ["感じた味", r.flavors.join("・")],
+        ["感じた味", trJoin(r.flavors)],
         ...filledScores.map(([k, v]) => [k, `${v} / 5`] as Row),
         ["メモ", r.memo],
       ] as Row[]).filter(([, v]) => v.trim())
@@ -125,28 +126,28 @@ function DetailBody() {
     <>
       <header className="sub-header">
         <Link href="/" className="back">
-          ‹ 戻る
+          {tr("‹ 戻る")}
         </Link>
-        <h1>記録</h1>
+        <h1>{tr("記録")}</h1>
         {r && (
           <Link href={`/edit?id=${r.id}`} className="back" style={{ gridColumn: 3, justifySelf: "end" }}>
-            編集
+            {tr("編集")}
           </Link>
         )}
       </header>
-      {r === null && <p className="empty">記録が見つかりませんでした。</p>}
+      {r === null && <p className="empty">{tr("記録が見つかりませんでした。")}</p>}
       {r && (
         <main className="content" style={{ paddingTop: 16 }}>
           {/* 写真があるときは上に出して右下に小さく足すボタンを重ねる。ないときは下のボタンの列から足す */}
           {photos.length > 0 && (
             <div className="photo-wrap">
               <PhotoRow photos={photos} />
-              <PhotoAddButton chip label="＋ 写真" onFiles={addPhotos} />
+              <PhotoAddButton chip label={tr("＋ 写真")} onFiles={addPhotos} />
             </div>
           )}
           {photoError && (
             <p className="error" role="alert">
-              {photoError}
+              {trv(photoError)}
             </p>
           )}
           <div className="card detail-hero">
@@ -154,25 +155,25 @@ function DetailBody() {
               <div className="detail-hero-name">
                 {r.kind && (
                   <span className="tag kind-tag" style={{ "--kind": kindColor(r.kind) } as React.CSSProperties}>
-                    {[r.kind, r.style].filter(Boolean).join("・")}
+                    {trJoin([r.kind, r.style])}
                   </span>
                 )}
                 <h2 className={drinkTitle(r).length > 18 ? "is-long" : undefined}>{drinkTitle(r)}</h2>
-                {r.name && r.maker && <p className="muted">{r.maker}</p>}
+                {r.name && r.maker && <p className="muted">{trv(r.maker)}</p>}
               </div>
-              <div className="detail-score" aria-label={`総合 5段階中${r.overall}`}>
-                <span className="detail-score-label">総合</span>
-                <span className="detail-score-num">{r.overall}</span>
+              <div className="detail-score" aria-label={tr("総合 5段階中{0}", r.overall)}>
+                <span className="detail-score-label">{tr("総合")}</span>
+                <span className="detail-score-num">{trv(r.overall)}</span>
                 <span className="stars" aria-hidden="true">
                   {stars(r.overall)}
                 </span>
               </div>
             </div>
             <div className="detail-when">
-              <span>{[r.date.replaceAll("-", "/"), r.shop].filter(Boolean).join("・")}</span>
+              <span>{trJoin([r.date.replaceAll("-", "/"), r.shop])}</span>
               {shopMap && (
                 <a href={shopMap} target="_blank" rel="noopener noreferrer" className="map-link">
-                  地図
+                  {tr("地図")}
                 </a>
               )}
             </div>
@@ -180,35 +181,35 @@ function DetailBody() {
 
           {(filledScores.length > 0 || r.flavors.length > 0) && (
             <>
-              <h2 className="section-title">味</h2>
+              <h2 className="section-title">{tr("味")}</h2>
               <div className="card detail-taste">
                 {filledScores.length >= 3 && (
                   <div className="detail-radar">
-                    <RadarChart axes={scores.map(([a]) => a)} series={[{ label: "この記録", values: scores.map(([, v]) => v) }]} />
+                    <RadarChart axes={scores.map(([a]) => a)} series={[{ label: tr("この記録"), values: scores.map(([, v]) => v) }]} />
                   </div>
                 )}
                 {filledScores.length > 0 && (
                   <div className="meters">
                     {filledScores.map(([label, v]) => (
-                      <div key={label} className="meter" aria-label={`${label} 5段階中${v}`}>
-                        <span className="meter-label">{label}</span>
+                      <div key={label} className="meter" aria-label={tr("{0} 5段階中{1}", label, v)}>
+                        <span className="meter-label">{trv(label)}</span>
                         <span className="meter-dots" aria-hidden="true">
                           {[1, 2, 3, 4, 5].map((n) => (
                             <i key={n} className={n <= (v ?? 0) ? "on" : ""} />
                           ))}
                         </span>
                         <span className="meter-num" aria-hidden="true">
-                          {v}
+                          {trv(v)}
                         </span>
                       </div>
                     ))}
                   </div>
                 )}
                 {r.flavors.length > 0 && (
-                  <div className="tags" aria-label="感じた味">
+                  <div className="tags" aria-label={tr("感じた味")}>
                     {r.flavors.map((f) => (
                       <span key={f} className="tag tag-plain">
-                        {f}
+                        {trv(f)}
                       </span>
                     ))}
                   </div>
@@ -217,31 +218,31 @@ function DetailBody() {
             </>
           )}
 
-          <DetailSection title="飲んだとき" rows={servedRows} />
-          <DetailSection title="お酒のこと" rows={drinkRows} />
+          <DetailSection title={tr("飲んだとき")} rows={servedRows} />
+          <DetailSection title={tr("お酒のこと")} rows={drinkRows} />
 
           {r.memo.trim() && (
             <>
-              <h2 className="section-title">メモ</h2>
-              <div className="card detail-memo">{r.memo}</div>
+              <h2 className="section-title">{tr("メモ")}</h2>
+              <div className="card detail-memo">{trv(r.memo)}</div>
             </>
           )}
 
           <AskAI
-            context={[`お酒：${drinkTitle(r)}`, `総合：${r.overall} / 5`, ...rows.map(([k, v]) => `${k}：${v}`)].join("\n")}
-            suggestions={SUGGESTIONS}
+            context={[tr("お酒：{0}", drinkTitle(r)), tr("総合：{0} / 5", r.overall), ...rows.map(([k, v]) => `${k}：${v}`)].join("\n")}
+            suggestions={SUGGESTIONS.map((s) => tr(s))}
             history={r.qa ?? []}
             onAnswered={addQA}
           />
           <button type="button" className="btn-secondary" onClick={share}>
-            画像にして送る
+            {tr("画像にして送る")}
           </button>
           <Link href={`/compare?a=${r.id}`} className="btn-secondary">
-            ほかの記録とくらべる
+            {tr("ほかの記録とくらべる")}
           </Link>
           {photos.length === 0 && (
             <div className="row">
-              <PhotoAddButton label="＋ 写真を追加" onFiles={addPhotos} />
+              <PhotoAddButton label={tr("＋ 写真を追加")} onFiles={addPhotos} />
             </div>
           )}
         </main>

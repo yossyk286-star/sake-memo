@@ -1,5 +1,6 @@
 import type { ScannedDrink } from "./menuScan";
 import { nameKey } from "./savedLookups";
+import { tr } from "./i18n";
 
 /**
  * よくあるカクテル・割りもの。名前で調べたときは AI を呼ばずにここから出す。
@@ -86,9 +87,9 @@ function toDrink(c: Cocktail): ScannedDrink {
     maker: "",
     origin: "",
     menuNote: "",
-    explanation: `${c.explanation}（ベース：${c.base}／作り方：${c.recipe}）`,
+    explanation: tr("{0}（ベース：{1}／作り方：{2}）", c.explanation, c.base, c.recipe),
     recommendedServe: "",
-    recommendation: `度数は約${c.abv}%。${c.abv >= 20 ? "強いので、チェイサー（水）と一緒にゆっくり。" : "飲みやすいので、ペースに気をつけて。"}`,
+    recommendation: tr("度数は約{0}%。{1}", c.abv, c.abv >= 20 ? "強いので、チェイサー（水）と一緒にゆっくり。" : "飲みやすいので、ペースに気をつけて。"),
     pairing: c.pairing,
     abv: c.abv,
     abvStated: false,

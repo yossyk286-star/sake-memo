@@ -11,6 +11,7 @@ import { loadLastScan, markRecorded } from "@/lib/lastScan";
 import { drinkToDraft, type ScannedDrink } from "@/lib/menuScan";
 import { bestServeNote, serveNoteText } from "@/lib/serveNote";
 import type { Bottle, RecordDraft, TastingRecord } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 /** 家のお酒から記録する画面。お酒の情報は登録したものを入れて、感想だけ書けばよいようにする */
 function BottleRecord({ bottle, count, best }: { bottle: Bottle; count: number; best?: TastingRecord }) {
@@ -18,14 +19,13 @@ function BottleRecord({ bottle, count, best }: { bottle: Bottle; count: number; 
   return (
     <>
       <section className="tips" style={{ margin: "16px 16px 0" }}>
-        <h2>家のお酒：{bottle.name}</h2>
+        <h2>{tr("家のお酒：{0}", bottle.name)}</h2>
         <p className="term-desc" style={{ margin: 0 }}>
-          {count + 1}回目の記録です。開けてからの味の変化も残しておくと面白いです。
+          {tr("{0}回目の記録です。開けてからの味の変化も残しておくと面白いです。", count + 1)}
         </p>
         {best?.serveNote && (
           <p className="term-desc" style={{ margin: 0 }}>
-            このお酒でいちばん良かった回（{stars(best.overall)}・{best.serve ?? "飲み方未入力"}）の飲み方を入れています：
-            {serveNoteText(best.serveNote)}
+            {tr("このお酒でいちばん良かった回（{0}・{1}）の飲み方を入れています：{2}", stars(best.overall), best.serve ?? tr("飲み方未入力"), serveNoteText(best.serveNote))}
           </p>
         )}
       </section>
@@ -114,9 +114,9 @@ function NewRecord() {
       <>
         <header className="sub-header">
           <Link href="/bottles" className="back">
-            ‹ 戻る
+            {tr("‹ 戻る")}
           </Link>
-          <h1>家のお酒を記録</h1>
+          <h1>{tr("家のお酒を記録")}</h1>
         </header>
         {bottle && <BottleRecord bottle={bottle.bottle} count={bottle.count} best={bottle.best} />}
       </>
@@ -127,9 +127,9 @@ function NewRecord() {
     <>
       <header className="sub-header">
         <Link href="/" className="back">
-          ‹ 戻る
+          {tr("‹ 戻る")}
         </Link>
-        <h1>新しい記録</h1>
+        <h1>{tr("新しい記録")}</h1>
       </header>
 
       {saveCount > 0 && !picked && (
@@ -138,25 +138,25 @@ function NewRecord() {
           style={{ margin: "16px 16px 0" }}
           role="status"
         >
-          <h2>保存しました</h2>
+          <h2>{tr("保存しました")}</h2>
           <p className="term-desc">
             {remaining.length > 0
-              ? "ほかにも飲んだお酒があれば、下から選んで続けて記録できます。"
-              : "続けて別の記録も作れます。"}
+              ? tr("ほかにも飲んだお酒があれば、下から選んで続けて記録できます。")
+              : tr("続けて別の記録も作れます。")}
           </p>
           <Link
             href="/"
             className="btn-secondary"
             style={{ display: "block", textAlign: "center" }}
           >
-            記録の一覧へ
+            {tr("記録の一覧へ")}
           </Link>
         </section>
       )}
 
       {!picked && saveCount === 0 && openBottles > 0 && (
         <Link href="/bottles" className="btn-secondary" style={{ margin: "16px 16px 0" }}>
-          家のお酒から記録する（{openBottles}本）
+          {tr("家のお酒から記録する（{0}本）", openBottles)}
         </Link>
       )}
 
@@ -185,7 +185,7 @@ function NewRecord() {
             style={{ width: "100%" }}
             onClick={() => setManual(true)}
           >
-            一覧にないお酒を手で記録する
+            {tr("一覧にないお酒を手で記録する")}
           </button>
         </div>
       ) : (

@@ -13,13 +13,14 @@ import { loadPrefs, type MyPrefs } from "@/lib/prefs";
 import { buildShowCard, isEmptyCard, loadTodayMoods, moodPhrase, saveTodayMoods, showKinds } from "@/lib/showCard";
 import type { Kind, TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
+import { tr, trJoin, trv } from "@/lib/i18n";
 
 function Row({ label, items }: { label: string; items: string[] }) {
   if (items.length === 0) return null;
   return (
     <div className="show-row">
-      <span className="show-label">{label}</span>
-      <span className="show-value">{items.join("、")}</span>
+      <span className="show-label">{trv(label)}</span>
+      <span className="show-value">{trJoin(items, "、")}</span>
     </div>
   );
 }
@@ -92,11 +93,11 @@ export default function ShowPage() {
     <>
       <header className="sub-header">
         <Link href="/taste" className="back">
-          ‹ 戻る
+          {tr("‹ 戻る")}
         </Link>
-        <h1>店員さんに見せる</h1>
+        <h1>{tr("店員さんに見せる")}</h1>
         <Link href="/prefs" className="back" style={{ gridColumn: 3, justifySelf: "end" }}>
-          編集
+          {tr("編集")}
         </Link>
       </header>
 
@@ -104,7 +105,7 @@ export default function ShowPage() {
         <main className="content show-page">
           {/* 相手に向けているあいだは、カードが上に来るよう選ぶところを隠す */}
           {!flipped && (
-            <div className="show-modes" role="group" aria-label="見せるもの">
+            <div className="show-modes" role="group" aria-label={tr("見せるもの")}>
               <button
                 type="button"
                 aria-pressed={mode === "prefs"}
@@ -114,24 +115,24 @@ export default function ShowPage() {
                   if (kind && !kinds.includes(kind)) setKind(kinds[0] ?? null);
                 }}
               >
-                いつもの好み
+                {tr("いつもの好み")}
               </button>
               <button type="button" aria-pressed={mode === "mood"} onClick={() => setMode("mood")}>
-                今日の気分
+                {tr("今日の気分")}
               </button>
             </div>
           )}
           {!flipped && kindOptions.length > 1 && (
             <div className="field">
-              <span className="label">{mode === "mood" ? "飲みたいお酒" : "種類"}</span>
-              <div className="row" role="group" aria-label={mode === "mood" ? "飲みたいお酒" : "種類"}>
+              <span className="label">{mode === "mood" ? tr("飲みたいお酒") : tr("種類")}</span>
+              <div className="row" role="group" aria-label={mode === "mood" ? tr("飲みたいお酒") : tr("種類")}>
                 {kindOptions.map((k) => (
                   <button key={k} type="button" className="chip" aria-pressed={kind === k} onClick={() => setKind(k)}>
-                    {k}
+                    {trv(k)}
                   </button>
                 ))}
                 <button type="button" className="chip" aria-pressed={kind === null} onClick={() => setKind(null)}>
-                  {mode === "mood" ? "おまかせ" : "ぜんぶ"}
+                  {mode === "mood" ? tr("おまかせ") : tr("ぜんぶ")}
                 </button>
               </div>
             </div>
@@ -139,8 +140,8 @@ export default function ShowPage() {
 
           {!flipped && mode === "mood" && (
             <div className="field">
-              <span className="label">今日の気分（いくつでも）</span>
-              <div className="row" role="group" aria-label="今日の気分">
+              <span className="label">{tr("今日の気分（いくつでも）")}</span>
+              <div className="row" role="group" aria-label={tr("今日の気分")}>
                 {[...MOOD_LABELS, ...moods.filter((m) => !MOOD_LABELS.includes(m))].map((m) => (
                   <button
                     key={m}
@@ -149,18 +150,18 @@ export default function ShowPage() {
                     aria-pressed={moods.includes(m)}
                     onClick={() => updateMoods(moods.includes(m) ? moods.filter((x) => x !== m) : [...moods, m])}
                   >
-                    {m}
+                    {trv(m)}
                   </button>
                 ))}
               </div>
               <div className="row" style={{ flexWrap: "nowrap" }}>
                 <label htmlFor="show-mood" className="visually-hidden">
-                  ほかの気分
+                  {tr("ほかの気分")}
                 </label>
                 <input
                   id="show-mood"
                   className="input"
-                  placeholder="ほかの気分（例：疲れたから甘め）"
+                  placeholder={tr("ほかの気分（例：疲れたから甘め）")}
                   maxLength={40}
                   value={moodText}
                   onChange={(e) => setMoodText(e.target.value)}
@@ -172,7 +173,7 @@ export default function ShowPage() {
                   }}
                 />
                 <button type="button" className="btn-secondary" onClick={addMoodText}>
-                  追加
+                  {tr("追加")}
                 </button>
               </div>
             </div>
@@ -180,10 +181,10 @@ export default function ShowPage() {
 
           {!showing ? (
             mode === "mood" ? (
-              <p className="empty">今日の気分を選ぶと、店員さんに見せるカードが出ます。</p>
+              <p className="empty">{tr("今日の気分を選ぶと、店員さんに見せるカードが出ます。")}</p>
             ) : (
-              <EmptyState title="まだ見せる好みがないよ" actions={[{ href: "/prefs", label: "わたしの好みを登録する" }]}>
-                好みを登録するか、★4以上の記録がたまるとここに出るよ。
+              <EmptyState title={tr("まだ見せる好みがないよ")} actions={[{ href: "/prefs", label: "わたしの好みを登録する" }]}>
+                {tr("好みを登録するか、★4以上の記録がたまるとここに出るよ。")}
               </EmptyState>
             )
           ) : (
@@ -207,14 +208,14 @@ export default function ShowPage() {
                 >
                   <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" />
                 </svg>
-                {flipped ? "向きを戻す" : "上下を逆にして相手に向ける"}
+                {flipped ? tr("向きを戻す") : tr("上下を逆にして相手に向ける")}
               </button>
               {mode === "mood" ? (
-                <section className="show-card" data-flipped={flipped || undefined} aria-label="今日の気分">
+                <section className="show-card" data-flipped={flipped || undefined} aria-label={tr("今日の気分")}>
                   <p className="show-ask">
-                    <span>今日は</span>
-                    <span>こういう{kind ?? "お酒"}が</span>
-                    <span>飲みたいです</span>
+                    <span>{tr("今日は")}</span>
+                    <span>{tr("こういう{0}が", kind ?? "お酒")}</span>
+                    <span>{tr("飲みたいです")}</span>
                   </p>
                   <div className="show-taste">
                     {moods.map((m) => (
@@ -224,52 +225,52 @@ export default function ShowPage() {
                     ))}
                   </div>
                   <div className="show-rows">
-                    <Row label="苦手" items={card.dislikes} />
-                    {card.budget && <Row label="予算" items={[`1杯 ${yen(card.budget)}くらいまで`]} />}
+                    <Row label={tr("苦手")} items={card.dislikes} />
+                    {card.budget && <Row label={tr("予算")} items={[tr("1杯 {0}くらいまで", yen(card.budget))]} />}
                   </div>
                   <p className="show-thanks">
-                    <span>おすすめがあれば</span>
-                    <span>教えてください</span>
+                    <span>{tr("おすすめがあれば")}</span>
+                    <span>{tr("教えてください")}</span>
                   </p>
                   {buddy && (
                     <div className="show-buddy">
-                      よろしくお願いします
+                      {tr("よろしくお願いします")}
                       <BuddyFace mood="happy" size={40} />
                     </div>
                   )}
                 </section>
               ) : (
-                <section className="show-card" data-flipped={flipped || undefined} aria-label="わたしの好み">
+                <section className="show-card" data-flipped={flipped || undefined} aria-label={tr("わたしの好み")}>
                   <p className="show-ask">
                     {/* 変なところで折り返さないよう、言葉のまとまりごとに区切る */}
-                    <span>こういう{kind ?? "お酒"}が</span>
-                    <span>好きです</span>
+                    <span>{tr("こういう{0}が", kind ?? "お酒")}</span>
+                    <span>{tr("好きです")}</span>
                   </p>
                   {card.taste.length > 0 && (
                     <div className="show-taste">
                       {card.taste.map((t) => (
                         <span key={t} className="show-pill">
-                          {t}
+                          {trv(t)}
                         </span>
                       ))}
                     </div>
                   )}
                   <div className="show-rows">
-                    <Row label="タイプ" items={card.styles} />
-                    <Row label="飲み方" items={card.serves} />
-                    <Row label="好きな味" items={card.likes} />
-                    <Row label="苦手" items={card.dislikes} />
-                    {card.budget && <Row label="予算" items={[`1杯 ${yen(card.budget)}くらいまで`]} />}
+                    <Row label={tr("タイプ")} items={card.styles} />
+                    <Row label={tr("飲み方")} items={card.serves} />
+                    <Row label={tr("好きな味")} items={card.likes} />
+                    <Row label={tr("苦手")} items={card.dislikes} />
+                    {card.budget && <Row label={tr("予算")} items={[tr("1杯 {0}くらいまで", yen(card.budget))]} />}
                   </div>
                   {card.favorites.length > 0 && (
                     <div className="show-favs">
-                      <span className="show-label">おいしかったお酒</span>
+                      <span className="show-label">{tr("おいしかったお酒")}</span>
                       <ul>
                         {card.favorites.map((r) => (
                           <li key={r.id}>
-                            <strong>{r.name}</strong>
+                            <strong>{trv(r.name)}</strong>
                             <span className="muted">
-                              {[r.maker, r.origin].filter(Boolean).join("・")} {stars(r.overall)}
+                              {trJoin([r.maker, r.origin])} {stars(r.overall)}
                             </span>
                           </li>
                         ))}
@@ -277,12 +278,12 @@ export default function ShowPage() {
                     </div>
                   )}
                   <p className="show-thanks">
-                    <span>おすすめがあれば</span>
-                    <span>教えてください</span>
+                    <span>{tr("おすすめがあれば")}</span>
+                    <span>{tr("教えてください")}</span>
                   </p>
                   {buddy && (
                     <div className="show-buddy">
-                      よろしくお願いします
+                      {tr("よろしくお願いします")}
                       <BuddyFace mood="happy" size={40} />
                     </div>
                   )}

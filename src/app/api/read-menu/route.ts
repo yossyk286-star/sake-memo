@@ -21,6 +21,20 @@ const MAX_PAIRING_DRINKS = 40;
 
 /** 名前で調べたお酒をよく知らないとき、解説の先頭に付けさせる言葉。「名前からの推測」が入っていたらネットで調べ直す */
 const GUESS_MARK = "詳しい情報が見つからなかったので、名前からの推測です。";
+const GUESS_MARK_EN = "No detailed information was found, so this is a guess based on the name.";
+
+/**
+ * 英語で使っている人向けの追加の指示。文章は英語で書かせ、アプリが日本語で見分けている項目（種類・タイプ・産地・飲み方）は
+ * 日本語のまま返させる（画面ではアプリが訳して出す。産地スタンプや好みの照合もそのまま使える）
+ */
+const ENGLISH_NOTE = `
+
+## Language (important)
+The user reads English and may be travelling in Japan. Ignore any instruction above about writing in Japanese: write every free-text field (explanations, recommendations, reasons, tips, titles, notes, descriptions, answers) in natural, beginner-friendly English.
+Keep these fields in the Japanese vocabulary exactly as the schema describes, because the app matches and translates them itself: kind, style, origin (Japanese prefecture name or country name in Japanese katakana/kanji), recommendedServe, serve, category.
+Drink names and dish names: keep the name as written on the menu or label so it can be shown to the staff; if it is not written in the Latin alphabet, add the romanized reading and a short English gloss in parentheses, e.g. 獺祭 純米大吟醸45 (Dassai Junmai Daiginjo 45), 焼き鳥 (Yakitori, grilled chicken skewers).
+Menus and labels may be written in English or any other language; read them as they are.
+If you were asked to start an explanation with "${GUESS_MARK}", start it with "${GUESS_MARK_EN}" instead.`;
 
 const SYSTEM = `あなたはお酒の初心者に、お酒を解説するアシスタントです。
 渡されるのは次のどれかです。
@@ -121,6 +135,9 @@ export async function POST(req: Request) {
   if (!passcodeOK(body?.passcode)) return error(401, "合言葉が違います");
 
   const client = new Anthropic();
+  // 英語で使っているときは、AI にも英語で答えさせる
+  const english = body?.lang === "en";
+  const sys = (text: string) => (english ? text + ENGLISH_NOTE : text);
 
   // 記録を見ながら AI に質問する（文字だけなので安い）
   if (typeof body?.ask === "string") {
@@ -145,7 +162,7 @@ export async function POST(req: Request) {
       const response = await client.messages.create({
         model: MODEL,
         max_tokens: 1500,
-        system: ASK_SYSTEM,
+        system: sys(ASK_SYSTEM),
         output_config: { effort: "low" },
         messages,
       });
@@ -168,9 +185,9 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 2000,
-        system: `あなたはお酒の初心者向け辞典の編集者です。次の用語集と同じ書き方で、やさしい日本語で説明してください。\n\n${TERMS.slice(0, 12)
+        system: sys(`あなたはお酒の初心者向け辞典の編集者です。次の用語集と同じ書き方で、やさしい日本語で説明してください。\n\n${TERMS.slice(0, 12)
           .map((t) => `- ${t.term}（${t.category}）: ${t.description}`)
-          .join("\n")}`,
+          .join("\n")}`),
         output_config: { effort: "low", format: zodOutputFormat(TermLookupSchema) },
         messages: [{ role: "user", content: `「${term}」という言葉を辞典に足したいです。説明してください。` }],
       });
@@ -193,7 +210,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 6000,
-        system: "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。",
+        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
         output_config: { effort: "low", format: zodOutputFormat(FoodMenuSchema) },
         messages: [
           {
@@ -226,7 +243,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 2000,
-        system: "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。",
+        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
         output_config: { effort: "low", format: zodOutputFormat(FoodPairingSchema) },
         messages: [
           {
@@ -258,7 +275,7 @@ export async function POST(req: Request) {
         const response = await client.messages.parse({
           model: MODEL,
           max_tokens: 2000,
-          system: "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。",
+          system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
           output_config: { effort: "low", format: zodOutputFormat(DishIdeasSchema) },
           messages: [
             {
@@ -274,7 +291,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 4000,
-        system: "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。",
+        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
         output_config: { effort: "low", format: zodOutputFormat(PairingResultSchema) },
         messages: [
           {
@@ -305,7 +322,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 4000,
-        system: "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。",
+        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
         output_config: { effort: "low", format: zodOutputFormat(PairingResultSchema) },
         messages: [
           {
@@ -336,7 +353,7 @@ export async function POST(req: Request) {
     const response = await client.messages.parse({
       model: MODEL,
       max_tokens: 8000,
-      system: SYSTEM,
+      system: sys(SYSTEM),
       output_config: { effort: "low", format: zodOutputFormat(MenuScanResultSchema) },
       messages: [{ role: "user", content }],
     });
@@ -355,7 +372,7 @@ export async function POST(req: Request) {
         ]);
       // まず AI の知識だけで答えさせ（安い）、知らないお酒のときだけネットで調べ直す（1回数円）
       result = await askAbout();
-      if (result?.drinks.some((d) => d.explanation.includes("名前からの推測"))) {
+      if (result?.drinks.some((d) => d.explanation.includes("名前からの推測") || d.explanation.startsWith(GUESS_MARK_EN))) {
         const notes = await searchNotes(client, query);
         if (notes) result = (await askAbout(notes)) ?? result;
       }

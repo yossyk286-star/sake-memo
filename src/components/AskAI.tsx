@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 import type { QA } from "@/lib/types";
 import Skeleton from "./Skeleton";
+import { getLang, tr, trv } from "@/lib/i18n";
 
 /**
  * 記録の画面や調べた結果から AI に質問する。
@@ -55,6 +56,7 @@ export default function AskAI({
           context,
           history: shown.map(({ q, a }) => ({ q, a })),
           passcode: normalizePasscode(passcode),
+          lang: getLang(),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -74,26 +76,26 @@ export default function AskAI({
 
   return (
     <section className={bare ? "ask-ai ask-ai-bare" : "card ask-ai"}>
-      {!bare && <h2 style={{ fontSize: 16 }}>AI に聞く</h2>}
+      {!bare && <h2 style={{ fontSize: 16 }}>{tr("AI に聞く")}</h2>}
       {shown.map((h) => (
         <div key={h.at} className="ask-qa">
-          <p className="ask-q">{h.q}</p>
-          <p className="ask-a">{h.a}</p>
+          <p className="ask-q">{trv(h.q)}</p>
+          <p className="ask-a">{trv(h.a)}</p>
         </div>
       ))}
-      {busy && <Skeleton plain label="考えています…" lines={3} />}
+      {busy && <Skeleton plain label={tr("考えています…")} lines={3} />}
       <div className="scroll-row" style={{ margin: 0 }}>
         {suggestions.map((s) => (
           <button key={s} type="button" className="chip" disabled={busy} onClick={() => ask(s)}>
-            {s}
+            {trv(s)}
           </button>
         ))}
       </div>
       {!saved && (
         <input
           className="input"
-          aria-label="合言葉"
-          placeholder="合言葉"
+          aria-label={tr("合言葉")}
+          placeholder={tr("合言葉")}
           autoComplete="off"
           autoCapitalize="off"
           value={passcode}
@@ -109,23 +111,23 @@ export default function AskAI({
         }}
       >
         <label htmlFor={inputId} className="visually-hidden">
-          質問
+          {tr("質問")}
         </label>
         <input
           id={inputId}
           className="input"
-          placeholder={shown.length ? "続けて聞く" : "この記録について聞く"}
+          placeholder={shown.length ? tr("続けて聞く") : tr("この記録について聞く")}
           maxLength={300}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
         <button type="submit" className="btn-secondary" disabled={busy || !question.trim()}>
-          {busy ? "考え中…" : "聞く"}
+          {busy ? tr("考え中…") : tr("聞く")}
         </button>
       </form>
       {error && (
         <p className="error" role="alert">
-          {error}
+          {trv(error)}
         </p>
       )}
     </section>

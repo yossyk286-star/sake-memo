@@ -1,10 +1,11 @@
+import { tr, trv } from "@/lib/i18n";
 /**
  * 今日のお店として共有しているメニュー（飲み物・料理）の数と、2軒目に行ったときに空にするボタン。
  * 「同じお店」はその日に読み取ったメニューどうしなので、ここで区切れるようにする
  */
 export default function ShopBar({ drinks, dishes, onReset }: { drinks: number; dishes: number; onReset: () => void }) {
   if (drinks + dishes === 0) return null;
-  const parts = [drinks > 0 && `飲み物 ${drinks}`, dishes > 0 && `料理 ${dishes}`].filter(Boolean).join("・");
+  const parts = [drinks > 0 && tr("飲み物 {0}", drinks), dishes > 0 && tr("料理 {0}", dishes)].filter(Boolean).join(tr("・"));
   return (
     <div className="shop-bar">
       <span className="shop-bar-icon" aria-hidden="true">
@@ -13,17 +14,17 @@ export default function ShopBar({ drinks, dishes, onReset }: { drinks: number; d
         </svg>
       </span>
       <span className="shop-bar-text">
-        <strong>今日のお店のメニュー</strong>
-        <span>{parts}</span>
+        <strong>{tr("今日のお店のメニュー")}</strong>
+        <span>{trv(parts)}</span>
       </span>
       <button
         type="button"
         className="shop-bar-reset"
         onClick={() => {
-          if (window.confirm("今日読み取ったメニューを消して、新しいお店にしますか？")) onReset();
+          if (window.confirm(tr("今日読み取ったメニューを消して、新しいお店にしますか？"))) onReset();
         }}
       >
-        新しいお店
+        {tr("新しいお店")}
       </button>
     </div>
   );

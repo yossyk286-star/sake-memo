@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { tr } from "@/lib/i18n";
 
 type Field = HTMLInputElement | HTMLTextAreaElement;
 type Spot = { top: number; left: number };
@@ -111,7 +112,7 @@ export default function ClearField() {
     <button
       type="button"
       className="clear-field"
-      aria-label="入力を消す"
+      aria-label={tr("入力を消す")}
       style={{ top: spot.top, left: spot.left }}
       // 押しても欄からフォーカスが外れない（キーボードを閉じない）ようにする
       onPointerDown={(e) => e.preventDefault()}

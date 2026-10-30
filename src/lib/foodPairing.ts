@@ -4,6 +4,7 @@ import { saveLastScan, today } from "./lastScan";
 import type { ScannedDrink } from "./menuScan";
 import { nameKey } from "./savedLookups";
 import type { Bottle, Kind, TastingRecord } from "./types";
+import { getLang, tr } from "./i18n";
 
 /** 料理に合うお酒1つ分 */
 export const FoodPickSchema = z.object({
@@ -265,7 +266,18 @@ export const BUILT_IN_DISHES = BUILT_IN.map((b) => b.pairing.dish);
 
 export function builtInPairing(dish: string): FoodPairing | null {
   const q = dish.trim();
-  return BUILT_IN.find((b) => b.pairing.dish === q || b.words.test(q))?.pairing ?? null;
+  return BUILT_IN.find((b) => b.pairing.dish === q || b.words.test(q) || englishHit(b.pairing.dish, q))?.pairing ?? null;
+}
+
+/** 英語で入れた料理名（sushi、fried chicken など）も、内蔵の料理の英語名と照らし合わせる */
+function englishHit(dish: string, q: string) {
+  if (getLang() !== "en" || q.length < 3) return false;
+  const query = q.toLowerCase();
+  return tr(dish)
+    .toLowerCase()
+    .split(/ & |, | \(|\)/)
+    .filter((w) => w.length >= 3)
+    .some((w) => query.includes(w) || w.includes(query));
 }
 
 // AI に聞いた結果は端末に残し、同じ料理なら AI を呼ばずに出す
@@ -314,9 +326,9 @@ export type MineMatch<T> = { item: T; why: string; score: number };
 /** そのお酒（記録や家の瓶）が、おすすめのどれかと同じ種類・タイプか */
 function matchPick(d: { kind: Kind | null; style: string | null }, picks: FoodPick[]) {
   const style = picks.find((p) => d.kind === p.kind && !!p.style && d.style === p.style);
-  if (style) return { score: 3, why: `同じ${style.kind}・${style.style}` };
+  if (style) return { score: 3, why: tr("同じ{0}・{1}", style.kind, style.style) };
   const kind = picks.find((p) => d.kind === p.kind);
-  if (kind) return { score: 1, why: `${kind.kind}は合わせやすい種類` };
+  if (kind) return { score: 1, why: tr("{0}は合わせやすい種類", kind.kind) };
   return null;
 }
 
@@ -338,7 +350,7 @@ export function matchRecords(records: TastingRecord[], pairing: FoodPairing, que
     // 種類が同じだけのものは、評価が高いときだけ出す
     if (!ate && m!.score < 3 && r.overall < 4) continue;
     const score = (ate ? 4 : 0) + (m?.score ?? 0) + (r.overall - 3) * 0.6;
-    const why = ate ? `前に「${r.pairing.trim()}」と合わせて★${r.overall}` : `${m!.why}で★${r.overall}`;
+    const why = ate ? tr("前に「{0}」と合わせて★{1}", r.pairing.trim(), r.overall) : tr("{0}で★{1}", m!.why, r.overall);
     const key = nameKey(r.name) || r.id;
     if ((best.get(key)?.score ?? -1) < score) best.set(key, { item: r, why, score });
   }

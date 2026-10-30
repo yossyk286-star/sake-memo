@@ -1,6 +1,7 @@
 import { SERVES_BY_KIND, STYLES_BY_KIND, TERMS } from "./glossary";
 import type { MyPrefs } from "./prefs";
 import type { Kind, TastingRecord } from "./types";
+import { tr } from "./i18n";
 
 export type NextIdea = { title: string; reason: string; description?: string };
 
@@ -34,8 +35,8 @@ export function nextIdeas(records: TastingRecord[], prefs: MyPrefs, limit = 4): 
     const untried = STYLES_BY_KIND[kind].filter((s) => !tried.has(s));
     for (const style of untried.slice(0, 2)) {
       ideas.push({
-        title: `${kind}の${style}`,
-        reason: kinds.has(kind) ? `${kind}の評価が高めで、${style}はまだ記録がありません` : `好きな${kind}で、まだ記録がありません`,
+        title: tr("{0}の{1}", kind, style),
+        reason: kinds.has(kind) ? tr("{0}の評価が高めで、{1}はまだ記録がありません", kind, style) : tr("好きな{0}で、まだ記録がありません", kind),
         description: describe(kind, style),
       });
     }
@@ -57,8 +58,8 @@ export function nextIdeas(records: TastingRecord[], prefs: MyPrefs, limit = 4): 
     const serve = SERVES_BY_KIND[topStyle.kind].find((s) => !tried.has(s));
     if (serve && topStyle.kind !== "ビール") {
       ideas.unshift({
-        title: `${topStyle.style}を${serve}で`,
-        reason: `${topStyle.kind}・${topStyle.style}が★${average(topStyle.scores).toFixed(1)}と好評。飲み方を変えると味の違いがわかります`,
+        title: tr("{0}を{1}で", topStyle.style, serve),
+        reason: tr("{0}・{1}が★{2}と好評。飲み方を変えると味の違いがわかります", topStyle.kind, topStyle.style, average(topStyle.scores).toFixed(1)),
         description: TERMS.find((t) => t.category === "飲み方" && t.term === serve)?.description,
       });
     }
@@ -70,8 +71,8 @@ export function nextIdeas(records: TastingRecord[], prefs: MyPrefs, limit = 4): 
     const kind = untriedKinds[0];
     const style = STYLES_BY_KIND[kind][0];
     ideas.push({
-      title: `${kind}（まずは${style}など）`,
-      reason: `${kind}はまだ記録がありません`,
+      title: tr("{0}（まずは{1}など）", kind, style),
+      reason: tr("{0}はまだ記録がありません", kind),
       description: describe(kind, style),
     });
   }

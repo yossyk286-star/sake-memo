@@ -1,3 +1,4 @@
+import { trv } from "@/lib/i18n";
 /** AI の返事を待つあいだ、結果の形だけのカードをふわっと光らせて出す */
 export default function Skeleton({
   label,
@@ -18,7 +19,7 @@ export default function Skeleton({
   if (plain) {
     return (
       <div className="skel-wrap skel-plain" role="status" aria-live="polite">
-        <p className="skel-label">{label}</p>
+        <p className="skel-label">{trv(label)}</p>
         {Array.from({ length: lines }, (_, j) => (
           <span key={j} className="skel" aria-hidden="true" style={{ width: j === lines - 1 ? "55%" : "100%" }} />
         ))}
@@ -27,7 +28,7 @@ export default function Skeleton({
   }
   return (
     <div className="skel-wrap" role="status" aria-live="polite">
-      <p className="skel-label">{label}</p>
+      <p className="skel-label">{trv(label)}</p>
       {Array.from({ length: cards }, (_, i) => (
         <div key={i} className="card skel-card" aria-hidden="true" style={{ animationDelay: `${i * 0.12}s` }}>
           <div className="skel-head">

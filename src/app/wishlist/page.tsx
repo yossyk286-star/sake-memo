@@ -6,6 +6,7 @@ import GenreSortBar from "@/components/GenreSortBar";
 import { deleteWish, listWishes, type WishDrink } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import EmptyState from "@/components/EmptyState";
+import { tr, trv } from "@/lib/i18n";
 
 /** メニューで「気になる」と印を付けた、次に試したいお酒の一覧 */
 export default function WishlistPage() {
@@ -19,7 +20,7 @@ export default function WishlistPage() {
 
   async function remove(id: string) {
     const name = wishes?.find((w) => w.id === id)?.name;
-    if (!confirm(`${name ? `「${name}」を` : ""}気になるリストから外しますか？`)) return;
+    if (!confirm(tr("{0}気になるリストから外しますか？", name ? tr("「{0}」を", name) : ""))) return;
     await deleteWish(id);
     setWishes((ws) => ws?.filter((w) => w.id !== id) ?? null);
   }
@@ -37,7 +38,7 @@ export default function WishlistPage() {
   return (
     <>
       <header className="page-header">
-        <h1>気になるお酒</h1>
+        <h1>{tr("気になるお酒")}</h1>
       </header>
 
       <main className="content" style={{ paddingTop: 16 }}>
@@ -50,22 +51,22 @@ export default function WishlistPage() {
               sort={sort}
               onSort={setSort}
               sorts={["sweet", "dry", "abvLow", "abvHigh"]}
-              defaultLabel="新しい順"
+              defaultLabel={tr("新しい順")}
             />
           </div>
         )}
         {wishes?.length === 0 && (
           <EmptyState
-            title="気になるお酒、まだないよ"
-            actions={[{ href: "/scan", label: "メニューを撮って探す" }]}
+            title={tr("気になるお酒、まだないよ")}
+            actions={[{ href: "/scan", label: tr("メニューを撮って探す") }]}
           >
-            お店でメニューを撮って「☆ 気になる」を押すと、ここに残るよ。
+            {tr("お店でメニューを撮って「☆ 気になる」を押すと、ここに残るよ。")}
           </EmptyState>
         )}
         {shown.map((w) => (
           <article key={w.id} className="card">
             <div className="card-top">
-              <h2>{w.name}</h2>
+              <h2>{trv(w.name)}</h2>
               <span className="muted">
                 {new Date(w.savedAt).toLocaleDateString("ja-JP", {
                   month: "numeric",
@@ -76,28 +77,28 @@ export default function WishlistPage() {
             <div className="tags">
               {[w.kind, w.style, w.origin].filter(Boolean).map((t) => (
                 <span key={t} className="tag">
-                  {t}
+                  {trv(t)}
                 </span>
               ))}
             </div>
             {w.menuNote && (
-              <p className="muted">メニューの説明：{w.menuNote}</p>
+              <p className="muted">{tr("メニューの説明：{0}", w.menuNote)}</p>
             )}
-            <p className="term-desc">{w.explanation}</p>
+            <p className="term-desc">{trv(w.explanation)}</p>
             <div className="row">
               <Link
                 href={`/new?wish=${w.id}`}
                 className="btn-primary"
                 style={{ flex: 1 }}
               >
-                ＋ 記録に追加
+                {tr("＋ 記録に追加")}
               </Link>
               <button
                 type="button"
                 className="btn-secondary btn-danger"
                 onClick={() => remove(w.id)}
               >
-                外す
+                {tr("外す")}
               </button>
             </div>
           </article>
