@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Field = HTMLInputElement | HTMLTextAreaElement;
 type Spot = { top: number; left: number };
@@ -16,18 +17,22 @@ function clearable(el: EventTarget | null): el is Field {
 
 const SIZE = 30;
 
-/** ボタンを置く位置。欄の右端（文字の欄は縦の真ん中、メモ欄は右上） */
+/** ボタンを入れる親。欄と同じ親に入れておけば、スクロールやキーボードの出入りで欄が動いても一緒に動く */
+function hostOf(el: Field): HTMLElement {
+  return (el.offsetParent as HTMLElement | null) ?? document.body;
+}
+
+/** ボタンを置く位置（親の中での位置）。欄の右端（文字の欄は縦の真ん中、メモ欄は右上） */
 function spotOf(el: Field): Spot {
-  const r = el.getBoundingClientRect();
   // 今日の気分は右端に ▾ があるので、その左に置く
   const right = el.closest(".mood-box") ? 36 : 6;
-  const top = el instanceof HTMLTextAreaElement ? r.top + 8 : r.top + (r.height - SIZE) / 2;
-  return { top: Math.round(top), left: Math.round(r.right - right - SIZE) };
+  const top = el instanceof HTMLTextAreaElement ? el.offsetTop + 8 : el.offsetTop + (el.offsetHeight - SIZE) / 2;
+  return { top: Math.round(top), left: Math.round(el.offsetLeft + el.offsetWidth - right - SIZE) };
 }
 
 /**
  * 入力中の欄に文字があるとき、右端に × を出して中身を消せるようにする。
- * 画面ごとに部品を差し替えずに済むよう、フォーカス中の .input の上に重ねて表示する。
+ * 画面ごとに部品を差し替えずに済むよう、フォーカス中の .input と同じ親に重ねて表示する。
  */
 export default function ClearField() {
   const [field, setField] = useState<Field | null>(null);
@@ -77,7 +82,7 @@ export default function ClearField() {
     };
   }, []);
 
-  // 入力中はスクロールやキーボードの出入りで欄が動くので、毎フレーム位置を合わせる
+  // 上の内容が増えたりメモ欄の高さが変わったりして欄がずれることがあるので、毎フレーム位置を合わせる
   useEffect(() => {
     if (!field) return;
     let raf = 0;
@@ -102,7 +107,7 @@ export default function ClearField() {
     field.focus();
   };
 
-  return (
+  return createPortal(
     <button
       type="button"
       className="clear-field"
@@ -117,6 +122,7 @@ export default function ClearField() {
         <circle cx="10" cy="10" r="10" fill="currentColor" />
         <path d="M6.6 6.6l6.8 6.8M13.4 6.6l-6.8 6.8" stroke="var(--surface)" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
-    </button>
+    </button>,
+    hostOf(field),
   );
 }

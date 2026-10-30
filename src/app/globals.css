@@ -1779,7 +1779,7 @@ input[type="search"].input:focus {
   padding-right: 70px;
 }
 .clear-field {
-  position: fixed;
+  position: absolute;
   z-index: 1100;
   display: grid;
   place-items: center;
