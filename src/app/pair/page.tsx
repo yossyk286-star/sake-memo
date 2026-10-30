@@ -13,13 +13,24 @@ import {
   matchRecords,
   recentPairings,
   savePairing,
+  type FoodMenu,
   type FoodPairing,
   type MineMatch,
 } from "@/lib/foodPairing";
 import { genreColor, genreOf } from "@/lib/genre";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
+import { shrinkPhoto } from "@/lib/photo";
 import { loadPrefs } from "@/lib/prefs";
 import type { Bottle, TastingRecord } from "@/lib/types";
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve((reader.result as string).split(",")[1]);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
 
 /** AI に渡す、自分で登録した好み（好きな種類・タイプ・苦手な種類） */
 function likesText() {
@@ -53,6 +64,9 @@ export default function PairPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // メニューの写真から読み取った料理と、それぞれにいちばん合うもの
+  const [menu, setMenu] = useState<FoodMenu["dishes"] | null>(null);
+  const [reading, setReading] = useState(false);
 
   useEffect(() => {
     const p = loadPasscode();
@@ -72,6 +86,43 @@ export default function PairPage() {
     }
   }
 
+  async function post(payload: object) {
+    const code = normalizePasscode(passcode);
+    const res = await fetch("/api/read-menu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, likes: likesText(), passcode: code }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) setSavedPasscode(false);
+    if (!res.ok) throw new Error(data.error ?? "調べられませんでした");
+    savePasscode(code);
+    setSavedPasscode(true);
+    return data;
+  }
+
+  /** メニューや料理の写真を送って、載っている料理ごとに合うものを出す */
+  async function onPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || reading) return;
+    if (!passcode.trim()) return setError("先に合言葉を入れてください");
+    if (!navigator.onLine) return setError("オフラインのため読み取れません。電波のあるところでもう一度お試しください");
+    setError("");
+    setReading(true);
+    try {
+      // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
+      const image = await blobToBase64(await shrinkPhoto(file, 1000));
+      const data = (await post({ foodImage: image })) as FoodMenu;
+      setMenu(data.dishes);
+      setResult(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "読み取れませんでした");
+    } finally {
+      setReading(false);
+    }
+  }
+
   async function choose(input = dish) {
     const q = input.trim();
     if (!q || busy) return;
@@ -87,17 +138,7 @@ export default function PairPage() {
     }
     setBusy(true);
     try {
-      const code = normalizePasscode(passcode);
-      const res = await fetch("/api/read-menu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ food: q, likes: likesText(), passcode: code }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.status === 401) setSavedPasscode(false);
-      if (!res.ok) throw new Error(data.error ?? "調べられませんでした");
-      savePasscode(code);
-      setSavedPasscode(true);
+      const data = await post({ food: q });
       const pairing: FoodPairing = { dish: data.dish || q, tip: data.tip, picks: data.picks };
       savePairing(q, pairing);
       setRecent(recentPairings(6));
@@ -120,7 +161,7 @@ export default function PairPage() {
         <h1>料理から選ぶ</h1>
       </header>
       <p className="lead" style={{ paddingTop: 12 }}>
-        食べる料理を入れると、合うお酒と、これまでの記録や家のお酒から合いそうなものを出します。
+        食べる料理を入れるかメニューを撮ると、合うお酒と、これまでの記録や家のお酒から合いそうなものを出します。
       </p>
 
       <main className="content" style={{ paddingBottom: 110 }}>
@@ -180,6 +221,53 @@ export default function PairPage() {
             </button>
           ))}
         </div>
+        <div className="pair-shoot">
+          <label className="btn-secondary" aria-disabled={reading}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+                <circle cx="12" cy="13" r="3.5" />
+            </svg>
+            {reading ? "読み取り中…" : "メニューを撮る"}
+            <input type="file" accept="image/*" capture="environment" onChange={onPhoto} disabled={reading} className="visually-hidden" />
+          </label>
+          <label className="btn-secondary" aria-disabled={reading}>
+            写真から
+            {/* capture を付けないとカメラではなく写真の一覧が開く */}
+            <input type="file" accept="image/*" onChange={onPhoto} disabled={reading} className="visually-hidden" />
+          </label>
+        </div>
+        {menu && (
+          <section className="pair-mine" aria-live="polite">
+            <div className="pair-menu-head">
+              <h2 className="pair-head">メニューの料理に合うお酒</h2>
+              <button type="button" className="text-btn" onClick={() => setMenu(null)}>
+                閉じる
+              </button>
+            </div>
+            <div className="list-group">
+              {menu.map((m) => (
+                <button
+                  key={m.dish}
+                  type="button"
+                  className="pair-row pair-menu-row"
+                  aria-pressed={result?.query === m.dish}
+                  onClick={() => choose(m.dish)}
+                >
+                  <span className="kind-dot" style={{ background: genreColor(genreOf({ kind: m.pick.kind, style: m.pick.style, name: m.pick.title })) }} aria-hidden="true" />
+                  <span className="pair-row-body">
+                    <strong>{m.dish}</strong>
+                    <span className="pair-menu-pick">{m.pick.title}</span>
+                    <span className="muted">{m.pick.reason}</span>
+                  </span>
+                  <span className="pair-chevron" aria-hidden="true">
+                    ›
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="muted pair-none">料理を押すと、ほかの候補や、記録・家のお酒から合うものも出します。</p>
+          </section>
+        )}
         {error && (
           <p className="error" role="alert">
             {error}
