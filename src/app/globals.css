@@ -3176,6 +3176,15 @@ body::before {
   font-weight: 700;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
 }
+/* 暗い画面では白いカードの色だと沈んで見えるので、iPhone と同じく明るい灰色にする */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mode-switch a[aria-current="page"] {
+    background: #636366;
+  }
+}
+:root[data-theme="dark"] .mode-switch a[aria-current="page"] {
+  background: #636366;
+}
 .shop-bar {
   display: flex;
   align-items: center;
