@@ -403,6 +403,18 @@ export default function PairPage() {
                   <p>{result.pairing.tip}</p>
                 </div>
               )}
+              {drinkMenu.length > 0 && (
+                <section className="card pair-menu-card">
+                  <MenuPicks
+                    label="さっきの飲み物メニューなら"
+                    button="さっきの飲み物メニューから選ぶ"
+                    ranks={menuRanks[result.query]}
+                    busy={ranking === result.query}
+                    error={rankError?.dish === result.query ? rankError.text : ""}
+                    onAsk={() => rankDrinkMenu(result.query)}
+                  />
+                </section>
+              )}
               <ol className="pair-list">
                 {result.pairing.picks.map((p, i) => {
                   const g = genreOf({ kind: p.kind, style: p.style, name: p.title });
@@ -425,19 +437,6 @@ export default function PairPage() {
                 })}
               </ol>
             </section>
-
-            {drinkMenu.length > 0 && !menu?.some((m) => m.dish === result.query) && (
-              <section className="card pair-menu-card">
-                <MenuPicks
-                  label="さっきの飲み物メニューなら"
-                  button="さっきの飲み物メニューから選ぶ"
-                  ranks={menuRanks[result.query]}
-                  busy={ranking === result.query}
-                  error={rankError?.dish === result.query ? rankError.text : ""}
-                  onAsk={() => rankDrinkMenu(result.query)}
-                />
-              </section>
-            )}
 
             {result.bottles.length > 0 && (
               <section className="pair-mine">
