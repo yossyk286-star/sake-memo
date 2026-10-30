@@ -1,6 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { ScannedDrink } from "./menuScan";
 import { loadMyTerms, saveMyTerms, type MyTerm } from "./myTerms";
+import { photosOf } from "./photo";
 import { exportSaved, importSaved } from "./savedLookups";
 import { loadPrefs, savePrefs } from "./prefs";
 import type { Bottle, TastingRecord } from "./types";
@@ -102,7 +103,8 @@ export async function deleteBottle(id: string) {
 
 // --- 書き出し / 読み込み（バックアップ用） ---
 
-type ExportedRecord = Omit<TastingRecord, "photo"> & { photo: string | null };
+/** 書き出しファイルの記録。写真は data URL。version 1 までは photo に1枚だけ */
+type ExportedRecord = Omit<TastingRecord, "photo" | "photos"> & { photos?: string[]; photo?: string | null };
 
 function blobToDataURL(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -116,9 +118,12 @@ function blobToDataURL(blob: Blob): Promise<string> {
 export async function exportJSON(): Promise<string> {
   const records = await listRecords();
   const out: ExportedRecord[] = await Promise.all(
-    records.map(async (r) => ({ ...r, photo: r.photo ? await blobToDataURL(r.photo) : null })),
+    records.map(async ({ photo: _old, ...r }) => ({
+      ...r,
+      photos: await Promise.all(photosOf({ ...r, photo: _old }).map(blobToDataURL)),
+    })),
   );
-  return JSON.stringify({ app: "sake-memo", version: 1, records: out, wishes: await listWishes(), bottles: await listBottles(), prefs: loadPrefs(), myTerms: loadMyTerms(), lookups: exportSaved() });
+  return JSON.stringify({ app: "sake-memo", version: 2, records: out, wishes: await listWishes(), bottles: await listBottles(), prefs: loadPrefs(), myTerms: loadMyTerms(), lookups: exportSaved() });
 }
 
 /** 同じ id の記録は上書きする。読み込んだ件数を返す */
@@ -130,9 +135,9 @@ export async function importJSON(text: string): Promise<number> {
   const db = await getDB();
   // 写真の変換を先に済ませる（トランザクションの途中で待つと閉じてしまうため）
   const records = await Promise.all(
-    (data.records as ExportedRecord[]).map(async (r) => ({
+    (data.records as ExportedRecord[]).map(async ({ photo, photos, ...r }) => ({
       ...r,
-      photo: r.photo ? await (await fetch(r.photo)).blob() : null,
+      photos: await Promise.all((photos ?? (photo ? [photo] : [])).map(async (u) => (await fetch(u)).blob())),
     })),
   );
   const tx = db.transaction(["records", "wishes", "bottles"], "readwrite");

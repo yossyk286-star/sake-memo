@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import { photosOf, usePhotoURLs } from "@/lib/photo";
 import type { Kind, TastingRecord } from "@/lib/types";
 
 export function stars(n: number) {
@@ -40,8 +41,8 @@ export function shortDate(date: string) {
 
 /** 写真があれば小さく、なければ種類の色の四角に1文字 */
 function Thumb({ record: r }: { record: TastingRecord }) {
-  const url = useMemo(() => (r.photo ? URL.createObjectURL(r.photo) : null), [r.photo]);
-  useEffect(() => () => void (url && URL.revokeObjectURL(url)), [url]);
+  const first = useMemo(() => photosOf(r).slice(0, 1), [r]);
+  const [url] = usePhotoURLs(first);
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={url} alt="" className="thumb" style={{ borderColor: kindColor(r.kind) }} />;

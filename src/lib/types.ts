@@ -55,7 +55,10 @@ export interface TastingRecord {
   /** この記録について AI に聞いたこと */
   qa?: QA[];
   memo: string;
-  photo: Blob | null;
+  /** 自分で撮った写真（お酒、ラベル、お店など）。何枚でも */
+  photos: Blob[];
+  /** 1枚だけだった頃の写真。読むときは photosOf() を使う */
+  photo?: Blob | null;
   createdAt: number;
   updatedAt: number;
 }
