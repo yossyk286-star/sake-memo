@@ -385,14 +385,6 @@ export function loadTodayMenu(): FoodMenu["dishes"] {
   return last?.date === today() ? (last.menu ?? []) : [];
 }
 
-/** 今日読み取った料理メニューから、このお酒が「いちばん合う」と出た料理。同じタイプを先に */
-export function dishesForDrink(menu: FoodMenu["dishes"], drink: Pick<ScannedDrink, "kind" | "style">): string[] {
-  return menu
-    .map(({ dish, pick }) => ({ dish, m: matchPick(drink, [pick]) }))
-    .filter((x) => x.m)
-    .sort((a, b) => b.m!.score - a.m!.score)
-    .map((x) => x.dish);
-}
 
 const MENU_RANK_KEY = "sake-memo:pair-menu-ranks";
 
@@ -415,5 +407,26 @@ export function loadMenuRanks(drinks: ScannedDrink[]): Record<string, MenuRank[]
 export function saveMenuRanks(drinks: ScannedDrink[], byDish: Record<string, MenuRank[]>) {
   try {
     localStorage.setItem(MENU_RANK_KEY, JSON.stringify({ date: today(), drinks: drinksKey(drinks), byDish }));
+  } catch {}
+}
+
+const DISH_RANK_KEY = "sake-memo:scan-dish-ranks";
+type DishRankStore = { date: string; dishes: string; byDrink: Record<string, MenuRank[]> };
+
+const dishesKey = (menu: FoodMenu["dishes"]) => menu.map((m) => m.dish).join("|");
+
+/** 逆向き：お酒ごとに、今日読み取った料理メニューの合う順（同じメニューなら AI を呼び直さない） */
+export function loadDishRanks(menu: FoodMenu["dishes"]): Record<string, MenuRank[]> {
+  try {
+    const v = JSON.parse(localStorage.getItem(DISH_RANK_KEY) ?? "null") as DishRankStore | null;
+    return v && v.date === today() && v.dishes === dishesKey(menu) ? v.byDrink : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveDishRanks(menu: FoodMenu["dishes"], byDrink: Record<string, MenuRank[]>) {
+  try {
+    localStorage.setItem(DISH_RANK_KEY, JSON.stringify({ date: today(), dishes: dishesKey(menu), byDrink }));
   } catch {}
 }
