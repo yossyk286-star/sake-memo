@@ -1,5 +1,6 @@
 import { placeOf } from "./origins";
 import type { TastingRecord } from "./types";
+import { tr } from "./i18n";
 
 /**
  * 相棒（ちっちゃい徳利）が言うひとこと。記録を保存したとき・アプリを開いたときなど。
@@ -101,16 +102,16 @@ export function buddyLine(
     return {
       mood: "worried",
       text: pick([
-        `今日はもう${sameDay}杯目だよ…！今日はここまでにして、お水飲もう？`,
-        `${sameDay}杯目…ぼく心配だよ。お水とおつまみ、ちゃんと食べてね`,
+        tr("今日はもう{0}杯目だよ…！今日はここまでにして、お水飲もう？", sameDay),
+        tr("{0}杯目…ぼく心配だよ。お水とおつまみ、ちゃんと食べてね", sameDay),
       ]),
     };
   if (isToday && sameDay >= 4)
     return {
       mood: "worried",
       text: pick([
-        `${sameDay}杯目だね。ちょっとペース早いかも。お水はさもう`,
-        `楽しいね。でも${sameDay}杯目だから、チェイサーもらおう？`,
+        tr("{0}杯目だね。ちょっとペース早いかも。お水はさもう", sameDay),
+        tr("楽しいね。でも{0}杯目だから、チェイサーもらおう？", sameDay),
       ]),
     };
 
@@ -118,7 +119,7 @@ export function buddyLine(
     return { mood: "wow", text: "はじめての記録だね！これからいっしょに飲んだお酒を覚えていくよ" };
 
   if (MILESTONES.includes(all.length))
-    return { mood: "wow", text: `${all.length}杯目の記録、おめでとう！ここまで続けてえらいなあ` };
+    return { mood: "wow", text: tr("{0}杯目の記録、おめでとう！ここまで続けてえらいなあ", all.length) };
 
   const place = placeOf(r);
   const newPlace = !!place && !others.some((x) => placeOf(x) === place);
@@ -126,14 +127,16 @@ export function buddyLine(
     return {
       mood: "wow",
       text: newPlace
-        ? `ついに飲めたね！${place}のスタンプも押しといたよ`
-        : `ついに飲めたね！${r.name ? `${r.name}は` : ""}気になるリストから外しておいたよ`,
+        ? tr("ついに飲めたね！{0}のスタンプも押しといたよ", place)
+        : r.name
+          ? tr("ついに飲めたね！{0}は気になるリストから外しておいたよ", r.name)
+          : tr("ついに飲めたね！気になるリストから外しておいたよ"),
     };
 
-  if (newPlace) return { mood: "wow", text: `${place}、はじめまして！スタンプ押しといたよ` };
+  if (newPlace) return { mood: "wow", text: tr("{0}、はじめまして！スタンプ押しといたよ", place) };
 
   if (r.kind && !others.some((x) => x.kind === r.kind))
-    return { mood: "wow", text: `はじめての${r.kind}！新しい扉だね` };
+    return { mood: "wow", text: tr("はじめての{0}！新しい扉だね", r.kind) };
 
   const name = r.name.trim();
   const before = name ? others.filter((x) => x.name.trim() === name) : [];
@@ -141,10 +144,10 @@ export function buddyLine(
     const prev = before.reduce((a, b) => (a.date >= b.date ? a : b));
     const n = before.length + 1;
     if (r.overall > prev.overall)
-      return { mood: "happy", text: `${name}は${n}回目。前より好きになったみたいだね` };
+      return { mood: "happy", text: tr("{0}は{1}回目。前より好きになったみたいだね", name, n) };
     if (r.overall < prev.overall)
-      return { mood: "normal", text: `${name}は${n}回目。前のほうが好みだったかな？飲み方のちがいかも` };
-    return { mood: "happy", text: `${name}は${n}回目だね。すっかりお気に入り？` };
+      return { mood: "normal", text: tr("{0}は{1}回目。前のほうが好みだったかな？飲み方のちがいかも", name, n) };
+    return { mood: "happy", text: tr("{0}は{1}回目だね。すっかりお気に入り？", name, n) };
   }
 
   if (r.overall === 5)
@@ -170,7 +173,7 @@ export function buddyLine(
 
   const streak = streakDays(new Set(all.map((x) => x.date)), r.date);
   if (isToday && streak >= 3)
-    return { mood: "normal", text: `${streak}日続けて記録してるね！休肝日もはさんでね` };
+    return { mood: "normal", text: tr("{0}日続けて記録してるね！休肝日もはさんでね", streak) };
 
   const hour = now.getHours();
   if (isToday && (hour >= 23 || hour < 4))
@@ -216,12 +219,12 @@ export function openLine(records: TastingRecord[], now = new Date()): BuddyLine 
     const best = yearAgo.reduce((a, b) => (b.overall > a.overall ? b : a));
     line = {
       mood: "wow",
-      text: `1年前の今日は「${best.name || best.kind || "お酒"}」を飲んでたよ${yearAgo.length > 1 ? `（ほか${yearAgo.length - 1}杯）` : ""}`,
+      text: tr("1年前の今日は「{0}」を飲んでたよ{1}", best.name || best.kind || "お酒", yearAgo.length > 1 ? tr("（ほか{0}杯）", yearAgo.length - 1) : ""),
       action: { label: "見る", href: `/record?id=${best.id}` },
     };
     next.yearAgo = today;
   } else if (gap >= 14) {
-    line = { mood: "happy", text: `おかえり！${gap}日ぶりだね。また一緒に記録しよう` };
+    line = { mood: "happy", text: tr("おかえり！{0}日ぶりだね。また一緒に記録しよう", gap) };
   } else if (now.getDay() === 5 && now.getHours() >= 17 && (!seen.friday || daysBetween(seen.friday, today) >= 7)) {
     line = { mood: "happy", text: "金曜の夜だね。今日は何飲む？", action: { label: "調べる", href: "/scan" } };
     next.friday = today;

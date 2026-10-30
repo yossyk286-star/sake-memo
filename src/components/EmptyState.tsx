@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BuddyFace from "./BuddyFace";
 import type { BuddyMood } from "@/lib/buddy";
+import { trv } from "@/lib/i18n";
 
 type Action = { href: string; label: string } | { onClick: () => void; label: string };
 
@@ -19,7 +20,7 @@ export default function EmptyState({
   return (
     <div className="buddy-empty">
       <BuddyFace mood={mood} size={72} />
-      <strong>{title}</strong>
+      <strong>{trv(title)}</strong>
       {children && <span>{children}</span>}
       {actions.length > 0 && (
         <div className="empty-actions">
@@ -27,11 +28,11 @@ export default function EmptyState({
             const cls = i === 0 ? "btn-primary" : "btn-secondary";
             return "href" in a ? (
               <Link key={a.label} href={a.href} className={cls}>
-                {a.label}
+                {trv(a.label)}
               </Link>
             ) : (
               <button key={a.label} type="button" className={cls} onClick={a.onClick}>
-                {a.label}
+                {trv(a.label)}
               </button>
             );
           })}

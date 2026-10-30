@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import RecordCard from "./RecordCard";
 import { deleteRecord } from "@/lib/db";
 import type { TastingRecord } from "@/lib/types";
+import { tr } from "@/lib/i18n";
 
 /** 横にずらしたときに出すボタンの幅 */
 const ACTION_W = 88;
@@ -33,7 +34,7 @@ export default function SwipeRecord({
   }
 
   async function remove() {
-    if (!confirm("この記録を削除しますか？")) return setDx(0);
+    if (!confirm(tr("この記録を削除しますか？"))) return setDx(0);
     await deleteRecord(record.id);
     onDeleted(record.id);
   }
@@ -102,12 +103,12 @@ export default function SwipeRecord({
     <div className="swipe">
       {dx > 0 && (
         <button type="button" className="swipe-action swipe-edit" style={{ width: Math.max(dx, ACTION_W) }} onClick={edit}>
-          編集
+          {tr("編集")}
         </button>
       )}
       {dx < 0 && (
         <button type="button" className="swipe-action swipe-delete" style={{ width: Math.max(-dx, ACTION_W) }} onClick={remove}>
-          削除
+          {tr("削除")}
         </button>
       )}
       <div

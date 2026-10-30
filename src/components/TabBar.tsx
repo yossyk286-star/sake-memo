@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LAST_SCAN_EVENT, loadLastScan } from "@/lib/lastScan";
+import { tr, trv } from "@/lib/i18n";
 
 const TABS = [
   {
@@ -62,7 +63,7 @@ export default function TabBar() {
   if (HIDDEN_ON.includes(pathname)) return null;
 
   return (
-    <nav className="tabbar" aria-label="メイン">
+    <nav className="tabbar" aria-label={tr("メイン")}>
       <div className="tabbar-inner">
         {TABS.map((t) => {
           const active =
@@ -82,12 +83,12 @@ export default function TabBar() {
                     {t.icon}
                   </svg>
                   {scanned > 0 && (
-                    <span className="tab-badge" aria-label={`今日調べたお酒 ${scanned}種類`}>
-                      {scanned}
+                    <span className="tab-badge" aria-label={tr("今日調べたお酒 {0}種類", scanned)}>
+                      {trv(scanned)}
                     </span>
                   )}
                 </span>
-                {t.label}
+                {trv(t.label)}
               </Link>
             );
           }
@@ -106,7 +107,7 @@ export default function TabBar() {
               >
                 {t.icon}
               </svg>
-              {t.label}
+              {trv(t.label)}
             </Link>
           );
         })}

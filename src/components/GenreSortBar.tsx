@@ -7,6 +7,7 @@ import {
   type Genre,
   type SortKey,
 } from "@/lib/genre";
+import { tr, trv } from "@/lib/i18n";
 
 /** ジャンルの絞り込みと、甘口・辛口などの並び替え。ジャンルは出てくるものだけ並べる */
 export default function GenreSortBar({
@@ -36,9 +37,9 @@ export default function GenreSortBar({
         <div
           className="scroll-row"
           role="group"
-          aria-label="ジャンルで絞り込み"
+          aria-label={tr("ジャンルで絞り込み")}
         >
-          {extra}
+          {trv(extra)}
           {(used.length > 1 ? used : []).map((g) => (
             <button
               key={g}
@@ -48,12 +49,12 @@ export default function GenreSortBar({
               aria-pressed={genre === g}
               onClick={() => onGenre(genre === g ? null : g)}
             >
-              {g}
+              {trv(g)}
             </button>
           ))}
         </div>
       )}
-      <div className="scroll-row" role="group" aria-label="並び替え">
+      <div className="scroll-row" role="group" aria-label={tr("並び替え")}>
         {(["default", ...sorts] as SortKey[]).map((s) => (
           <button
             key={s}
@@ -62,7 +63,7 @@ export default function GenreSortBar({
             aria-pressed={sort === s}
             onClick={() => onSort(s)}
           >
-            {s === "default" ? defaultLabel : SORT_LABELS[s]}
+            {s === "default" ? tr(defaultLabel) : tr(SORT_LABELS[s])}
           </button>
         ))}
       </div>

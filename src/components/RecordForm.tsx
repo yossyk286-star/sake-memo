@@ -21,6 +21,7 @@ import { photosOf, shrinkPhotos } from "@/lib/photo";
 import { PhotoAddButton, PhotoRow } from "./PhotoAdd";
 import { emptyServeNote, GLASSES, hasServeNote, TEMP_NAMES } from "@/lib/serveNote";
 import type { Kind, RecordDraft, Score, ServeNote, TastingRecord } from "@/lib/types";
+import { tr, trv } from "@/lib/i18n";
 
 const SCORES: Score[] = [1, 2, 3, 4, 5];
 
@@ -87,7 +88,7 @@ function HelpButton({
     <button
       type="button"
       className="help"
-      aria-label={`${label}とは`}
+      aria-label={tr("{0}とは", label)}
       onClick={onClick}
     >
       ?
@@ -110,8 +111,8 @@ function RatingRow({
   onChange: (v: Score | null) => void;
 }) {
   return (
-    <div className="rating-row" role="group" aria-label={`${label}（1=${low}、5=${high}）`}>
-      <span className="label">{label}</span>
+    <div className="rating-row" role="group" aria-label={tr("{0}（1={1}、5={2}）", label, low, high)}>
+      <span className="label">{trv(label)}</span>
       <div className="rating-scale">
         <div className="rating-btns">
           {SCORES.map((n) => (
@@ -120,16 +121,16 @@ function RatingRow({
               key={n}
               className="chip"
               aria-pressed={value === n}
-              aria-label={`${label} ${n}`}
+              aria-label={`${tr(label)} ${n}`}
               onClick={() => onChange(value === n ? null : n)}
             >
-              {n}
+              {trv(n)}
             </button>
           ))}
         </div>
         <div className="rating-ends" aria-hidden="true">
-          <span>{low}</span>
-          <span>{high}</span>
+          <span>{trv(low)}</span>
+          <span>{trv(high)}</span>
         </div>
       </div>
     </div>
@@ -144,19 +145,19 @@ function ServeNoteFields({ value, onChange }: { value: ServeNote; onChange: (n: 
       <div className="row" style={{ flexWrap: "nowrap" }}>
         <div className="field" style={{ flex: 1, minWidth: 0 }}>
           <label className="label" htmlFor="f-ratio">
-            割り方
+            {tr("割り方")}
           </label>
-          <input id="f-ratio" className="input" placeholder="例：ソーダ 1:3" value={value.ratio} onChange={(e) => set("ratio", e.target.value)} />
+          <input id="f-ratio" className="input" placeholder={tr("例：ソーダ 1:3")} value={value.ratio} onChange={(e) => set("ratio", e.target.value)} />
         </div>
         <div className="field" style={{ flex: 1, minWidth: 0 }}>
           <label className="label" htmlFor="f-temp">
-            温度
+            {tr("温度")}
           </label>
           <input
             id="f-temp"
             className="input"
             list="temp-names"
-            placeholder="例：上燗（45℃）"
+            placeholder={tr("例：上燗（45℃）")}
             value={value.temp}
             onChange={(e) => set("temp", e.target.value)}
           />
@@ -168,14 +169,14 @@ function ServeNoteFields({ value, onChange }: { value: ServeNote; onChange: (n: 
         </div>
       </div>
       <fieldset className="field">
-        <legend className="label">酒器・グラス</legend>
+        <legend className="label">{tr("酒器・グラス")}</legend>
         <SingleChips options={GLASSES} value={value.glass} onChange={(v) => set("glass", v)} />
       </fieldset>
       <div className="field">
         <label className="label" htmlFor="f-tip">
-          コツ
+          {tr("コツ")}
         </label>
-        <input id="f-tip" className="input" placeholder="例：氷は大きめ、グラスを冷やしておく" value={value.tip} onChange={(e) => set("tip", e.target.value)} />
+        <input id="f-tip" className="input" placeholder={tr("例：氷は大きめ、グラスを冷やしておく")} value={value.tip} onChange={(e) => set("tip", e.target.value)} />
       </div>
     </div>
   );
@@ -192,7 +193,7 @@ function StarRating({
   return (
     <div className="field">
       <span className="label" id="f-overall">
-        総合 <span className="req">必須</span>
+        {tr("総合")}{" "}<span className="req">{tr("必須")}</span>
       </span>
       <div className="star-rating" role="radiogroup" aria-labelledby="f-overall">
         {SCORES.map((n) => (
@@ -233,7 +234,7 @@ export default function RecordForm({
   const router = useRouter();
 
   async function remove() {
-    if (!initial || !confirm("この記録を削除しますか？")) return;
+    if (!initial || !confirm(tr("この記録を削除しますか？"))) return;
     await deleteRecord(initial.id);
     router.replace("/");
   }
@@ -348,12 +349,12 @@ export default function RecordForm({
   const nameField = (
     <div className="field">
       <label className="label" htmlFor="f-name">
-        銘柄・名前
+        {tr("銘柄・名前")}
       </label>
       <input
         id="f-name"
         className="input"
-        placeholder="例：獺祭 純米大吟醸45"
+        placeholder={tr("例：獺祭 純米大吟醸45")}
         value={draft.name}
         onChange={(e) => set("name", e.target.value)}
       />
@@ -363,15 +364,15 @@ export default function RecordForm({
   const drinkFields = (
     <>
       <fieldset className="field">
-        <legend className="label">種類</legend>
+        <legend className="label">{tr("種類")}</legend>
         <SingleChips options={KINDS} value={draft.kind} onChange={setKind} />
       </fieldset>
       {draft.kind && (
         <fieldset className="field">
           <legend className="label">
-            タイプ{" "}
+            {tr("タイプ")}{" "}
             <HelpButton
-              label={`${draft.kind}のタイプ`}
+              label={tr("{0}のタイプ", draft.kind)}
               onClick={() => setSheet(draft.kind)}
             />
           </legend>
@@ -385,36 +386,36 @@ export default function RecordForm({
       {nameField}
       <div className="field">
         <label className="label" htmlFor="f-maker">
-          蔵元・醸造所
+          {tr("蔵元・醸造所")}
         </label>
         <input
           id="f-maker"
           className="input"
-          placeholder="例：旭酒造 / シャトー〇〇"
+          placeholder={tr("例：旭酒造 / シャトー〇〇")}
           value={draft.maker}
           onChange={(e) => set("maker", e.target.value)}
         />
       </div>
       <div className="field">
         <label className="label" htmlFor="f-origin">
-          産地（都道府県・国）
+          {tr("産地（都道府県・国）")}
         </label>
         <input
           id="f-origin"
           className="input"
-          placeholder="例：山口 / フランス"
+          placeholder={tr("例：山口 / フランス")}
           value={draft.origin}
           onChange={(e) => set("origin", e.target.value)}
         />
       </div>
       <div className="field">
         <label className="label" htmlFor="f-menu">
-          お店の説明
+          {tr("お店の説明")}
         </label>
         <input
           id="f-menu"
           className="input"
-          placeholder="例：華やかな香り・やや辛口"
+          placeholder={tr("例：華やかな香り・やや辛口")}
           value={draft.menuNote}
           onChange={(e) => set("menuNote", e.target.value)}
         />
@@ -427,8 +428,8 @@ export default function RecordForm({
       {overallField}
       <fieldset className="field">
         <legend className="label">
-          飲み方{" "}
-          <HelpButton label="飲み方" onClick={() => setSheet("飲み方")} />
+          {tr("飲み方")}{" "}
+          <HelpButton label={tr("飲み方")} onClick={() => setSheet("飲み方")} />
         </legend>
         <SingleChips
           options={serveOptions}
@@ -438,15 +439,15 @@ export default function RecordForm({
       </fieldset>
       {/* 家で飲むときだけ使うので、店で飲んだ記録ではたたんでおく */}
       <details className="drink-details" open={draft.shop.trim() === "家" || hasServeNote(draft.serveNote)}>
-        <summary>飲み方メモ（割り方・温度・グラス）</summary>
+        <summary>{tr("飲み方メモ（割り方・温度・グラス）")}</summary>
         <ServeNoteFields value={draft.serveNote ?? emptyServeNote()} onChange={(n) => set("serveNote", n)} />
       </details>
 
       <fieldset className="field">
         <legend className="label">
-          感じた味{" "}
+          {tr("感じた味")}{" "}
           <HelpButton
-            label="味の表現"
+            label={tr("味の表現")}
             onClick={() => setSheet("味の表現")}
           />
         </legend>
@@ -457,12 +458,12 @@ export default function RecordForm({
         />
         <div className="row" style={{ flexWrap: "nowrap" }}>
           <label htmlFor="f-flavor" className="visually-hidden">
-            ほかの味を追加
+            {tr("ほかの味を追加")}
           </label>
           <input
             id="f-flavor"
             className="input"
-            placeholder="ほかの味を追加"
+            placeholder={tr("ほかの味を追加")}
             value={newFlavor}
             onChange={(e) => setNewFlavor(e.target.value)}
             onKeyDown={(e) => {
@@ -473,7 +474,7 @@ export default function RecordForm({
             }}
           />
           <button type="button" className="btn-secondary" onClick={addFlavor}>
-            追加
+            {tr("追加")}
           </button>
         </div>
       </fieldset>
@@ -492,12 +493,12 @@ export default function RecordForm({
       </div>
       <div className="field">
         <label className="label" htmlFor="f-pairing">
-          合わせた料理
+          {tr("合わせた料理")}
         </label>
         <input
           id="f-pairing"
           className="input"
-          placeholder="例：お刺身、焼き鳥（塩）"
+          placeholder={tr("例：お刺身、焼き鳥（塩）")}
           value={draft.pairing}
           onChange={(e) => set("pairing", e.target.value)}
         />
@@ -505,19 +506,19 @@ export default function RecordForm({
       <div className="row" style={{ flexWrap: "nowrap", alignItems: "flex-start" }}>
       <div className="field" style={{ flex: 1, minWidth: 0 }}>
         <label className="label" htmlFor="f-abv">
-          度数（%）
+          {tr("度数（%）")}
         </label>
         <AbvInput id="f-abv" value={draft.abv} onChange={(v) => set("abv", v)} />
       </div>
       <div className="field" style={{ flex: 1, minWidth: 0 }}>
         <label className="label" htmlFor="f-price">
-          値段（1杯・円）
+          {tr("値段（1杯・円）")}
         </label>
         <input
           id="f-price"
           className="input"
           inputMode="numeric"
-          placeholder="例：800"
+          placeholder={tr("例：800")}
           value={draft.price ?? ""}
           onChange={(e) => {
             // 全角数字やカンマ入りでも数字だけ取り出す
@@ -541,7 +542,7 @@ export default function RecordForm({
       >
         <div className="field">
           <label className="label" htmlFor="f-date">
-            日付 <span className="req">必須</span>
+            {tr("日付")}{" "}<span className="req">{tr("必須")}</span>
           </label>
           <input
             id="f-date"
@@ -554,14 +555,14 @@ export default function RecordForm({
         </div>
         <div className="field">
           <label className="label" htmlFor="f-shop">
-            どこで飲んだ <span className="req">必須</span>
+            {tr("どこで飲んだ")}{" "}<span className="req">{tr("必須")}</span>
           </label>
           <div className="row" style={{ flexWrap: "nowrap" }}>
             <input
               id="f-shop"
               className="input"
               list="shop-names"
-              placeholder="店名（例：〇〇酒場）"
+              placeholder={tr("店名（例：〇〇酒場）")}
               value={draft.shop}
               onChange={(e) => set("shop", e.target.value)}
             />
@@ -573,7 +574,7 @@ export default function RecordForm({
               aria-pressed={draft.shop.trim() === "家"}
               onClick={() => set("shop", draft.shop.trim() === "家" ? "" : "家")}
             >
-              家で
+              {tr("家で")}
             </button>
           </div>
           <datalist id="shop-names">
@@ -582,7 +583,7 @@ export default function RecordForm({
             ))}
           </datalist>
         </div>
-        <div className="mode-switch" role="group" aria-label="入力の量">
+        <div className="mode-switch" role="group" aria-label={tr("入力の量")}>
           {(["かんたん", "くわしく"] as const).map((m) => (
             <button
               key={m}
@@ -590,19 +591,19 @@ export default function RecordForm({
               aria-pressed={mode === m}
               onClick={() => setMode(m)}
             >
-              {m}
+              {trv(m)}
             </button>
           ))}
         </div>
         {mode === "かんたん" ? (
           <>
             <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-              名前と★だけで保存できます。味や飲み方はあとから編集で足せます。
+              {tr("名前と★だけで保存できます。味や飲み方はあとから編集で足せます。")}
             </p>
             {!drinkFilled && nameField}
             {!drinkFilled && (
               <fieldset className="field">
-                <legend className="label">種類</legend>
+                <legend className="label">{tr("種類")}</legend>
                 <SingleChips options={KINDS} value={draft.kind} onChange={setKind} />
               </fieldset>
             )}
@@ -613,7 +614,7 @@ export default function RecordForm({
             {tasteFields}
             {/* 読み取り済みのお酒の情報は、直したいときだけ開く */}
             <details className="drink-details">
-              <summary>お酒の情報（読み取り済み・タップで直せます）</summary>
+              <summary>{tr("お酒の情報（読み取り済み・タップで直せます）")}</summary>
               {drinkFields}
             </details>
           </>
@@ -625,12 +626,12 @@ export default function RecordForm({
         )}
         <div className="field">
           <label className="label" htmlFor="f-memo">
-            メモ
+            {tr("メモ")}
           </label>
           <textarea
             id="f-memo"
             className="input"
-            placeholder="気づいたこと、次に試したいこと"
+            placeholder={tr("気づいたこと、次に試したいこと")}
             value={draft.memo}
             onChange={(e) => set("memo", e.target.value)}
           />
@@ -650,8 +651,8 @@ export default function RecordForm({
             <PhotoAddButton
               label={
                 draft.photos.length > 0
-                  ? "＋ 写真をもっと追加"
-                  : "＋ 記録に写真を残す"
+                  ? tr("＋ 写真をもっと追加")
+                  : tr("＋ 記録に写真を残す")
               }
               onFiles={onPhotos}
             />
@@ -660,21 +661,21 @@ export default function RecordForm({
 
         {error && (
           <p className="error" role="alert">
-            {error}
+            {trv(error)}
           </p>
         )}
 
         {/* 削除はめったに使わないので、詳細画面ではなく編集のいちばん下に離して置く */}
         {initial && (
           <button type="button" className="btn-secondary btn-danger" onClick={remove}>
-            この記録を削除
+            {tr("この記録を削除")}
           </button>
         )}
 
         {saved && <SavedCheck />}
         <div className="save-bar">
           <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? "保存中…" : "保存する"}
+            {saving ? tr("保存中…") : tr("保存する")}
           </button>
         </div>
       </form>

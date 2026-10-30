@@ -1,5 +1,6 @@
 "use client";
 
+import { trv } from "@/lib/i18n";
 /** 1つだけ選べるチップ。選択中をもう一度押すと解除 */
 export function SingleChips<T extends string>({
   options,
@@ -20,7 +21,7 @@ export function SingleChips<T extends string>({
           aria-pressed={value === o}
           onClick={() => onChange(value === o ? null : o)}
         >
-          {o}
+          {trv(o)}
         </button>
       ))}
     </div>
@@ -49,7 +50,7 @@ export function MultiChips({
             aria-pressed={on}
             onClick={() => onChange(on ? value.filter((x) => x !== o) : [...value, o])}
           >
-            {o}
+            {trv(o)}
           </button>
         );
       })}

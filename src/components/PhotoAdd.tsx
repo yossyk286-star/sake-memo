@@ -1,6 +1,7 @@
 "use client";
 
 import { usePhotoURLs } from "@/lib/photo";
+import { tr, trv } from "@/lib/i18n";
 
 /** 写真を横に並べる。onRemove があれば1枚ずつ外せる */
 export function PhotoRow({ photos, onRemove }: { photos: Blob[]; onRemove?: (i: number) => void }) {
@@ -11,9 +12,9 @@ export function PhotoRow({ photos, onRemove }: { photos: Blob[]; onRemove?: (i: 
       {urls.map((u, i) => (
         <div key={u} className="photo-item">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={u} alt={`記録の写真 ${i + 1}`} />
+          <img src={u} alt={tr("記録の写真 {0}", i + 1)} />
           {onRemove && (
-            <button type="button" className="photo-remove" aria-label={`写真 ${i + 1} を外す`} onClick={() => confirm("この写真を外しますか？") && onRemove(i)}>
+            <button type="button" className="photo-remove" aria-label={tr("写真 {0} を外す", i + 1)} onClick={() => confirm(tr("この写真を外しますか？")) && onRemove(i)}>
               ×
             </button>
           )}
@@ -35,7 +36,7 @@ export function PhotoAddButton({
 }) {
   return (
     <label className={chip ? "photo-add-chip" : "btn-ghost"} style={chip ? undefined : { flex: 1 }}>
-      {label}
+      {trv(label)}
       <input
         type="file"
         accept="image/*"

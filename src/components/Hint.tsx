@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { tr } from "@/lib/i18n";
 
 const KEY = "sake-memo:hints-seen";
 
@@ -38,7 +39,7 @@ export default function Hint({
           } catch {}
         }}
       >
-        わかった
+        {tr("わかった")}
       </button>
     </div>
   );

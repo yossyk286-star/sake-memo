@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { tr, trv } from "@/lib/i18n";
 
 /**
  * 今日の気分を選ぶプルダウン。一覧から選ぶか、文字で入れて足していく。
@@ -65,7 +66,7 @@ export default function MoodPicker({
       >
         <div className="mood-box" ref={box}>
           <label htmlFor="scan-mood" className="visually-hidden">
-            今日の気分
+            {tr("今日の気分")}
           </label>
           <input
             id="scan-mood"
@@ -76,7 +77,7 @@ export default function MoodPicker({
             autoComplete="off"
             enterKeyHint="go"
             maxLength={40}
-            placeholder={values.length > 0 ? "さらに足す（例：ジン）" : placeholder}
+            placeholder={values.length > 0 ? tr("さらに足す（例：ジン）") : tr(placeholder)}
             value={text}
             onFocus={() => setOpen(true)}
             onChange={(e) => {
@@ -87,7 +88,7 @@ export default function MoodPicker({
           <button
             type="button"
             className="mood-toggle"
-            aria-label={open ? "気分の一覧を閉じる" : "気分の一覧を開く"}
+            aria-label={open ? tr("気分の一覧を閉じる") : tr("気分の一覧を開く")}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => setOpen(!open)}
           >
@@ -108,7 +109,7 @@ export default function MoodPicker({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => toggle(l)}
                 >
-                  {l}
+                  {trv(l)}
                 </li>
               ))}
             </ul>
@@ -124,7 +125,7 @@ export default function MoodPicker({
               onChange([]);
             }}
           >
-            戻す
+            {tr("戻す")}
           </button>
         ) : (
           <button
@@ -133,23 +134,23 @@ export default function MoodPicker({
             style={{ flexShrink: 0 }}
             disabled={!q || busy}
           >
-            {busy ? "調べ中…" : values.length > 0 ? "足す" : "並べる"}
+            {busy ? tr("調べ中…") : values.length > 0 ? tr("足す") : tr("並べる")}
           </button>
         )}
       </form>
       {values.length > 0 && (
-        <div className="mood-chosen" aria-label="選んでいる気分">
+        <div className="mood-chosen" aria-label={tr("選んでいる気分")}>
           {values.map((v) => (
             <button
               key={v}
               type="button"
               className="chip"
               aria-pressed="true"
-              aria-label={`「${v}」を外す`}
+              aria-label={tr("「{0}」を外す", v)}
               disabled={busy}
               onClick={() => onChange(values.filter((x) => x !== v))}
             >
-              {v}
+              {trv(v)}
               <span aria-hidden="true" className="mood-x">×</span>
             </button>
           ))}

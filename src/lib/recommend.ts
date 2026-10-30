@@ -2,6 +2,7 @@ import type { ScannedDrink } from "./menuScan";
 import { placeOf } from "./origins";
 import { hasPrefs, type MyPrefs } from "./prefs";
 import type { TastingRecord } from "./types";
+import { tr } from "./i18n";
 
 /** 味の表現ごとに、メニューの説明で使われがちな言葉 */
 const FLAVOR_WORDS: Record<string, string[]> = {
@@ -66,21 +67,21 @@ export function scoreDrinks(drinks: ScannedDrink[], records: TastingRecord[], pr
     // 自分で登録した好み
     if (d.kind && prefs.kinds.includes(d.kind)) {
       score += 0.4;
-      reasons.push(`好きな${d.kind}`);
+      reasons.push(tr("好きな{0}", d.kind));
     }
     if (d.style && prefs.styles.includes(d.style)) {
       score += 0.6;
-      reasons.push(`好きな${d.style}`);
+      reasons.push(tr("好きな{0}", d.style));
     }
     if (d.kind && prefs.avoidKinds.includes(d.kind)) score -= 0.8;
     if (d.recommendedServe && prefs.serves.includes(d.recommendedServe)) {
       score += 0.3;
-      reasons.push(`好きな飲み方（${d.recommendedServe}）`);
+      reasons.push(tr("好きな飲み方（{0}）", d.recommendedServe));
     }
     const place = placeOf(d) ?? d.origin;
     if (place && prefs.origins.some((o) => o === place || d.origin.includes(o))) {
       score += 0.4;
-      reasons.push(`好きな産地（${place}）`);
+      reasons.push(tr("好きな産地（{0}）", place));
     }
     // 甘さ・コク・香りの好みに、味の予想が近いほど上げ、離れているほど下げる
     const near = (["sweetness", "body", "aroma"] as const).filter((k) => {
@@ -94,7 +95,7 @@ export function scoreDrinks(drinks: ScannedDrink[], records: TastingRecord[], pr
     const prefLiked = flavors.filter((f) => prefs.likes.includes(f));
     const prefDisliked = flavors.filter((f) => prefs.dislikes.includes(f));
     score += 0.5 * prefLiked.length - 0.6 * prefDisliked.length;
-    if (prefLiked.length > 0) reasons.push(`好きな味（${prefLiked.join("・")}）`);
+    if (prefLiked.length > 0) reasons.push(tr("好きな味（{0}）", prefLiked.join("・")));
 
     if (!useRecords) return { score, reasons };
 
@@ -103,18 +104,18 @@ export function scoreDrinks(drinks: ScannedDrink[], records: TastingRecord[], pr
     if (same.length > 0) {
       const avg = average(same.map((r) => r.overall));
       score += (avg - base) * 1.5;
-      reasons.push(`前に飲んで★${avg.toFixed(1)}`);
+      reasons.push(tr("前に飲んで★{0}", avg.toFixed(1)));
     }
 
     const kind = d.kind ? lean((r) => r.kind === d.kind) : null;
     if (kind) {
       score += kind.weight * 0.5;
-      if (kind.avg >= 4 && kind.weight > 0) reasons.push(`${d.kind}の評価が高め（平均★${kind.avg.toFixed(1)}）`);
+      if (kind.avg >= 4 && kind.weight > 0) reasons.push(tr("{0}の評価が高め（平均★{1}）", d.kind, kind.avg.toFixed(1)));
     }
     const style = d.kind && d.style ? lean((r) => r.kind === d.kind && r.style === d.style) : null;
     if (style) {
       score += style.weight;
-      if (style.avg >= 4 && style.weight > 0) reasons.push(`${d.style}の評価が高め（平均★${style.avg.toFixed(1)}）`);
+      if (style.avg >= 4 && style.weight > 0) reasons.push(tr("{0}の評価が高め（平均★{1}）", d.style, style.avg.toFixed(1)));
     }
 
     // 高く評価した記録で感じた味が、メニューの説明にどれだけあるか（登録した好みと重なる分は数えない）
@@ -123,7 +124,7 @@ export function scoreDrinks(drinks: ScannedDrink[], records: TastingRecord[], pr
     );
     const disliked = flavors.filter((f) => records.some((r) => r.overall <= 2 && r.flavors.includes(f)));
     score += 0.4 * liked.length - 0.4 * disliked.length;
-    if (liked.length > 0) reasons.push(`高評価のときの味（${liked.join("・")}）が入っている`);
+    if (liked.length > 0) reasons.push(tr("高評価のときの味（{0}）が入っている", liked.join("・")));
 
     return { score, reasons };
   });

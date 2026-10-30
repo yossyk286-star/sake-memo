@@ -10,18 +10,19 @@ import { TASTE_AXES } from "@/lib/axes";
 import { listRecords } from "@/lib/db";
 import { compareImage, shareImage } from "@/lib/shareImage";
 import type { TastingRecord } from "@/lib/types";
+import { tr, trJoin, trv } from "@/lib/i18n";
 
 /** 表で並べる項目 */
 const ROWS: [string, (r: TastingRecord) => string][] = [
-  ["種類", (r) => [r.kind, r.style].filter(Boolean).join("・")],
-  ["飲み方", (r) => r.serve ?? ""],
-  ["産地", (r) => r.origin],
+  ["種類", (r) => trJoin([r.kind, r.style])],
+  ["飲み方", (r) => tr(r.serve ?? "")],
+  ["産地", (r) => tr(r.origin)],
   ["蔵元", (r) => r.maker],
   ["店・日付", (r) => `${r.shop} ${r.date.slice(5).replace("-", "/")}`],
-  ["感じた味", (r) => r.flavors.join("・")],
+  ["感じた味", (r) => trJoin(r.flavors)],
   ["度数", (r) => (r.abv ? abvText(r.abv) : "")],
   ["値段", (r) => (r.price ? yen(r.price) : "")],
-  ["合わせた料理", (r) => r.pairing],
+  ["合わせた料理", (r) => tr(r.pairing)],
 ];
 
 function Picker({
@@ -43,13 +44,13 @@ function Picker({
   return (
     <>
       <label htmlFor="cmp-search" className="visually-hidden">
-        記録を検索
+        {tr("記録を検索")}
       </label>
       <input
         id="cmp-search"
         type="search"
         className="input"
-        placeholder="名前・店・種類で探す"
+        placeholder={tr("名前・店・種類で探す")}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
@@ -66,7 +67,7 @@ function Picker({
           </span>
         </button>
       ))}
-      {list.length === 0 && <p className="empty">比べられる記録がありません。</p>}
+      {list.length === 0 && <p className="empty">{tr("比べられる記録がありません。")}</p>}
     </>
   );
 }
@@ -90,21 +91,21 @@ function CompareBody() {
     <>
       <header className="sub-header">
         <Link href={aId ? `/record?id=${aId}` : "/"} className="back">
-          ‹ 戻る
+          {tr("‹ 戻る")}
         </Link>
-        <h1>くらべる</h1>
+        <h1>{tr("くらべる")}</h1>
       </header>
       <main className="content" style={{ paddingTop: 16 }}>
         {records && !a && (
           <p className="empty">
-            くらべる記録が選ばれていません。
+            {tr("くらべる記録が選ばれていません。")}
             <br />
-            記録を開いて「ほかの記録とくらべる」から選べます。
+            {tr("記録を開いて「ほかの記録とくらべる」から選べます。")}
           </p>
         )}
         {a && !b && (
           <>
-            <p style={{ margin: 0, fontSize: 14 }}>「{drinkTitle(a)}」と比べる記録を選んでください。</p>
+            <p style={{ margin: 0, fontSize: 14 }}>{tr("「{0}」と比べる記録を選んでください。", drinkTitle(a))}</p>
             <Picker
               records={records ?? []}
               exclude={a.id}
@@ -123,10 +124,10 @@ function CompareBody() {
               ))}
             </div>
             <section className="card">
-              <div className="compare-overall" aria-label="総合評価">
+              <div className="compare-overall" aria-label={tr("総合評価")}>
                 {pair.map((r, i) => (
                   <div key={r.id}>
-                    <span className="muted">総合評価</span>
+                    <span className="muted">{tr("総合評価")}</span>
                     <strong style={{ color: SERIES_COLORS[i] }}>{r.overall.toFixed(1)}</strong>
                     <span className="stars" style={{ color: SERIES_COLORS[i] }}>
                       {stars(r.overall)}
@@ -140,7 +141,7 @@ function CompareBody() {
               />
               {pair.some((r) => TASTE_AXES.some(([, get]) => !get(r))) && (
                 <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-                  入れていない項目は中心にしています。記録を編集すると足せます。
+                  {tr("入れていない項目は中心にしています。記録を編集すると足せます。")}
                 </p>
               )}
             </section>
@@ -152,7 +153,7 @@ function CompareBody() {
                     if (!x && !y) return null;
                     return (
                       <tr key={label}>
-                        <th>{label}</th>
+                        <th>{trv(label)}</th>
                         <td>{x || "—"}</td>
                         <td>{y || "—"}</td>
                       </tr>
@@ -174,13 +175,13 @@ function CompareBody() {
                     values: TASTE_AXES.map(([, get]) => get(r)),
                   })),
                 );
-                await shareImage(blob, "くらべる").catch(() => alert("共有できませんでした"));
+                await shareImage(blob, tr("くらべる")).catch(() => alert(tr("共有できませんでした")));
               }}
             >
-              画像にして送る
+              {tr("画像にして送る")}
             </button>
             <button type="button" className="btn-secondary" onClick={() => router.replace(`/compare?a=${aId}`)}>
-              比べる相手を変える
+              {tr("比べる相手を変える")}
             </button>
           </>
         )}

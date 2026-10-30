@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import BuddyFace from "./BuddyFace";
 import { announceBuddy, BUDDY_EVENT, openLine, type BuddyLine } from "@/lib/buddy";
 import { listRecords } from "@/lib/db";
+import { tr, trv } from "@/lib/i18n";
 
 /** 相棒が画面の下から出てきてひとこと言う。タップで消える。記録の保存やアプリを開いたときなどに出る */
 export default function Buddy() {
@@ -43,12 +44,12 @@ export default function Buddy() {
     <div key={line.key} className={`buddy buddy-${line.mood}`}>
       <BuddyFace mood={line.mood} size={62} />
       <div className="buddy-bubble" role="status">
-        <button type="button" className="buddy-text" onClick={close} aria-label={`相棒：${line.text}（タップで閉じる）`}>
-          {line.text}
+        <button type="button" className="buddy-text" onClick={close} aria-label={tr("相棒：{0}（タップで閉じる）", line.text)}>
+          {trv(line.text)}
         </button>
         {line.action && (
           <Link href={line.action.href} className="buddy-action" onClick={close}>
-            {line.action.label} ›
+            {trv(line.action.label)} ›
           </Link>
         )}
       </div>

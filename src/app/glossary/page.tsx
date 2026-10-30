@@ -9,6 +9,7 @@ import Skeleton from "@/components/Skeleton";
 import { announceBuddy } from "@/lib/buddy";
 import { loadMyTerms, saveMyTerms, type MyTerm } from "@/lib/myTerms";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
+import { getLang, tr, trv } from "@/lib/i18n";
 
 const FILTERS: ("すべて" | "自分で追加" | "カクテル" | GlossaryCategory)[] = ["すべて", "自分で追加", "カクテル", ...CATEGORIES];
 
@@ -34,7 +35,7 @@ function AddTerm({ query, onAdded }: { query: string; onAdded: (t: MyTerm) => vo
       const res = await fetch("/api/read-menu", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ term: query.trim(), passcode: normalizePasscode(passcode) }),
+        body: JSON.stringify({ term: query.trim(), passcode: normalizePasscode(passcode), lang: getLang() }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) setSaved(false);
@@ -57,15 +58,15 @@ function AddTerm({ query, onAdded }: { query: string; onAdded: (t: MyTerm) => vo
 
   return (
     <section className="tips" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <h2 style={{ margin: 0 }}>「{query.trim()}」を調べて辞典に追加</h2>
+      <h2 style={{ margin: 0 }}>{tr("「{0}」を調べて辞典に追加", query.trim())}</h2>
       <p className="term-desc" style={{ margin: 0 }}>
-        AI が初心者向けの説明を書いて、「自分で追加」に入れます（1回0.1円くらい）。
+        {tr("AI が初心者向けの説明を書いて、「自分で追加」に入れます（1回0.1円くらい）。")}
       </p>
       {!saved && (
         <input
           className="input"
-          aria-label="合言葉"
-          placeholder="合言葉"
+          aria-label={tr("合言葉")}
+          placeholder={tr("合言葉")}
           autoComplete="off"
           autoCapitalize="off"
           value={passcode}
@@ -73,12 +74,12 @@ function AddTerm({ query, onAdded }: { query: string; onAdded: (t: MyTerm) => vo
         />
       )}
       <button type="button" className="btn-primary" onClick={lookup} disabled={busy}>
-        {busy ? "調べています…" : "調べて追加する"}
+        {busy ? tr("調べています…") : tr("調べて追加する")}
       </button>
-      {busy && <Skeleton plain label="AI が説明を書いています…" lines={3} />}
+      {busy && <Skeleton plain label={tr("AI が説明を書いています…")} lines={3} />}
       {error && (
         <p className="error" role="alert">
-          {error}
+          {trv(error)}
         </p>
       )}
     </section>
@@ -100,12 +101,12 @@ export default function GlossaryPage() {
     saveMyTerms(next);
     setJustAdded(t.term);
     setQuery(t.term);
-    announceBuddy({ mood: "wow", text: `「${t.term}」を覚えたね。ひとつ詳しくなった！` });
+    announceBuddy({ mood: "wow", text: tr("「{0}」を覚えたね。ひとつ詳しくなった！", t.term) });
     setFilter("すべて");
   }
 
   function remove(term: string) {
-    if (!confirm(`「${term}」を辞典から外しますか？`)) return;
+    if (!confirm(tr("「{0}」を辞典から外しますか？", term))) return;
     const next = myTerms.filter((m) => m.term !== term);
     setMyTerms(next);
     saveMyTerms(next);
@@ -116,31 +117,31 @@ export default function GlossaryPage() {
   const terms = all.filter(
     (t) =>
       (filter === "すべて" || (filter === "自分で追加" ? t.mine : t.category === filter)) &&
-      (!q || [t.term, t.reading ?? "", t.description].some((s) => s.toLowerCase().includes(q))),
+      (!q || [t.term, t.reading ?? "", t.description, tr(t.term), tr(t.description)].some((s) => s.toLowerCase().includes(q))),
   );
   // カクテルはベースや作り方でも探せるようにする
   const cocktails = COCKTAIL_LIST.filter(
     (c) =>
       (filter === "カクテル" || (filter === "すべて" && q)) &&
-      (!q || [c.name, ...c.aliases, c.base, c.recipe].some((s) => s.toLowerCase().includes(q))),
+      (!q || [c.name, ...c.aliases, c.base, c.recipe, tr(c.name), tr(c.base), tr(c.recipe)].some((s) => s.toLowerCase().includes(q))),
   );
   // 言葉そのものが辞典にないときだけ、調べて足すボタンを出す
-  const exact = all.some((t) => t.term.toLowerCase() === q || t.reading === q) || !!findCocktail(q);
+  const exact = all.some((t) => t.term.toLowerCase() === q || t.reading === q || tr(t.term).toLowerCase() === q) || !!findCocktail(q);
 
   return (
     <>
       <header className="page-header">
-        <h1>辞典</h1>
+        <h1>{tr("辞典")}</h1>
       </header>
       <div className="content" style={{ paddingBottom: 12 }}>
         <label htmlFor="g-search" className="visually-hidden">
-          用語を検索
+          {tr("用語を検索")}
         </label>
         <input
           id="g-search"
           type="search"
           className="input"
-          placeholder="用語を検索"
+          placeholder={tr("用語を検索")}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -150,7 +151,7 @@ export default function GlossaryPage() {
         <div className="scroll-row">
           {FILTERS.filter((c) => c !== "自分で追加" || myTerms.length > 0).map((c) => (
             <button key={c} type="button" className="chip" aria-pressed={filter === c} onClick={() => setFilter(c)}>
-              {c}
+              {trv(c)}
             </button>
           ))}
         </div>
@@ -159,10 +160,10 @@ export default function GlossaryPage() {
         {!q && filter === "すべて" && <DailyQuiz />}
         {!q && (filter === "すべて" || filter === "飲み方") && (
           <section className="tips">
-            <h2>選び方の目安</h2>
+            <h2>{tr("選び方の目安")}</h2>
             <ul>
               {CHOOSING_TIPS.map((t) => (
-                <li key={t}>{t}</li>
+                <li key={t}>{trv(t)}</li>
               ))}
             </ul>
           </section>
@@ -171,15 +172,15 @@ export default function GlossaryPage() {
         {cocktails.map((c) => (
           <article key={`c-${c.name}`} className="card" style={{ gap: 4, padding: "12px 16px" }}>
             <div className="card-top">
-              <h3 style={{ fontSize: 15 }}>{c.name}</h3>
+              <h3 style={{ fontSize: 15 }}>{trv(c.name)}</h3>
               <span className="muted" style={{ fontSize: 11 }}>
-                カクテル・{c.base}・約{c.abv}%
+                {tr("カクテル・{0}・約{1}%", c.base, c.abv)}
               </span>
             </div>
-            <p className="term-desc">{c.explanation}</p>
+            <p className="term-desc">{trv(c.explanation)}</p>
             <p className="term-desc">
-              <strong>作り方：</strong>
-              {c.recipe}
+              <strong>{tr("作り方：")}</strong>
+              {trv(c.recipe)}
             </p>
           </article>
         ))}
@@ -191,14 +192,14 @@ export default function GlossaryPage() {
           >
             <div className="card-top">
               <h3 style={{ fontSize: 15 }}>
-                {t.term}
-                {t.reading && <span className="muted">（{t.reading}）</span>}
+                {trv(t.term)}
+                {getLang() === "ja" && t.reading && <span className="muted">{tr("（{0}）", t.reading)}</span>}
               </h3>
               <span className="muted" style={{ fontSize: 11 }}>
-                {t.mine ? `自分で追加・${t.category}` : t.category}
+                {t.mine ? tr("自分で追加・{0}", t.category) : tr(t.category)}
               </span>
             </div>
-            <p className="term-desc">{t.description}</p>
+            <p className="term-desc">{trv(t.description)}</p>
             {t.mine && (
               <button
                 type="button"
@@ -206,12 +207,12 @@ export default function GlossaryPage() {
                 style={{ height: 32, alignSelf: "flex-end", padding: "0 12px", fontSize: 12 }}
                 onClick={() => remove(t.term)}
               >
-                辞典から外す
+                {tr("辞典から外す")}
               </button>
             )}
           </article>
         ))}
-        {terms.length === 0 && cocktails.length === 0 && !q && <p className="empty">まだありません。</p>}
+        {terms.length === 0 && cocktails.length === 0 && !q && <p className="empty">{tr("まだありません。")}</p>}
       </main>
     </>
   );

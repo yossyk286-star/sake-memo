@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { parseAbv } from "@/lib/abv";
+import { tr } from "@/lib/i18n";
 
 /** 度数（%）の入力。「15.」のような打ちかけも消えないよう、文字のまま持っておく */
 export default function AbvInput({
@@ -19,7 +20,7 @@ export default function AbvInput({
       id={id}
       className="input"
       inputMode="decimal"
-      placeholder="例：15"
+      placeholder={tr("例：15")}
       value={text}
       onChange={(e) => {
         setText(e.target.value);

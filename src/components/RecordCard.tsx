@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { photosOf, usePhotoURLs } from "@/lib/photo";
 import type { Kind, TastingRecord } from "@/lib/types";
+import { getLang, tr, trJoin } from "@/lib/i18n";
 
 export function stars(n: number) {
   return "★".repeat(n) + "☆".repeat(5 - n);
@@ -11,21 +12,22 @@ export function stars(n: number) {
 
 /** 一覧や詳細の見出し。銘柄がなければ蔵元、それもなければ種類とタイプ */
 export function drinkTitle(r: Pick<TastingRecord, "name" | "maker" | "kind" | "style">) {
-  return r.name || r.maker || [r.kind, r.style].filter(Boolean).join(" ") || "（名前なし）";
+  return r.name || r.maker || [r.kind, r.style].filter(Boolean).map((s) => tr(s!)).join(" ") || tr("（名前なし）");
 }
 
 export function yen(n: number) {
-  return `${Math.round(n).toLocaleString("ja-JP")}円`;
+  if (getLang() === "en") return `¥${Math.round(n).toLocaleString("en-US")}`;
+  return tr("{0}円", Math.round(n).toLocaleString("ja-JP"));
 }
 
 /** 種類ごとの色（globals.css の --k-… ）と、写真がないときに出す1文字 */
-const KIND_LOOK: Record<Kind, { color: string; mark: string }> = {
-  日本酒: { color: "var(--k-sake)", mark: "日" },
-  ワイン: { color: "var(--k-wine)", mark: "ワ" },
-  ビール: { color: "var(--k-beer)", mark: "ビ" },
-  ウイスキー: { color: "var(--k-whisky)", mark: "ウ" },
-  焼酎: { color: "var(--k-shochu)", mark: "焼" },
-  その他: { color: "var(--k-other)", mark: "他" },
+const KIND_LOOK: Record<Kind, { color: string; mark: string; en: string }> = {
+  日本酒: { color: "var(--k-sake)", mark: "日", en: "Sa" },
+  ワイン: { color: "var(--k-wine)", mark: "ワ", en: "Wi" },
+  ビール: { color: "var(--k-beer)", mark: "ビ", en: "Be" },
+  ウイスキー: { color: "var(--k-whisky)", mark: "ウ", en: "Wh" },
+  焼酎: { color: "var(--k-shochu)", mark: "焼", en: "Sh" },
+  その他: { color: "var(--k-other)", mark: "他", en: "Ot" },
 };
 
 export function kindColor(kind: Kind | null) {
@@ -49,7 +51,7 @@ function Thumb({ record: r }: { record: TastingRecord }) {
   }
   return (
     <span className="thumb thumb-mark" style={{ background: kindColor(r.kind) }} aria-hidden="true">
-      {r.kind ? KIND_LOOK[r.kind].mark : "酒"}
+      {r.kind ? KIND_LOOK[r.kind][getLang() === "en" ? "en" : "mark"] : tr("酒")}
     </span>
   );
 }
@@ -57,9 +59,9 @@ function Thumb({ record: r }: { record: TastingRecord }) {
 /** 記録の一覧の1行。2行に詰めて、画面にたくさん並ぶようにする。showDate=false は日付で区切った一覧用 */
 export default function RecordCard({ record: r, showDate = true }: { record: TastingRecord; showDate?: boolean }) {
   const sub = [
-    [r.kind, r.style].filter(Boolean).join("・"),
-    r.serve,
-    r.shop,
+    trJoin([r.kind, r.style]),
+    r.serve && tr(r.serve),
+    r.shop && tr(r.shop),
     r.price && yen(r.price),
     showDate && shortDate(r.date),
   ].filter(Boolean);
@@ -69,11 +71,11 @@ export default function RecordCard({ record: r, showDate = true }: { record: Tas
       <div className="record-row-body">
         <div className="record-row-top">
           <h2>{drinkTitle(r)}</h2>
-          <span className="stars" aria-label={`5段階中${r.overall}`}>
+          <span className="stars" aria-label={tr("5段階中{0}", r.overall)}>
             {stars(r.overall)}
           </span>
         </div>
-        <p className="muted">{sub.join("・")}</p>
+        <p className="muted">{sub.join(tr("・"))}</p>
       </div>
     </Link>
   );

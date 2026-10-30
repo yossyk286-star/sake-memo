@@ -3385,3 +3385,18 @@ body::before {
 .scan-hint {
   padding-top: 12px;
 }
+
+/* 英語は言葉が長いので、決まった幅の見出しを広げる */
+html[lang="en"] .meters {
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+}
+html[lang="en"] .meter-label {
+  width: 5.4em;
+}
+html[lang="en"] .stamp-name {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+html[lang="en"] .stamp-name-long {
+  font-size: 10px;
+}

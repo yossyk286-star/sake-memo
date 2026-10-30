@@ -5,6 +5,7 @@ import { today } from "@/lib/lastScan";
 import { TERMS } from "@/lib/glossary";
 import { loadMyTerms } from "@/lib/myTerms";
 import { makeQuestion, type Question } from "@/lib/quiz";
+import { tr, trv } from "@/lib/i18n";
 
 const STATS_KEY = "sake-memo:quiz";
 
@@ -47,21 +48,21 @@ export default function DailyQuiz() {
 
   const right = chosen === question.answer;
   return (
-    <section className="tips quiz" aria-label="今日の1問">
+    <section className="tips quiz" aria-label={tr("今日の1問")}>
       <div className="card-top">
-        <h2>{round === 0 ? "今日の1問" : `もう1問（${round + 1}問目）`}</h2>
+        <h2>{round === 0 ? tr("今日の1問") : tr("もう1問（{0}問目）", round + 1)}</h2>
         {stats.solved > 0 && (
           <span className="muted" style={{ fontSize: 12 }}>
-            これまで {stats.correct}/{stats.solved}問正解
+            {tr("これまで {0}/{1}問正解", stats.correct, stats.solved)}
           </span>
         )}
       </div>
       <p className="term-desc">
-        <span className="muted">{question.term.category}：</span>
-        {question.hint}
+        <span className="muted">{trv(question.term.category)}：</span>
+        {trv(question.hint)}
       </p>
       <p className="term-desc" style={{ fontWeight: 600 }}>
-        これは何のこと？
+        {tr("これは何のこと？")}
       </p>
       <div className="quiz-choices">
         {question.choices.map((c, i) => (
@@ -73,18 +74,18 @@ export default function DailyQuiz() {
             data-result={chosen === null ? undefined : i === question.answer ? "right" : chosen === i ? "wrong" : undefined}
             onClick={() => choose(i)}
           >
-            {c}
+            {trv(c)}
           </button>
         ))}
       </div>
       {chosen !== null && (
         <>
           <p className="term-desc" role="status">
-            {right ? "正解！ " : `ざんねん、正解は「${question.term.term}」。 `}
-            {question.term.description}
+            {right ? tr("正解！ ") : tr("ざんねん、正解は「{0}」。 ", question.term.term)}
+            {trv(question.term.description)}
           </p>
           <button type="button" className="btn-secondary" onClick={() => setRound((r) => r + 1)}>
-            もう1問
+            {tr("もう1問")}
           </button>
         </>
       )}

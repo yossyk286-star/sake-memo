@@ -1,4 +1,5 @@
 import type { MenuRank } from "@/lib/foodPairing";
+import { tr, trv } from "@/lib/i18n";
 
 /** 相性の●の数を、ひと目でわかる言葉にする */
 export function scoreWord(score: number) {
@@ -31,34 +32,34 @@ export default function MenuPicks({
     return (
       <div className="pair-on-menu">
         <button type="button" className="btn-secondary pair-on-menu-btn" onClick={onAsk} disabled={busy}>
-          {busy ? "選んでいます…" : button}
+          {busy ? tr("選んでいます…") : button}
         </button>
-        {error && <p className="error">{error}</p>}
+        {error && <p className="error">{trv(error)}</p>}
       </div>
     );
   }
   const top = ranks.filter((r) => r.score >= 3).slice(0, 3);
   return (
     <div className="pair-on-menu">
-      <p className="pair-dish-for">{label}</p>
+      <p className="pair-dish-for">{trv(label)}</p>
       {top.length === 0 ? (
-        <p className="muted">メニューの中には、とくに合うものが見つかりませんでした。</p>
+        <p className="muted">{tr("メニューの中には、とくに合うものが見つかりませんでした。")}</p>
       ) : (
         <ol className="pair-on-menu-list">
           {top.map((r) => (
             <li key={r.name} className="pair-on-menu-item">
               <span className="pair-on-menu-name">
-                <strong>{r.name}</strong>
-                <span className="pair-on-menu-score" aria-label={`相性${r.score}・${scoreWord(r.score)}`}>
+                <strong>{trv(r.name)}</strong>
+                <span className="pair-on-menu-score" aria-label={tr("相性{0}・{1}", r.score, scoreWord(r.score))}>
                   <span className="pair-on-menu-word">{scoreWord(r.score)}</span>
                   {"●".repeat(r.score) + "○".repeat(5 - r.score)}
                 </span>
               </span>
               <span className="pair-on-menu-foot">
-                <span className="muted">{r.reason}</span>
+                <span className="muted">{trv(r.reason)}</span>
                 {onPick && (
                   <button type="button" className="pair-on-menu-rec" onClick={() => onPick(r.name)}>
-                    ＋記録
+                    {tr("＋記録")}
                   </button>
                 )}
               </span>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import ServiceWorker from "@/components/ServiceWorker";
 import Buddy from "@/components/Buddy";
 import ClearField from "@/components/ClearField";
+import LangGate from "@/components/LangGate";
 import LaunchScreen from "@/components/LaunchScreen";
 import TabBar from "@/components/TabBar";
 import ThemeSync from "@/components/ThemeSync";
@@ -57,12 +58,14 @@ export default function RootLayout({
       </head>
       <body>
         <LaunchScreen />
-        <div className="app">{children}</div>
-        <TabBar />
-        <Buddy />
+        <LangGate>
+          <div className="app">{children}</div>
+          <TabBar />
+          <Buddy />
+          <ClearField />
+        </LangGate>
         <ServiceWorker />
         <ThemeSync />
-        <ClearField />
       </body>
     </html>
   );
