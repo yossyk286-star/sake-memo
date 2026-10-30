@@ -6,6 +6,7 @@ import { drinkTitle, stars } from "@/components/RecordCard";
 import { listRecords } from "@/lib/db";
 import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
+import EmptyState from "@/components/EmptyState";
 
 /** 行ったお店の一覧と、その店でいちばんおいしかったお酒 */
 export default function ShopsPage() {
@@ -29,7 +30,11 @@ export default function ShopsPage() {
       {shops.length > 0 && <p className="lead">行ったお店 {shops.length}軒（最近行った順）</p>}
 
       <main className="content">
-        {records && shops.length === 0 && <p className="empty">記録をつけると、お店ごとにまとまります。</p>}
+        {records && shops.length === 0 && (
+          <EmptyState title="行ったお店、まだないよ" actions={[{ href: "/new", label: "記録する" }]}>
+            記録に「お店」を書いておくと、ここにお店ごとにまとまるよ。
+          </EmptyState>
+        )}
         {shops.map((s) => (
           <Link key={s.name} href={`/shop?name=${encodeURIComponent(s.name)}`} className="card">
             <div className="card-top">

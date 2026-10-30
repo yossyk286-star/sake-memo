@@ -12,6 +12,7 @@ import { MOODS } from "@/lib/moods";
 import { loadPrefs, type MyPrefs } from "@/lib/prefs";
 import { buildShowCard, isEmptyCard, loadTodayMoods, moodPhrase, saveTodayMoods, showKinds } from "@/lib/showCard";
 import type { Kind, TastingRecord } from "@/lib/types";
+import EmptyState from "@/components/EmptyState";
 
 function Row({ label, items }: { label: string; items: string[] }) {
   if (items.length === 0) return null;
@@ -181,11 +182,9 @@ export default function ShowPage() {
             mode === "mood" ? (
               <p className="empty">今日の気分を選ぶと、店員さんに見せるカードが出ます。</p>
             ) : (
-              <p className="empty">
-                まだ見せる好みがありません。
-                <br />
-                <Link href="/prefs">わたしの好み</Link>を登録するか、★4以上の記録がたまるとここに出ます。
-              </p>
+              <EmptyState title="まだ見せる好みがないよ" actions={[{ href: "/prefs", label: "わたしの好みを登録する" }]}>
+                好みを登録するか、★4以上の記録がたまるとここに出るよ。
+              </EmptyState>
             )
           ) : (
             <>

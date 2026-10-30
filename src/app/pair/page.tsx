@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
+import Skeleton from "@/components/Skeleton";
 import { announceBuddy } from "@/lib/buddy";
 import { listBottles, listRecords } from "@/lib/db";
 import {
@@ -257,7 +258,8 @@ export default function PairPage() {
             <input type="file" accept="image/*" onChange={onPhoto} disabled={reading} className="visually-hidden" />
           </label>
         </div>
-        {menu && (
+        {reading && <Skeleton label="メニューを読み取っています…" chips />}
+        {menu && !reading && (
           <section className="pair-mine" aria-live="polite">
             <div className="pair-menu-head">
               <h2 className="pair-head">メニューの料理に合うお酒</h2>
@@ -310,7 +312,8 @@ export default function PairPage() {
           </p>
         )}
 
-        {result && (
+        {busy && <Skeleton label={`「${dish.trim()}」に合うお酒を選んでいます…`} cards={2} chips />}
+        {result && !busy && (
           <>
             <section className="pair-result" aria-live="polite">
               <h2 className="pair-head">「{result.pairing.dish}」に合うお酒</h2>

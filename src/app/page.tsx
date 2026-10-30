@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import GenreSortBar from "@/components/GenreSortBar";
-import BuddyFace from "@/components/BuddyFace";
 import Hint from "@/components/Hint";
 import SwipeRecord from "@/components/SwipeRecord";
 import { listRecords } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
+import EmptyState from "@/components/EmptyState";
 
 const WEEKDAYS = "日月火水木金土";
 
@@ -141,11 +141,15 @@ export default function RecordsPage() {
           </div>
         )}
         {records?.length === 0 && (
-          <div className="buddy-empty">
-            <BuddyFace mood="happy" size={72} />
-            <strong>最初の1杯、いっしょに記録しよう</strong>
-            <span>下の「調べる」でお酒を調べるか、「記録する」から残してみてね。</span>
-          </div>
+          <EmptyState
+            title="最初の1杯、いっしょに記録しよう"
+            actions={[
+              { href: "/new", label: "1杯目を記録する" },
+              { href: "/scan", label: "メニューを撮って選ぶ" },
+            ]}
+          >
+            飲んだお酒を残していくと、好みや産地のスタンプがたまっていくよ。
+          </EmptyState>
         )}
         {records && records.length > 0 && filtering && days.length === 0 && (
           <p className="empty">当てはまる記録がありません。</p>

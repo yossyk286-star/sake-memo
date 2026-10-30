@@ -5,6 +5,7 @@ import DailyQuiz from "@/components/DailyQuiz";
 import { CATEGORIES, CHOOSING_TIPS, TERMS, type GlossaryCategory } from "@/lib/glossary";
 import type { TermLookup } from "@/lib/menuScan";
 import { COCKTAIL_LIST, findCocktail } from "@/lib/cocktails";
+import Skeleton from "@/components/Skeleton";
 import { announceBuddy } from "@/lib/buddy";
 import { loadMyTerms, saveMyTerms, type MyTerm } from "@/lib/myTerms";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
@@ -74,6 +75,7 @@ function AddTerm({ query, onAdded }: { query: string; onAdded: (t: MyTerm) => vo
       <button type="button" className="btn-primary" onClick={lookup} disabled={busy}>
         {busy ? "調べています…" : "調べて追加する"}
       </button>
+      {busy && <Skeleton plain label="AI が説明を書いています…" lines={3} />}
       {error && (
         <p className="error" role="alert">
           {error}

@@ -11,6 +11,7 @@ import { nextIdeas } from "@/lib/nextDrink";
 import { loadPrefs } from "@/lib/prefs";
 import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
+import EmptyState from "@/components/EmptyState";
 
 const MIN_RECORDS = 5;
 
@@ -149,11 +150,12 @@ export default function TastePage() {
         {records && records.length > 0 && <TasteMap records={records} />}
         {records && <PriceCard records={records} budget={loadPrefs().budget} />}
         {records && !summary && (
-          <p className="empty">
-            記録が{MIN_RECORDS}件たまると、あなたの好みの傾向を表示します。
-            <br />
-            いま {count}件 / あと {MIN_RECORDS - count}件
-          </p>
+          <EmptyState
+            title={count === 0 ? "好みはこれから見えてくるよ" : `あと${MIN_RECORDS - count}杯で好みがわかるよ`}
+            actions={[{ href: "/new", label: count === 0 ? "1杯目を記録する" : "記録する" }]}
+          >
+            記録が{MIN_RECORDS}件たまると、あなたの好みの傾向を出すよ（いま {count}件）。
+          </EmptyState>
         )}
         {summary && (
           <>
