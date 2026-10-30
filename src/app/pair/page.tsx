@@ -10,9 +10,11 @@ import {
   builtInPairing,
   findSavedPairing,
   groupMenu,
+  loadLastPair,
   matchBottles,
   matchRecords,
   recentPairings,
+  saveLastPair,
   savePairing,
   type FoodMenu,
   type FoodPairing,
@@ -68,15 +70,33 @@ export default function PairPage() {
   // メニューの写真から読み取った料理と、それぞれにいちばん合うもの
   const [menu, setMenu] = useState<FoodMenu["dishes"] | null>(null);
   const [reading, setReading] = useState(false);
+  const [restored, setRestored] = useState(false);
 
   useEffect(() => {
     const p = loadPasscode();
     setPasscode(p);
     setSavedPasscode(!!p);
     setRecent(recentPairings(6));
-    listRecords().then(setRecords);
-    listBottles().then(setBottles);
+    const last = loadLastPair();
+    if (last?.menu) setMenu(last.menu);
+    Promise.all([listRecords(), listBottles()]).then(([r, b]) => {
+      setRecords(r);
+      setBottles(b);
+      // 前に見ていた料理の候補も戻す（内蔵表か保存済みの結果なので通信しない）
+      const q = last?.query ?? "";
+      const builtIn = q ? builtInPairing(q) : null;
+      const pairing = builtIn ?? (q ? findSavedPairing(q) : null);
+      if (pairing) {
+        setDish(q);
+        setResult({ query: q, pairing, from: builtIn ? "built-in" : "saved", records: matchRecords(r, pairing, q), bottles: matchBottles(b, pairing) });
+      }
+      setRestored(true);
+    });
   }, []);
+
+  useEffect(() => {
+    if (restored) saveLastPair({ menu, query: result?.query ?? "" });
+  }, [restored, menu, result?.query]);
 
   function show(query: string, pairing: FoodPairing, from: Result["from"]) {
     const mine = matchRecords(records, pairing, query);
