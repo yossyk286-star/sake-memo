@@ -23,6 +23,8 @@
   --skel-shine: rgba(255, 255, 255, 0.75);
   --text: #1c1c1e;
   --muted: #6e6e76;
+  /* ★の色。白い背景でも見えるよう少し濃い山吹色 */
+  --star: #e8890b;
   --line: rgba(60, 60, 67, 0.14);
   --input-line: rgba(60, 60, 67, 0.22);
   --bar-bg: rgba(249, 249, 251, 0.82);
@@ -64,6 +66,7 @@
     --skel-shine: rgba(255, 255, 255, 0.09);
     --text: #f2f2f7;
     --muted: #98989f;
+    --star: #ffb340;
     --line: rgba(84, 84, 88, 0.55);
     --input-line: rgba(84, 84, 88, 0.75);
     --bar-bg: rgba(22, 22, 24, 0.8);
@@ -96,6 +99,7 @@
   --skel-shine: rgba(255, 255, 255, 0.09);
   --text: #f2f2f7;
   --muted: #98989f;
+  --star: #ffb340;
   --line: rgba(84, 84, 88, 0.55);
   --input-line: rgba(84, 84, 88, 0.75);
   --bar-bg: rgba(22, 22, 24, 0.8);
@@ -195,7 +199,7 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: calc(20px + env(safe-area-inset-top)) 12px 6px 20px;
+  padding: calc(20px + env(safe-area-inset-top)) 16px 6px 20px;
 }
 .page-header h1 {
   margin: 0;
@@ -312,7 +316,7 @@ textarea {
   color: var(--accent-dark);
 }
 .stars {
-  color: #f5a623;
+  color: var(--star);
   letter-spacing: 1px;
 }
 .empty {
@@ -333,12 +337,13 @@ textarea {
   height: 50px;
   padding: 0 20px 0 16px;
   border-radius: 25px;
-  background: var(--accent);
-  color: var(--on-accent);
+  /* 濃い色は真ん中の「調べる」だけにして、記録するは白い浮いたボタンにする（主役が2つ並ばないように） */
+  background: var(--surface);
+  color: var(--accent);
   font-size: 16px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent), var(--shadow-lift);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 0 0 0.5px var(--line);
   transition: transform 0.15s ease;
 }
 
@@ -828,10 +833,11 @@ textarea.input {
 }
 /* 店名で Google マップを開く小さなボタン */
 .map-link {
+  position: relative;
   flex: none;
   display: inline-flex;
   align-items: center;
-  height: 28px;
+  height: 32px;
   padding: 0 12px;
   border-radius: 999px;
   background: var(--accent-soft);
@@ -1312,7 +1318,7 @@ button.stamp {
   transition: transform 0.1s ease, color 0.15s ease;
 }
 .star-rating button.on {
-  color: #f5a623;
+  color: var(--star);
 }
 .mode-switch {
   display: grid;
@@ -1370,7 +1376,7 @@ button.stamp {
 }
 .record-row .stars {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0;
 }
 .record-row p {
@@ -1606,9 +1612,10 @@ button.stamp {
   margin: 0;
 }
 .hint button {
+  position: relative;
   flex-shrink: 0;
-  height: 30px;
-  padding: 0 12px;
+  height: 34px;
+  padding: 0 14px;
   border: none;
   border-radius: 15px;
   background: var(--fill);
@@ -2274,17 +2281,28 @@ input[type="search"].input:focus {
   font-weight: 600;
   cursor: pointer;
 }
+/* ほかの画面の切り替えと同じく、選んだ方を白く浮かせる */
 .show-modes button[aria-pressed="true"] {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--surface);
+  font-weight: 700;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .show-modes button[aria-pressed="true"] {
+    background: #636366;
+  }
+}
+:root[data-theme="dark"] .show-modes button[aria-pressed="true"] {
+  background: #636366;
 }
 .show-ask span,
 .show-thanks span {
   display: inline-block;
 }
 .header-pill {
+  position: relative;
   align-self: center;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 999px;
   background: var(--accent-soft);
   color: var(--accent);
@@ -2472,9 +2490,9 @@ body::before {
   }
 }
 /* 「残りわずか」など、押すと付くしるしのボタン */
+/* 押した後も操作ボタンと同じ濃い色にはせず、✓と枠線で「付いている」ことを見せる */
 .btn-secondary[aria-pressed="true"] {
-  background: var(--accent);
-  color: var(--on-accent);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
 }
 
 /* 料理から選ぶ */
@@ -2821,10 +2839,15 @@ body::before {
 }
 
 /* 料理から選ぶ：メニューを撮る */
+/* 飲み物からと同じく、撮るを濃い大きなボタン、写真からをその下の白いボタンにする */
 .pair-shoot {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
+}
+.pair-shoot .btn-primary {
+  gap: 8px;
+  cursor: pointer;
 }
 .pair-shoot .btn-secondary {
   display: flex;
@@ -3288,4 +3311,17 @@ body::before {
 }
 .pair-jump:empty {
   display: none;
+}
+
+/* 見た目は小さいまま、押せる範囲を 44px 前後に広げる */
+.header-pill::after,
+.map-link::after,
+.hint button::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+/* 調べる画面の説明が上の切り替えにくっつかないように */
+.scan-hint {
+  padding-top: 12px;
 }
