@@ -37,6 +37,20 @@ export const FoodMenuSchema = z.object({
 });
 
 export type FoodMenu = z.infer<typeof FoodMenuSchema>;
+
+export type MenuGroup = { key: string; label: string; sub: string; pick: FoodPick; items: { dish: string; reason: string }[] };
+
+/** メニューの料理を、合うお酒（種類・タイプ）ごとにまとめる。合う料理の多いお酒から順に */
+export function groupMenu(dishes: FoodMenu["dishes"]): MenuGroup[] {
+  const groups = new Map<string, MenuGroup>();
+  for (const { dish, pick } of dishes) {
+    const key = `${pick.kind}・${pick.style}`;
+    const g = groups.get(key) ?? { key, label: pick.style || pick.kind, sub: pick.style ? pick.kind : "", pick, items: [] };
+    g.items.push({ dish, reason: pick.reason });
+    groups.set(key, g);
+  }
+  return [...groups.values()].sort((a, b) => b.items.length - a.items.length);
+}
 export type FoodPick = z.infer<typeof FoodPickSchema>;
 export type FoodPairing = Omit<z.infer<typeof FoodPairingSchema>, "found">;
 

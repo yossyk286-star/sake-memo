@@ -9,6 +9,7 @@ import {
   BUILT_IN_DISHES,
   builtInPairing,
   findSavedPairing,
+  groupMenu,
   matchBottles,
   matchRecords,
   recentPairings,
@@ -244,27 +245,42 @@ export default function PairPage() {
                 閉じる
               </button>
             </div>
-            <div className="list-group">
-              {menu.map((m) => (
-                <button
-                  key={m.dish}
-                  type="button"
-                  className="pair-row pair-menu-row"
-                  aria-pressed={result?.query === m.dish}
-                  onClick={() => choose(m.dish)}
-                >
-                  <span className="kind-dot" style={{ background: genreColor(genreOf({ kind: m.pick.kind, style: m.pick.style, name: m.pick.title })) }} aria-hidden="true" />
-                  <span className="pair-row-body">
-                    <strong>{m.dish}</strong>
-                    <span className="pair-menu-pick">{m.pick.title}</span>
-                    <span className="muted">{m.pick.reason}</span>
-                  </span>
-                  <span className="pair-chevron" aria-hidden="true">
-                    ›
-                  </span>
-                </button>
-              ))}
-            </div>
+            {groupMenu(menu).map((g, gi) => (
+              <div key={g.key} className={gi === 0 ? "card pair-group pair-best" : "card pair-group"} style={{ "--kind": genreColor(genreOf({ kind: g.pick.kind, style: g.pick.style, name: "" })) } as React.CSSProperties}>
+                {gi === 0 && <span className="pair-best-label">このメニューならまずこれ</span>}
+                {gi === 1 && <span className="pair-best-label pair-other-label">ほかに合わせるなら</span>}
+                <div className="pair-group-head">
+                  <span className="kind-dot" style={{ background: "var(--kind)" }} aria-hidden="true" />
+                  <h3>{g.label}</h3>
+                  {g.sub && <span className="muted">{g.sub}</span>}
+                </div>
+                {gi === 0 && <p className="pair-group-reason">{g.items[0].reason}</p>}
+                <div className="pair-dishes" aria-label="合う料理">
+                  {g.items.map((it) => (
+                    <button
+                      key={it.dish}
+                      type="button"
+                      className="chip"
+                      aria-pressed={result?.query === it.dish}
+                      onClick={() => choose(it.dish)}
+                    >
+                      {it.dish}
+                    </button>
+                  ))}
+                </div>
+                <details className="pair-why">
+                  <summary>料理ごとの説明</summary>
+                  <dl>
+                    {g.items.map((it) => (
+                      <div key={it.dish}>
+                        <dt>{it.dish}</dt>
+                        <dd>{it.reason}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </details>
+              </div>
+            ))}
             <p className="muted pair-none">料理を押すと、ほかの候補や、記録・家のお酒から合うものも出します。</p>
           </section>
         )}
