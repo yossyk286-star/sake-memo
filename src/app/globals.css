@@ -2922,11 +2922,49 @@ body::before {
   padding-top: 10px;
   border-top: 0.5px solid color-mix(in srgb, var(--kind) 35%, transparent);
 }
-.pair-on-menu-list {
-  margin: 0 -14px;
+.pair-menu-card {
+  --kind: var(--accent);
 }
-.pair-on-menu-list .pair-row {
-  padding: 8px 14px;
+.pair-menu-card .pair-on-menu {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.pair-on-menu-btn {
+  height: 42px;
+  font-size: 15px;
+}
+.pair-on-menu-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pair-on-menu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pair-on-menu-name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pair-on-menu-name strong {
+  font-size: 16px;
+}
+.pair-on-menu-score {
+  flex-shrink: 0;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--kind);
+}
+.pair-on-menu-item .muted {
+  font-size: 13px;
+  line-height: 1.5;
 }
 .pair-dish-more {
   align-self: flex-start;
