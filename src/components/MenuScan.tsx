@@ -470,15 +470,9 @@ export default function MenuScan({
         );
       // 次からは AI を呼ばずに出せるよう保存しておく
       saveLookups(found, "query" in payload ? payload.query : undefined);
-      // 1本だけ（ラベルや名前で調べたとき）は今の一覧の先頭に足す。
-      // メニューは今日の一覧の後ろに足す（表と裏など何枚かに分かれたメニューを続けて撮れるように）
-      let next: ScannedDrink[];
-      if (found.length === 1) {
-        next = [found[0], ...drinks.filter((d) => d.name !== found[0].name)];
-      } else {
-        next = [...drinks, ...found.filter((f) => !drinks.some((d) => d.name === f.name))];
-        setPairing(null);
-      }
+      // 今読み取ったお酒を今日の一覧の上に足す（表と裏など何枚かに分かれたメニューを続けて撮っても、新しい分がすぐ見えるように）
+      const next = [...found, ...drinks.filter((d) => !found.some((f) => f.name === d.name))];
+      if (found.length > 1) setPairing(null);
       saveLastScan(next, loadLastScan()?.recorded ?? []);
       setDrinks(next);
       onScanned?.(next);
