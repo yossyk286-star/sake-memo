@@ -1,8 +1,14 @@
 import type { MenuRank } from "@/lib/foodPairing";
 
+/** 相性の●の数を、ひと目でわかる言葉にする */
+export function scoreWord(score: number) {
+  return ["", "あまり合わない", "ふつう", "合う", "よく合う", "とても合う"][score] ?? "";
+}
+
 /**
  * 同じお店で今日読み取ったもう一方のメニューから選ぶボタンと、押したあとの合う順（上位3つ）。
- * 料理から選ぶでは飲み物メニューを、調べる画面では料理メニューを出す。色は親の --kind
+ * 料理から選ぶでは飲み物メニューを、調べる画面では料理メニューを出す。色は親の --kind。
+ * onPick を渡すと、それぞれに「＋記録」を付けてそのまま記録に進めるようにする
  */
 export default function MenuPicks({
   label,
@@ -11,6 +17,7 @@ export default function MenuPicks({
   busy,
   error,
   onAsk,
+  onPick,
 }: {
   label: string;
   button: string;
@@ -18,6 +25,7 @@ export default function MenuPicks({
   busy: boolean;
   error: string;
   onAsk: () => void;
+  onPick?: (name: string) => void;
 }) {
   if (!ranks) {
     return (
@@ -41,11 +49,19 @@ export default function MenuPicks({
             <li key={r.name} className="pair-on-menu-item">
               <span className="pair-on-menu-name">
                 <strong>{r.name}</strong>
-                <span className="pair-on-menu-score" aria-label={`相性${r.score}`}>
+                <span className="pair-on-menu-score" aria-label={`相性${r.score}・${scoreWord(r.score)}`}>
+                  <span className="pair-on-menu-word">{scoreWord(r.score)}</span>
                   {"●".repeat(r.score) + "○".repeat(5 - r.score)}
                 </span>
               </span>
-              <span className="muted">{r.reason}</span>
+              <span className="pair-on-menu-foot">
+                <span className="muted">{r.reason}</span>
+                {onPick && (
+                  <button type="button" className="pair-on-menu-rec" onClick={() => onPick(r.name)}>
+                    ＋記録
+                  </button>
+                )}
+              </span>
             </li>
           ))}
         </ol>

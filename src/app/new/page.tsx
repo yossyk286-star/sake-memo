@@ -54,6 +54,8 @@ function NewRecord() {
   // メニュー確認の画面で「＋ 記録に追加」を押すと ?drink=お酒の名前 で来る
   const params = useSearchParams();
   const drinkParam = params.get("drink");
+  // 料理から選ぶで「＋記録」を押したときは、合わせた料理も ?food=料理名 で来る
+  const foodParam = params.get("food");
   // 気になるお酒の一覧から「＋ 記録に追加」で来たときは ?wish=id
   const wishParam = params.get("wish");
   // 家のお酒から「飲んだので記録する」で来たときは ?bottle=id
@@ -190,7 +192,11 @@ function NewRecord() {
         /* お酒を選んだり保存したりしたらフォームを作り直して読み取り結果を入れる */
         <RecordForm
           key={`${saveCount}:${picked?.name ?? "blank"}`}
-          prefill={{ ...carry, ...(picked ? drinkToDraft(picked) : {}) }}
+          prefill={{
+            ...carry,
+            ...(picked ? drinkToDraft(picked) : {}),
+            ...(picked && foodParam && picked.name === drinkParam ? { pairing: foodParam } : {}),
+          }}
           drinkFilled={!!picked}
           fromWish={!!wishId}
           onSaved={(r) => {
