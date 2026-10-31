@@ -15,10 +15,9 @@ function average(xs: number[]) {
   return xs.reduce((a, b) => a + b, 0) / xs.length;
 }
 
-/** 平均の評価が高いマスほど濃く塗る */
-function cellColor(avg: number) {
-  const pct = Math.round(15 + ((avg - 1) / 4) * 85);
-  return `color-mix(in srgb, var(--accent) ${pct}%, transparent)`;
+/** 平均の評価を ★1〜5 の5段階にして、高いマスほど濃く塗る（色は globals.css の .taste-map-cell[data-step]） */
+function step(avg: number) {
+  return Math.min(5, Math.max(1, Math.round(avg)));
 }
 
 /**
@@ -115,7 +114,7 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
                   disabled={rs.length === 0}
                   aria-pressed={selected === key}
                   aria-label={tr("甘さ{0}・コク{1}：{2}杯{3}", sweet, body, rs.length, rs.length ? tr("、平均★{0}", avg.toFixed(1)) : "")}
-                  style={rs.length ? { background: cellColor(avg), color: avg >= 3 ? "var(--on-accent)" : undefined } : undefined}
+                  data-step={rs.length ? step(avg) : undefined}
                   onClick={() => setSelected(selected === key ? null : key)}
                 >
                   {rs.length || ""}
@@ -130,8 +129,16 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
           <span>{tr("甘口")}</span>
         </div>
       </div>
+      <div className="taste-map-scale" aria-hidden="true">
+        <span>{tr("総合の平均")}</span>
+        <span>★1</span>
+        {LEVELS.map((n) => (
+          <i key={n} className="taste-map-cell" data-step={n} />
+        ))}
+        <span>★5</span>
+      </div>
       <p className="muted" style={{ margin: 0, fontSize: 12 }}>
-        {tr("数字は杯数、色が濃いほど総合の評価が高めです。マスを押すとそのお酒が出ます。")}
+        {tr("数字は杯数です。マスを押すとそのお酒が出ます。")}
       </p>
       {picked.map((r) => (
         <RecordCard key={r.id} record={r} />

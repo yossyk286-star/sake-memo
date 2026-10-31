@@ -1,5 +1,5 @@
 import { tr, trv } from "@/lib/i18n";
-/** 比べる2つの色（1つ目はアプリの色、2つ目は見分けやすい暖色）。ダークモードでも見えるよう CSS の変数を使う */
+/** 比べる2つの色（1つ目はアプリの色、2つ目はテーマ色ごとに見分けやすい色）。ダークモードでも見えるよう CSS の変数を使う */
 export const SERIES_COLORS = ["var(--accent)", "var(--compare)"];
 
 export type RadarSeries = { label: string; values: (number | null)[] };
@@ -51,10 +51,10 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
         const ps = s.values.map((v, i) => point(i, n, v ?? 0));
         return (
           <g key={si}>
-            <polygon points={toPoints(ps)} fill={color} fillOpacity={0.18} stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
-            {/* 角ごとに点を打つ（未入力の角も内側の輪の上に） */}
+            <polygon points={toPoints(ps)} fill={color} fillOpacity={0.18} stroke={color} strokeWidth={2} strokeLinejoin="round" />
+            {/* 角ごとに点を打つ（未入力の角も内側の輪の上に）。重なっても見分けられるよう背景色のふちを付ける */}
             {ps.map(([x, y], i) => (
-              <circle key={i} cx={x} cy={y} r={3.5} fill={color} />
+              <circle key={i} cx={x} cy={y} r={4.5} fill={color} stroke="var(--surface)" strokeWidth={2} />
             ))}
           </g>
         );
