@@ -123,6 +123,10 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
                 <g transform={OKINAWA_SHIFT}>{shape(PREFS.find((p) => p.id === "okinawa")!)}</g>
               </g>
             </svg>
+            <div className="map-legend jmap-legend" aria-hidden="true">
+              <span><i className="jmap-swatch on" />{tr("飲んだ")}</span>
+              <span><i className="jmap-swatch" />{tr("まだ")}</span>
+            </div>
             {pickedPref && (
               <button type="button" className="jmap-all" onClick={() => setPicked(null)}>
                 {tr("全体を見る")}

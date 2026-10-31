@@ -1359,5 +1359,9 @@
 "アイピーエー": "IPA",
 "うち": "Home",
 "エール": "Ale",
-"約{0}%": "~{0}%"
+"約{0}%": "~{0}%",
+"総合の平均": "Avg. rating",
+"飲んだ": "Tried",
+"まだ": "Not yet",
+"数字は杯数です。マスを押すとそのお酒が出ます。": "Numbers are drink counts. Tap a square to see those drinks."
 }
