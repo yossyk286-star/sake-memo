@@ -62,8 +62,26 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.roundRect(x, y, w, h, r);
 }
 
-function stars(n: number) {
-  return "★".repeat(n) + "☆".repeat(5 - n);
+/** ★5つを描く。0.5 なら左半分だけ塗り、空きは同じ★を薄く描く（画面の Stars と同じ） */
+function drawStars(ctx: CanvasRenderingContext2D, n: number, x: number, y: number, on: string) {
+  const w = ctx.measureText("★").width;
+  for (let i = 0; i < 5; i++) {
+    const sx = x + i * (w + 4);
+    ctx.save();
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = COLORS.muted;
+    ctx.fillText("★", sx, y);
+    ctx.restore();
+    const f = Math.max(0, Math.min(1, n - i));
+    if (f <= 0) continue;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(sx, y - w * 1.5, w * f, w * 2);
+    ctx.clip();
+    ctx.fillStyle = on;
+    ctx.fillText("★", sx, y);
+    ctx.restore();
+  }
 }
 
 /** 1〜5 の評価を多角形で描く。いちばん内側の輪が 0（未入力）で、1〜5 はその外側（画面の RadarChart と同じ） */
@@ -216,7 +234,7 @@ export async function recordImage(r: RecordShare) {
   ctx.fillText(scoreText(r.overall), PAD + labelW + 28, y + 80);
   const scoreW = ctx.measureText(scoreText(r.overall)).width;
   ctx.font = font(44);
-  ctx.fillText(stars(r.overall), PAD + labelW + 28 + scoreW + 24, y + 72);
+  drawStars(ctx, r.overall, PAD + labelW + 28 + scoreW + 24, y + 72, COLORS.accent);
   y += 110;
 
   const bottom = H - PAD - 60;

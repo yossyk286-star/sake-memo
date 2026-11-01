@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import RadarChart, { SERIES_COLORS } from "@/components/RadarChart";
-import { drinkTitle, stars, yen } from "@/components/RecordCard";
+import { drinkTitle, Stars, yen } from "@/components/RecordCard";
 import { abvText } from "@/lib/abv";
 import { TASTE_AXES } from "@/lib/axes";
 import { listRecords } from "@/lib/db";
@@ -58,9 +58,7 @@ function Picker({
         <button key={r.id} type="button" className="card pick-row" onClick={() => onPick(r.id)}>
           <div className="card-top">
             <strong>{drinkTitle(r)}</strong>
-            <span className="stars" style={{ fontSize: 12 }}>
-              {stars(r.overall)}
-            </span>
+            <Stars n={r.overall} className="is-sm" />
           </div>
           <span className="muted" style={{ fontSize: 12 }}>
             {[r.kind, r.style, r.shop, r.date].filter(Boolean).join("・")}
@@ -129,9 +127,7 @@ function CompareBody() {
                   <div key={r.id}>
                     <span className="muted">{tr("総合評価")}</span>
                     <strong style={{ color: SERIES_COLORS[i] }}>{r.overall.toFixed(1)}</strong>
-                    <span className="stars" style={{ color: SERIES_COLORS[i] }}>
-                      {stars(r.overall)}
-                    </span>
+                    <Stars n={r.overall} color={SERIES_COLORS[i]} />
                   </div>
                 ))}
               </div>
