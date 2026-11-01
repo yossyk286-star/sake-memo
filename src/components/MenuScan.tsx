@@ -13,7 +13,7 @@ import {
 } from "@/lib/db";
 import { loadLastScan, saveLastScan, today } from "@/lib/lastScan";
 import { loadPasscode, PASSCODE_KEY } from "@/lib/passcode";
-import { shrinkPhoto } from "@/lib/photo";
+import { shrinkForReading } from "@/lib/photo";
 import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
 import Skeleton from "./Skeleton";
 import { announceBuddy } from "@/lib/buddy";
@@ -379,8 +379,8 @@ export default function MenuScan({
     }
     setStatus("reading");
     try {
-      // 料金は画像の大きさで決まるので、長辺1000pxまで縮めてから送る
-      const image = await blobToBase64(await shrinkPhoto(photo, 1000));
+      // 小さい字も読めるよう、長辺1600pxまでにして送る（Haiku なので料金はほぼ変わらない）
+      const image = await blobToBase64(await shrinkForReading(photo));
       return await request({ image });
     } catch {
       setError("写真を読み込めませんでした");
