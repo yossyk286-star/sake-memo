@@ -12,7 +12,7 @@
 }
 [data-accent="blue"] { --accent-l: #0a6cdc; --accent-d: #4a9eff; --compare-l: #e0663a; --compare-d: #ff9f6b; }
 [data-accent="wine"] { --accent-l: #a3264c; --accent-d: #f0708f; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
-[data-accent="amber"] { --accent-l: #b8650c; --accent-d: #f5a742; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
+[data-accent="amber"] { --accent-l: #ad5f0b; --accent-d: #f5a742; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
 [data-accent="green"] { --accent-l: #2f7d55; --accent-d: #5cc98e; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
 [data-accent="purple"] { --accent-l: #7344b8; --accent-d: #b494f2; --compare-l: #e0663a; --compare-d: #ff9f6b; }
 [data-accent="graphite"] { --accent-l: #3a3d46; --accent-d: #c9ccd6; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
@@ -27,7 +27,11 @@
   --text: #1c1c1e;
   --muted: #6e6e76;
   /* ★の色。白い背景でも見えるよう少し濃い山吹色 */
-  --star: #e8890b;
+  --star: #c97400;
+  /* 種類の色を塗った上に --on-accent の文字を置くときの調整（コントラスト 4.5:1 以上になる割合）。ライトは黒寄り、ダークは白寄りに */
+  --kind-fill-mix: 76%;
+  --kind-fill-toward: #000;
+  --compare-fill-mix: 82%;
   --star-off: rgba(118, 118, 128, 0.28);
   --line: rgba(60, 60, 67, 0.14);
   --input-line: rgba(60, 60, 67, 0.22);
@@ -71,6 +75,9 @@
     --text: #f2f2f7;
     --muted: #98989f;
     --star: #ffb340;
+    --kind-fill-mix: 100%;
+    --kind-fill-toward: #fff;
+    --compare-fill-mix: 100%;
     --star-off: rgba(118, 118, 128, 0.45);
     --line: rgba(84, 84, 88, 0.55);
     --input-line: rgba(84, 84, 88, 0.75);
@@ -105,6 +112,9 @@
   --text: #f2f2f7;
   --muted: #98989f;
   --star: #ffb340;
+  --kind-fill-mix: 100%;
+  --kind-fill-toward: #fff;
+  --compare-fill-mix: 100%;
   --star-off: rgba(118, 118, 128, 0.45);
   --line: rgba(84, 84, 88, 0.55);
   --input-line: rgba(84, 84, 88, 0.75);
@@ -1029,6 +1039,7 @@ textarea.input {
 .swipe-delete {
   right: 0;
   background: var(--danger);
+  color: var(--on-accent);
 }
 
 /* 産地スタンプ帳 */
@@ -1484,10 +1495,10 @@ button.stamp {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--on-accent);
   font-size: 18px;
   font-weight: 700;
-  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.22), rgba(0, 0, 0, 0.12));
+  background: color-mix(in srgb, var(--kc) var(--kind-fill-mix), var(--kind-fill-toward));
 }
 .date-head {
   margin: 10px 4px 0;
@@ -1504,9 +1515,9 @@ button.stamp {
   gap: 8px;
 }
 .kind-chip[aria-pressed="true"] {
-  background: var(--kc);
-  border-color: var(--kc);
-  color: #fff;
+  background: color-mix(in srgb, var(--kc) var(--kind-fill-mix), var(--kind-fill-toward));
+  border-color: transparent;
+  color: var(--on-accent);
 }
 
 /* --- 真ん中の「調べる」ボタン --- */
@@ -1536,8 +1547,8 @@ button.stamp {
   height: 20px;
   padding: 0 5px;
   border-radius: 10px;
-  background: var(--compare);
-  color: #fff;
+  background: color-mix(in srgb, var(--compare) var(--compare-fill-mix), #000);
+  color: var(--on-accent);
   font-size: 11px;
   font-weight: 700;
   display: flex;
@@ -2729,8 +2740,8 @@ body::before {
   place-items: center;
   font-size: 14px;
   font-weight: 700;
-  color: #fff;
-  background: var(--kind);
+  color: var(--on-accent);
+  background: color-mix(in srgb, var(--kind) var(--kind-fill-mix), var(--kind-fill-toward));
 }
 .pair-body {
   flex: 1;
@@ -3078,7 +3089,7 @@ body::before {
   height: 28px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 15px;
   font-weight: 700;
 }

@@ -5,7 +5,7 @@ export const ACCENTS = [
   { id: "indigo", label: "藍", light: "#3d4fa8", dark: "#8c9cf0" },
   { id: "blue", label: "青", light: "#0a6cdc", dark: "#4a9eff" },
   { id: "wine", label: "葡萄", light: "#a3264c", dark: "#f0708f" },
-  { id: "amber", label: "琥珀", light: "#b8650c", dark: "#f5a742" },
+  { id: "amber", label: "琥珀", light: "#ad5f0b", dark: "#f5a742" },
   { id: "green", label: "若竹", light: "#2f7d55", dark: "#5cc98e" },
   { id: "purple", label: "藤", light: "#7344b8", dark: "#b494f2" },
   { id: "graphite", label: "墨", light: "#3a3d46", dark: "#c9ccd6" },
