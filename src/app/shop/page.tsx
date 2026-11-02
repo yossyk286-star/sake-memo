@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import RecordCard, { drinkTitle, stars, yen } from "@/components/RecordCard";
+import RecordCard, { drinkTitle, Stars, yen } from "@/components/RecordCard";
 import { listRecords } from "@/lib/db";
 import { groupByShop, mapsUrl } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
@@ -42,7 +42,7 @@ function ShopBody() {
             <section className="highlight">
               <p style={{ margin: 0, fontSize: 13, opacity: 0.85 }}>{tr("このお店でいちばんおいしかったお酒")}</p>
               <p className="highlight-main">{drinkTitle(shop.best)}</p>
-              <span aria-label={tr("5段階中{0}", shop.best.overall)}>{stars(shop.best.overall)}</span>
+              <Stars n={shop.best.overall} className="on-accent" />
             </section>
             <p className="muted" style={{ margin: 0 }}>
               {tr("{0}杯の記録{1}", shop.records.length, priceNote(shop.records))}

@@ -28,6 +28,7 @@
   --muted: #6e6e76;
   /* ★の色。白い背景でも見えるよう少し濃い山吹色 */
   --star: #e8890b;
+  --star-off: rgba(118, 118, 128, 0.28);
   --line: rgba(60, 60, 67, 0.14);
   --input-line: rgba(60, 60, 67, 0.22);
   --bar-bg: rgba(249, 249, 251, 0.82);
@@ -70,6 +71,7 @@
     --text: #f2f2f7;
     --muted: #98989f;
     --star: #ffb340;
+    --star-off: rgba(118, 118, 128, 0.45);
     --line: rgba(84, 84, 88, 0.55);
     --input-line: rgba(84, 84, 88, 0.75);
     --bar-bg: rgba(22, 22, 24, 0.8);
@@ -103,6 +105,7 @@
   --text: #f2f2f7;
   --muted: #98989f;
   --star: #ffb340;
+  --star-off: rgba(118, 118, 128, 0.45);
   --line: rgba(84, 84, 88, 0.55);
   --input-line: rgba(84, 84, 88, 0.75);
   --bar-bg: rgba(22, 22, 24, 0.8);
@@ -318,9 +321,26 @@ textarea {
   background: var(--accent-soft);
   color: var(--accent-dark);
 }
+/* 総合評価の★。--f の割合まで塗り、残りは薄く（0.5 なら半分だけ塗る） */
 .stars {
-  color: var(--star);
-  letter-spacing: 1px;
+  display: inline-flex;
+  gap: 1px;
+  vertical-align: -0.1em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.stars .star {
+  background: linear-gradient(90deg, var(--star) var(--f), var(--star-off) var(--f));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.stars.is-sm {
+  font-size: 12px;
+}
+.stars.on-accent {
+  --star: #fff;
+  --star-off: rgba(255, 255, 255, 0.35);
 }
 .empty {
   text-align: center;
@@ -1332,22 +1352,59 @@ button.stamp {
 }
 .star-rating {
   display: flex;
+  align-items: center;
   gap: 4px;
 }
-.star-rating button {
+/* ★1つを左右2つのボタンに分ける。左半分＝0.5、右半分＝1 */
+.star-rating .star-cell {
+  position: relative;
   width: 48px;
   height: 48px;
-  border: none;
-  background: none;
+  display: grid;
+  place-items: center;
   font-size: 34px;
   line-height: 1;
-  color: var(--fill-strong);
-  cursor: pointer;
-  padding: 0;
-  transition: transform 0.1s ease, color 0.15s ease;
+  transition: transform 0.1s ease;
 }
-.star-rating button.on {
+.star-rating .star-cell .star {
+  background: linear-gradient(90deg, var(--star) var(--f), var(--star-off) var(--f));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  pointer-events: none;
+}
+.star-rating .star-cell button {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.star-rating .star-cell button:first-of-type {
+  left: 0;
+}
+.star-rating .star-cell button:last-of-type {
+  right: 0;
+}
+.star-rating .star-cell:has(button:active) {
+  transform: scale(0.96);
+}
+.star-rating-num {
+  margin-left: 6px;
+  min-width: 2.2em;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--star);
+}
+.star-rating-num.is-empty {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 15px;
 }
 .mode-switch {
   display: grid;
@@ -1729,8 +1786,7 @@ button.stamp {
 .btn-secondary:active,
 .fab:active,
 .hub-item:active,
-.tab-scan-btn:active,
-.star-rating button:active {
+.tab-scan-btn:active {
   transform: scale(0.96);
 }
 .card:is(a):active,
@@ -1951,19 +2007,19 @@ input[type="search"]::-webkit-search-cancel-button {
     transform: scale(0.92);
   }
 }
-.star-rating button.on {
+.star-rating .star-cell.on .star {
   animation: star-pop 0.4s ease backwards;
 }
-.star-rating button.on:nth-child(2) {
+.star-rating .star-cell.on:nth-child(2) .star {
   animation-delay: 0.03s;
 }
-.star-rating button.on:nth-child(3) {
+.star-rating .star-cell.on:nth-child(3) .star {
   animation-delay: 0.06s;
 }
-.star-rating button.on:nth-child(4) {
+.star-rating .star-cell.on:nth-child(4) .star {
   animation-delay: 0.09s;
 }
-.star-rating button.on:nth-child(5) {
+.star-rating .star-cell.on:nth-child(5) .star {
   animation-delay: 0.12s;
 }
 

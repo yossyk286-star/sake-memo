@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { drinkTitle, stars } from "@/components/RecordCard";
+import { drinkTitle, Stars } from "@/components/RecordCard";
 import { listRecords } from "@/lib/db";
 import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
@@ -43,9 +43,7 @@ export default function ShopsPage() {
               <span className="muted">{tr("{0}杯", s.records.length)}</span>
             </div>
             <p className="muted">{tr("いちばん：{0}", drinkTitle(s.best))}</p>
-            <span className="stars" aria-label={tr("5段階中{0}", s.best.overall)} style={{ fontSize: 13 }}>
-              {stars(s.best.overall)}
-            </span>
+            <Stars n={s.best.overall} />
           </Link>
         ))}
       </main>
