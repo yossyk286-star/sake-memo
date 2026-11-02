@@ -738,6 +738,16 @@ textarea.input {
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
+  /* 右端でぶつ切りに見えないよう、画面の端まで流して端をふわっと消す。
+     右の余白があるので、最後まで送ればいちばん右のチップもはっきり見える */
+  margin-right: -16px;
+  padding-right: 32px;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+}
+.scroll-row::-webkit-scrollbar {
+  display: none;
 }
 .tips {
   background: var(--accent-soft);
@@ -1076,6 +1086,10 @@ textarea.input {
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
+/* 数が奇数のとき、最後の1枚が片側だけ余らないよう横いっぱいに */
+.hub > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .hub-item {
   background: var(--surface);
   border: none;
@@ -1245,6 +1259,10 @@ button.stamp {
 }
 .next-list strong {
   font-size: 15px;
+}
+.next-more {
+  align-self: flex-start;
+  margin: 2px 0 -10px;
 }
 
 /* --- くらべる --- */
@@ -1456,9 +1474,11 @@ button.stamp {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  /* 長い名前は★に押されて切れないよう2行まで出す */
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .record-row .stars {
   flex-shrink: 0;
@@ -1798,6 +1818,11 @@ button.stamp {
 .input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+/* カードの中の入力欄は、カードと同じ白だと溶けて見えないので薄い灰色で塗る（iPhone の設定画面と同じ） */
+.card .input {
+  background: var(--fill);
+  box-shadow: none;
 }
 .input::placeholder {
   color: var(--muted);
@@ -3400,11 +3425,13 @@ body::before {
 }
 /* 暗い画面では白いカードの色だと沈んで見えるので、iPhone と同じく明るい灰色にする */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .mode-switch a[aria-current="page"] {
+  :root:not([data-theme="light"]) .mode-switch a[aria-current="page"],
+  :root:not([data-theme="light"]) .mode-switch button[aria-pressed="true"] {
     background: #636366;
   }
 }
-:root[data-theme="dark"] .mode-switch a[aria-current="page"] {
+:root[data-theme="dark"] .mode-switch a[aria-current="page"],
+:root[data-theme="dark"] .mode-switch button[aria-pressed="true"] {
   background: #636366;
 }
 .shop-bar {

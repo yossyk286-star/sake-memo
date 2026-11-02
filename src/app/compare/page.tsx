@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import EmptyState from "@/components/EmptyState";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import RadarChart, { SERIES_COLORS } from "@/components/RadarChart";
@@ -95,11 +96,9 @@ function CompareBody() {
       </header>
       <main className="content" style={{ paddingTop: 16 }}>
         {records && !a && (
-          <p className="empty">
-            {tr("くらべる記録が選ばれていません。")}
-            <br />
+          <EmptyState title={tr("くらべる記録が選ばれていません。")} actions={[{ href: "/", label: tr("記録の一覧へ") }]}>
             {tr("記録を開いて「ほかの記録とくらべる」から選べます。")}
-          </p>
+          </EmptyState>
         )}
         {a && !b && (
           <>
