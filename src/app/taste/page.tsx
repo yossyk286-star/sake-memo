@@ -94,6 +94,8 @@ export default function TastePage() {
   const stampInfo = useMemo(() => collectStamps(records ?? []), [records]);
   const shopCount = useMemo(() => groupByShop(records ?? []).length, [records]);
 
+  // 長い説明が続くと味マップが遠くなるので、最初は1件だけ出す
+  const [showAllIdeas, setShowAllIdeas] = useState(false);
   const ideas = useMemo(() => (records ? nextIdeas(records, loadPrefs()) : []), [records]);
 
   const count = records?.length ?? 0;
@@ -138,7 +140,7 @@ export default function TastePage() {
           <section className="tips">
             <h2>{tr("次の一杯に")}</h2>
             <ul className="next-list">
-              {ideas.map((i) => (
+              {(showAllIdeas ? ideas : ideas.slice(0, 1)).map((i) => (
                 <li key={i.title}>
                   <strong>{trv(i.title)}</strong>
                   <span>{trv(i.reason)}</span>
@@ -146,6 +148,11 @@ export default function TastePage() {
                 </li>
               ))}
             </ul>
+            {ideas.length > 1 && (
+              <button type="button" className="text-btn next-more" aria-expanded={showAllIdeas} onClick={() => setShowAllIdeas((v) => !v)}>
+                {showAllIdeas ? tr("閉じる") : tr("ほかの案も見る（{0}件）", ideas.length - 1)}
+              </button>
+            )}
           </section>
         )}
         {records && records.length > 0 && <TasteMap records={records} />}
