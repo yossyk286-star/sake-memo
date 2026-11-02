@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import AskAI from "@/components/AskAI";
 import { PhotoAddButton, PhotoRow } from "@/components/PhotoAdd";
 import RadarChart from "@/components/RadarChart";
-import { drinkTitle, kindColor, stars, yen } from "@/components/RecordCard";
+import { drinkTitle, kindColor, Stars, yen } from "@/components/RecordCard";
 import { TASTE_AXES } from "@/lib/axes";
 import { putRecord } from "@/lib/db";
 import { abvText } from "@/lib/abv";
@@ -164,9 +164,7 @@ function DetailBody() {
               <div className="detail-score" aria-label={tr("総合 5段階中{0}", r.overall)}>
                 <span className="detail-score-label">{tr("総合")}</span>
                 <span className="detail-score-num">{trv(r.overall)}</span>
-                <span className="stars" aria-hidden="true">
-                  {stars(r.overall)}
-                </span>
+                <Stars n={r.overall} label="" />
               </div>
             </div>
             <div className="detail-when">

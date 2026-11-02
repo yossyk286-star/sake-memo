@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { MultiChips, SingleChips } from "./ChipGroup";
 import AbvInput from "./AbvInput";
@@ -20,7 +20,7 @@ import { today } from "@/lib/lastScan";
 import { photosOf, shrinkPhotos } from "@/lib/photo";
 import { PhotoAddButton, PhotoRow } from "./PhotoAdd";
 import { emptyServeNote, GLASSES, hasServeNote, TEMP_NAMES } from "@/lib/serveNote";
-import type { Kind, RecordDraft, Score, ServeNote, TastingRecord } from "@/lib/types";
+import type { Kind, Overall, RecordDraft, Score, ServeNote, TastingRecord } from "@/lib/types";
 import { tr, trv } from "@/lib/i18n";
 
 const SCORES: Score[] = [1, 2, 3, 4, 5];
@@ -182,13 +182,13 @@ function ServeNoteFields({ value, onChange }: { value: ServeNote; onChange: (n: 
   );
 }
 
-/** 総合の評価。★をタップして選ぶ */
+/** 総合の評価。★の左半分をタップで 0.5、右半分で 1。0.5 きざみで選ぶ */
 function StarRating({
   value,
   onChange,
 }: {
-  value: Score | null;
-  onChange: (v: Score) => void;
+  value: Overall | null;
+  onChange: (v: Overall) => void;
 }) {
   return (
     <div className="field">
@@ -196,19 +196,29 @@ function StarRating({
         {tr("総合")}{" "}<span className="req">{tr("必須")}</span>
       </span>
       <div className="star-rating" role="radiogroup" aria-labelledby="f-overall">
-        {SCORES.map((n) => (
-          <button
-            type="button"
-            key={n}
-            role="radio"
-            aria-checked={value === n}
-            aria-label={`★${n}`}
-            className={value && n <= value ? "on" : ""}
-            onClick={() => onChange(n)}
-          >
-            ★
-          </button>
-        ))}
+        {SCORES.map((n) => {
+          const fill = value ? Math.max(0, Math.min(1, value - n + 1)) : 0;
+          return (
+            <span key={n} className={`star-cell${fill > 0 ? " on" : ""}`}>
+              <span className="star" aria-hidden="true" style={{ "--f": `${fill * 100}%` } as CSSProperties}>
+                ★
+              </span>
+              {([n - 0.5, n] as Overall[]).map((v) => (
+                <button
+                  type="button"
+                  key={v}
+                  role="radio"
+                  aria-checked={value === v}
+                  aria-label={`★${v}`}
+                  onClick={() => onChange(v)}
+                />
+              ))}
+            </span>
+          );
+        })}
+        <span className={`star-rating-num${value ? "" : " is-empty"}`} aria-hidden="true">
+          {value ? value.toFixed(1) : tr("左半分で0.5")}
+        </span>
       </div>
     </div>
   );

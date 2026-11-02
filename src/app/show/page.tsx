@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
-import { stars, yen } from "@/components/RecordCard";
+import { Stars, yen } from "@/components/RecordCard";
 import { buddyOn } from "@/lib/buddy";
 import { listRecords } from "@/lib/db";
 import { KINDS } from "@/lib/glossary";
@@ -270,7 +270,7 @@ export default function ShowPage() {
                           <li key={r.id}>
                             <strong>{trv(r.name)}</strong>
                             <span className="muted">
-                              {trJoin([r.maker, r.origin])} {stars(r.overall)}
+                              {trJoin([r.maker, r.origin])} <Stars n={r.overall} />
                             </span>
                           </li>
                         ))}

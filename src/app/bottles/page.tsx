@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SingleChips } from "@/components/ChipGroup";
-import { kindColor, stars, yen } from "@/components/RecordCard";
+import { kindColor, Stars, stars, yen } from "@/components/RecordCard";
 import { announceBuddy } from "@/lib/buddy";
 import { deleteBottle, listBottles, listRecords, putBottle } from "@/lib/db";
 import { KINDS, STYLES_BY_KIND } from "@/lib/glossary";
@@ -166,7 +166,7 @@ function BottleCard({
       <p style={{ margin: 0, fontSize: 14 }}>
         {mine.length > 0 ? (
           <>
-            {tr("{0}回記録・平均", mine.length)}{" "}<span className="stars">{stars(Math.round(avg))}</span>
+            {tr("{0}回記録・平均", mine.length)}{" "}<Stars n={Math.round(avg * 2) / 2} />
           </>
         ) : (
           <span className="muted">{tr("まだ記録していません")}</span>
@@ -184,7 +184,7 @@ function BottleCard({
           <summary>{tr("記録を見る")}</summary>
           {mine.map((r) => (
             <Link key={r.id} href={`/record?id=${r.id}`}>
-              {r.date.slice(5).replace("-", "/")} {stars(r.overall)} {r.serve ?? ""} {r.serveNote ? serveNoteText(r.serveNote) : r.memo.slice(0, 20)}
+              {r.date.slice(5).replace("-", "/")} <Stars n={r.overall} /> {r.serve ?? ""} {r.serveNote ? serveNoteText(r.serveNote) : r.memo.slice(0, 20)}
             </Link>
           ))}
         </details>

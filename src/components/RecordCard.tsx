@@ -1,13 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { photosOf, usePhotoURLs } from "@/lib/photo";
 import type { Kind, TastingRecord } from "@/lib/types";
 import { getLang, tr, trJoin } from "@/lib/i18n";
 
+/** 文の中で使う総合評価。「★4」「★3.5」のように数字で出す */
 export function stars(n: number) {
-  return "★".repeat(n) + "☆".repeat(5 - n);
+  return `★${n}`;
+}
+
+/** 総合評価の★5つ。0.5 なら半分だけ塗る。空きも同じ★を薄く出す */
+export function Stars({ n, color, className = "", label }: { n: number; color?: string; className?: string; label?: string }) {
+  return (
+    <span
+      className={`stars ${className}`.trim()}
+      role="img"
+      aria-label={label ?? tr("5段階中{0}", n)}
+      style={color ? ({ "--star": color } as CSSProperties) : undefined}
+    >
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className="star" style={{ "--f": `${Math.max(0, Math.min(1, n - i + 1)) * 100}%` } as CSSProperties}>
+          ★
+        </span>
+      ))}
+    </span>
+  );
 }
 
 /** 一覧や詳細の見出し。銘柄がなければ蔵元、それもなければ種類とタイプ */
@@ -71,9 +90,7 @@ export default function RecordCard({ record: r, showDate = true }: { record: Tas
       <div className="record-row-body">
         <div className="record-row-top">
           <h2>{drinkTitle(r)}</h2>
-          <span className="stars" aria-label={tr("5段階中{0}", r.overall)}>
-            {stars(r.overall)}
-          </span>
+          <Stars n={r.overall} />
         </div>
         <p className="muted">{sub.join(tr("・"))}</p>
       </div>
