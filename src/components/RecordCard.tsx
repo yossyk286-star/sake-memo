@@ -50,7 +50,7 @@ function Thumb({ record: r }: { record: TastingRecord }) {
     return <img src={url} alt="" className="thumb" style={{ borderColor: kindColor(r.kind) }} />;
   }
   return (
-    <span className="thumb thumb-mark" style={{ background: kindColor(r.kind) }} aria-hidden="true">
+    <span className="thumb thumb-mark" style={{ "--kc": kindColor(r.kind) } as React.CSSProperties} aria-hidden="true">
       {r.kind ? KIND_LOOK[r.kind][getLang() === "en" ? "en" : "mark"] : tr("酒")}
     </span>
   );
