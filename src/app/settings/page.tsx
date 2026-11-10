@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
-import { announceBuddy, buddyOn, setBuddyOn } from "@/lib/buddy";
+import { announceBuddy, buddyOn, pick, setBuddyOn } from "@/lib/buddy";
 import { importJSON } from "@/lib/db";
 import { daysSince, lastBackup, saveBackup } from "@/lib/backup";
 import { ACCENTS, DEFAULT_THEME, loadTheme, saveTheme, type Appearance, type Theme } from "@/lib/theme";
@@ -39,7 +39,7 @@ export default function SettingsPage() {
   function changeBuddy(on: boolean) {
     setBuddy(on);
     setBuddyOn(on);
-    if (on) announceBuddy({ mood: "happy", text: "また記録するとき、ひとこと言うね！" });
+    if (on) announceBuddy({ mood: "happy", text: pick(["また記録するとき、ひとこと言うね！", "ただいま！また相棒させてね"]) });
   }
 
   function changeTheme(next: Partial<Theme>) {

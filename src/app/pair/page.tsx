@@ -9,7 +9,7 @@ import MenuPicks from "@/components/MenuPicks";
 import ScanTabs from "@/components/ScanTabs";
 import ShopBar from "@/components/ShopBar";
 import Skeleton from "@/components/Skeleton";
-import { announceBuddy } from "@/lib/buddy";
+import { announceBuddy, pick } from "@/lib/buddy";
 import { listBottles, listRecords } from "@/lib/db";
 import { loadLastScan, today } from "@/lib/lastScan";
 import type { PairingResult, ScannedDrink } from "@/lib/menuScan";
@@ -155,7 +155,7 @@ export default function PairPage() {
     const home = matchBottles(bottles, pairing);
     setResult({ query, pairing, from, records: mine, bottles: home });
     if (home[0]) {
-      announceBuddy({ text: tr("家にある「{0}」、{1}に合いそう！", home[0].item.name, pairing.dish), mood: "happy" });
+      announceBuddy({ text: pick([tr("家にある「{0}」、{1}に合いそう！", home[0].item.name, pairing.dish), tr("{1}なら、家の「{0}」がよさそうだよ", home[0].item.name, pairing.dish)]), mood: "happy" });
     }
   }
 

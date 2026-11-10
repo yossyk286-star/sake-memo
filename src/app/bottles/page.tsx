@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SingleChips } from "@/components/ChipGroup";
 import { kindColor, Stars, stars, yen } from "@/components/RecordCard";
-import { announceBuddy } from "@/lib/buddy";
+import { announceBuddy, pick } from "@/lib/buddy";
 import { deleteBottle, listBottles, listRecords, putBottle } from "@/lib/db";
 import { KINDS, STYLES_BY_KIND } from "@/lib/glossary";
 import AbvInput from "@/components/AbvInput";
@@ -235,7 +235,7 @@ export default function BottlesPage() {
     if (b.low && !bottles?.find((x) => x.id === b.id)?.low)
       announceBuddy({
         mood: "normal",
-        text: tr("{0}、そろそろなくなりそう？次の1本探す？", b.name),
+        text: pick([tr("{0}、そろそろなくなりそう？次の1本探す？", b.name), tr("{0}、残り少なくなってきたね。次も同じのにする？", b.name)]),
         action: { label: tr("調べる"), href: "/scan" },
       });
     await putBottle(b);
