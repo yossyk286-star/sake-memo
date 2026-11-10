@@ -38,8 +38,8 @@ export function makeQuestion(seed: string, pool: Term[] = TERMS): Question {
   const rand = seeded(seed);
   const term = pool[Math.floor(rand() * pool.length)];
   const same = pool.filter((t) => t.category === term.category && t.term !== term.term);
-  const others = pool.filter((t) => t.category !== term.category);
-  const wrong = [...shuffle(same, rand), ...shuffle(others, rand)].slice(0, 3).map((t) => t.term);
+  const others = pool.filter((t) => t.category !== term.category && t.term !== term.term);
+  const wrong = [...new Set([...shuffle(same, rand), ...shuffle(others, rand)].map((t) => t.term))].slice(0, 3);
   const choices = shuffle([term.term, ...wrong], rand);
   return { term, hint: maskTerm(term.description, term.term), choices, answer: choices.indexOf(term.term) };
 }

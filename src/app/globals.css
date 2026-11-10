@@ -9,13 +9,15 @@
   /* くらべるの2つ目の色。テーマ色と見分けやすい反対寄りの色（寒色のテーマ色には橙、暖色・灰色には青） */
   --compare-l: #e0663a;
   --compare-d: #ff9f6b;
+  /* ダークの地の色。テーマ色を少しだけ混ぜた黒（藍墨）。src/lib/theme.ts の bgDark と合わせる */
+  --bg-d: #11131c;
 }
-[data-accent="blue"] { --accent-l: #0a6cdc; --accent-d: #4a9eff; --compare-l: #e0663a; --compare-d: #ff9f6b; }
-[data-accent="wine"] { --accent-l: #a3264c; --accent-d: #f0708f; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
-[data-accent="amber"] { --accent-l: #ad5f0b; --accent-d: #f5a742; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
-[data-accent="green"] { --accent-l: #2f7d55; --accent-d: #5cc98e; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
-[data-accent="purple"] { --accent-l: #7344b8; --accent-d: #b494f2; --compare-l: #e0663a; --compare-d: #ff9f6b; }
-[data-accent="graphite"] { --accent-l: #3a3d46; --accent-d: #c9ccd6; --compare-l: #2f6fd0; --compare-d: #6aa8ff; }
+[data-accent="blue"] { --accent-l: #0a6cdc; --accent-d: #4a9eff; --compare-l: #e0663a; --compare-d: #ff9f6b; --bg-d: #0b131e; }
+[data-accent="wine"] { --accent-l: #a3264c; --accent-d: #f0708f; --compare-l: #2f6fd0; --compare-d: #6aa8ff; --bg-d: #190f15; }
+[data-accent="amber"] { --accent-l: #ad5f0b; --accent-d: #f5a742; --compare-l: #2f6fd0; --compare-d: #6aa8ff; --bg-d: #19140e; }
+[data-accent="green"] { --accent-l: #2f7d55; --accent-d: #5cc98e; --compare-l: #2f6fd0; --compare-d: #6aa8ff; --bg-d: #0d1715; }
+[data-accent="purple"] { --accent-l: #7344b8; --accent-d: #b494f2; --compare-l: #e0663a; --compare-d: #ff9f6b; --bg-d: #14121d; }
+[data-accent="graphite"] { --accent-l: #3a3d46; --accent-d: #c9ccd6; --compare-l: #2f6fd0; --compare-d: #6aa8ff; --bg-d: #16171a; }
 
 :root {
   --bg: #f2f2f7;
@@ -35,23 +37,30 @@
   --star-off: rgba(118, 118, 128, 0.28);
   --line: rgba(60, 60, 67, 0.14);
   --input-line: rgba(60, 60, 67, 0.22);
-  --bar-bg: rgba(249, 249, 251, 0.82);
+  --bar-bg: rgba(249, 249, 251, 0.78);
+  /* 浮かぶタブバーのふちの光 */
+  --bar-glow: rgba(255, 255, 255, 0.7);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 10px rgba(0, 0, 0, 0.04);
   --shadow-lift: 0 6px 20px rgba(0, 0, 0, 0.14);
+  /* シート・ポップアップの地（ライトはカードと同じ白。ダークだけ一段明るくする） */
+  --surface-raised: var(--surface);
+  --raised-edge: none;
+  /* 点数・杯数などの数字だけに使う丸い書体（layout.tsx の --font-num）。日本語はいつもの書体 */
+  --num-font: var(--font-num, inherit), -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
   --accent: var(--accent-l);
   --accent-dark: color-mix(in srgb, var(--accent) 82%, #000);
   --accent-soft: color-mix(in srgb, var(--accent) 11%, var(--surface));
   --on-accent: #ffffff;
   --danger: #d1342a;
   --compare: var(--compare-l);
-  /* 種類ごとの色 */
-  --k-sake: #3a63c8;
-  --k-wine: #a8325a;
-  --k-beer: #d08a10;
-  --k-whisky: #9a6431;
-  --k-shochu: #2f9466;
-  --k-other: #8461c0;
-  --k-cocktail: #1d97a6;
+  /* 種類ごとの色。目に見える明るさ（OKLCH の L）を 0.57 にそろえ、色味だけ変える（ビールだけ浮く・ワインだけ沈むことがない） */
+  --k-sake: #5174c4;
+  --k-wine: #b4526e;
+  --k-beer: #9d6e00;
+  --k-whisky: #a36649;
+  --k-shochu: #008e5c;
+  --k-other: #8364b9;
+  --k-cocktail: #008b9f;
   /* 相棒の徳利（白い磁器に藍の帯） */
   --buddy-body: #fffdf7;
   --buddy-ink: #2b2b33;
@@ -59,21 +68,22 @@
   --buddy-drop: #3aa8d8;
   --buddy-spark: #e0a020;
   --radius: 16px;
-  --tabbar-h: 60px;
+  /* 下のタブバーのぶん空ける高さ（バーは浮いているので、バー＋すき間） */
+  --tabbar-h: 68px;
   color-scheme: light;
 }
 
 /* 暗いお店でもまぶしくないよう、ダークモードでは黒地にする（iPhone の標準アプリと同じ） */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #000000;
-    --surface: #1c1c1e;
-    --surface-2: #232326;
+    --bg: var(--bg-d);
+    --surface: color-mix(in srgb, var(--accent-d) 9%, #18191d);
+    --surface-2: color-mix(in srgb, var(--accent-d) 10%, #202126);
     --fill: rgba(118, 118, 128, 0.24);
     --fill-strong: rgba(118, 118, 128, 0.36);
     --skel-shine: rgba(255, 255, 255, 0.09);
-    --text: #f2f2f7;
-    --muted: #98989f;
+    --text: #eeeae2;
+    --muted: #9c9a94;
     --star: #ffb340;
     --kind-fill-mix: 100%;
     --kind-fill-toward: #fff;
@@ -82,8 +92,13 @@
     --star-off: rgba(118, 118, 128, 0.45);
     --line: rgba(84, 84, 88, 0.55);
     --input-line: rgba(84, 84, 88, 0.75);
-    --bar-bg: rgba(22, 22, 24, 0.8);
-    --shadow: none;
+    --bar-bg: color-mix(in srgb, var(--surface) 80%, transparent);
+    --bar-glow: rgba(255, 255, 255, 0.07);
+    /* ダークは影が見えないので、カードの上のふちに細い光の線を1本だけ入れて浮かせる */
+    --shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.07);
+    /* シート・ポップアップはカードより一段明るい地にして、上のふちの光も強く */
+    --surface-raised: color-mix(in srgb, var(--accent-d) 11%, #2a2b31);
+    --raised-edge: inset 0 0.5px 0 rgba(255, 255, 255, 0.16), 0 -12px 32px rgba(0, 0, 0, 0.55);
     --shadow-lift: 0 6px 20px rgba(0, 0, 0, 0.5);
     --accent: var(--accent-d);
     --accent-dark: color-mix(in srgb, var(--accent) 70%, #fff);
@@ -91,27 +106,28 @@
     --on-accent: #0b0b10;
     --danger: #ff6961;
     --compare: var(--compare-d);
-    --k-sake: #5c84e6;
-    --k-wine: #d4587e;
-    --k-beer: #e6a63a;
-    --k-whisky: #c08a56;
-    --k-shochu: #4fbf88;
-    --k-other: #a68ae0;
-    --k-cocktail: #3cc0cf;
+    /* ダークは明るさ 0.75 にそろえる */
+    --k-sake: #89acfa;
+    --k-wine: #ed8da5;
+    --k-beer: #d7a53f;
+    --k-whisky: #de9c7e;
+    --k-shochu: #61c594;
+    --k-other: #b89cef;
+    --k-cocktail: #2ec3d5;
     --buddy-body: #e4dfd5;
     --buddy-blush: rgba(255, 128, 150, 0.4);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #000000;
-  --surface: #1c1c1e;
-  --surface-2: #232326;
+  --bg: var(--bg-d);
+  --surface: color-mix(in srgb, var(--accent-d) 9%, #18191d);
+  --surface-2: color-mix(in srgb, var(--accent-d) 10%, #202126);
   --fill: rgba(118, 118, 128, 0.24);
   --fill-strong: rgba(118, 118, 128, 0.36);
   --skel-shine: rgba(255, 255, 255, 0.09);
-  --text: #f2f2f7;
-  --muted: #98989f;
+  --text: #eeeae2;
+  --muted: #9c9a94;
   --star: #ffb340;
   --kind-fill-mix: 100%;
   --kind-fill-toward: #fff;
@@ -120,8 +136,13 @@
   --star-off: rgba(118, 118, 128, 0.45);
   --line: rgba(84, 84, 88, 0.55);
   --input-line: rgba(84, 84, 88, 0.75);
-  --bar-bg: rgba(22, 22, 24, 0.8);
-  --shadow: none;
+  --bar-bg: color-mix(in srgb, var(--surface) 80%, transparent);
+    --bar-glow: rgba(255, 255, 255, 0.07);
+  /* ダークは影が見えないので、カードの上のふちに細い光の線を1本だけ入れて浮かせる */
+  --shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.07);
+  /* シート・ポップアップはカードより一段明るい地にして、上のふちの光も強く */
+  --surface-raised: color-mix(in srgb, var(--accent-d) 11%, #2a2b31);
+  --raised-edge: inset 0 0.5px 0 rgba(255, 255, 255, 0.16), 0 -12px 32px rgba(0, 0, 0, 0.55);
   --shadow-lift: 0 6px 20px rgba(0, 0, 0, 0.5);
   --accent: var(--accent-d);
   --accent-dark: color-mix(in srgb, var(--accent) 70%, #fff);
@@ -129,13 +150,14 @@
   --on-accent: #0b0b10;
   --danger: #ff6961;
   --compare: var(--compare-d);
-  --k-sake: #5c84e6;
-  --k-wine: #d4587e;
-  --k-beer: #e6a63a;
-  --k-whisky: #c08a56;
-  --k-shochu: #4fbf88;
-  --k-other: #a68ae0;
-  --k-cocktail: #3cc0cf;
+  /* ダークは明るさ 0.75 にそろえる */
+  --k-sake: #89acfa;
+  --k-wine: #ed8da5;
+  --k-beer: #d7a53f;
+  --k-whisky: #de9c7e;
+  --k-shochu: #61c594;
+  --k-other: #b89cef;
+  --k-cocktail: #2ec3d5;
   --buddy-body: #e4dfd5;
   --buddy-blush: rgba(255, 128, 150, 0.4);
   color-scheme: dark;
@@ -372,7 +394,7 @@ textarea {
   height: 50px;
   padding: 0 20px 0 16px;
   border-radius: 25px;
-  /* 濃い色は真ん中の「調べる」だけにして、記録するは白い浮いたボタンにする（主役が2つ並ばないように） */
+  /* 濃い色は右下の「調べる」だけにして、記録するは白い浮いたボタンにする（主役が2つ並ばないように） */
   background: var(--surface);
   color: var(--accent);
   font-size: 16px;
@@ -382,41 +404,85 @@ textarea {
   transition: transform 0.15s ease;
 }
 
-/* --- タブバー --- */
+/* --- タブバー：画面の下に浮かぶ丸い帯と、右に独立した「調べる」の丸ボタン。下へスクロールすると帯が縮む --- */
 .tabbar {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: max(10px, calc(env(safe-area-inset-bottom) - 8px));
   z-index: 20;
   display: flex;
   justify-content: center;
-  background: var(--bar-bg);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-top: 0.5px solid var(--line);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 0 12px;
+  pointer-events: none;
 }
 .tabbar-inner {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   width: 100%;
-  max-width: 560px;
-  height: var(--tabbar-h);
+  max-width: 536px;
+}
+.tabbar-pill {
+  flex: 1 1 0;
+  display: flex;
+  height: 58px;
+  padding: 4px;
+  border-radius: 29px;
+  background: var(--bar-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16), 0 0 0 0.5px var(--line), inset 0 0.5px 0 var(--bar-glow);
+  pointer-events: auto;
 }
 .tab {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
+  border-radius: 25px;
+  overflow: hidden;
+  white-space: nowrap;
   font-size: 10px;
   font-weight: 600;
   text-decoration: none;
   color: var(--muted);
+  transition: background-color 0.2s ease;
 }
-.tab[aria-current="page"] {
+.tabbar-pill .tab[aria-current="page"] {
   color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+/* 縮んだとき：いまの画面のタブだけを丸いボタン1つにする（幅を動かすと iPhone の Safari で崩れるので、切り替えて小さく弾ませる） */
+.tabbar[data-mini] .tabbar-pill {
+  flex: 0 0 58px;
+  width: 58px;
+  animation: tabbar-pop 0.25s ease;
+}
+.tabbar[data-mini] .tab:not(.tab-keep) {
+  display: none;
+}
+.tabbar[data-mini] .tab.tab-keep {
+  flex: 1 1 auto;
+  max-width: none;
+  gap: 0;
+  font-size: 0;
+}
+@keyframes tabbar-pop {
+  from {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tabbar[data-mini] .tabbar-pill {
+    animation: none;
+  }
 }
 
 /* --- フォーム --- */
@@ -503,11 +569,22 @@ textarea.input {
   white-space: nowrap;
   transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
+/* 選んだチップ：濃い塗りではなく、うすいテーマ色の地＋濃い文字＋✓（色だけに頼らず ✓ でも分かる） */
 .chip[aria-pressed="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  color: var(--accent);
+  font-weight: 700;
+}
+.chip[aria-pressed="true"]::before {
+  content: "✓";
+  margin-right: 4px;
+  font-weight: 700;
+}
+/* 1〜5 の数字ボタンと、選んだ気分（× で外す）には ✓ を付けない */
+.rating-btns .chip[aria-pressed="true"]::before,
+.mood-chosen .chip[aria-pressed="true"]::before {
+  content: none;
 }
 .help {
   width: 22px;
@@ -1544,30 +1621,30 @@ button.stamp {
   flex-direction: column;
   gap: 8px;
 }
+/* 種類のチップは、選ぶとその種類の色のうすい地＋色文字＋✓ */
 .kind-chip[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--kc) var(--kind-fill-mix), var(--kind-fill-toward));
-  border-color: transparent;
-  color: var(--on-accent);
+  background: color-mix(in srgb, var(--kc) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--kc) 40%, transparent);
+  color: var(--kc);
 }
 
-/* --- 真ん中の「調べる」ボタン --- */
+/* --- 右の「調べる」丸ボタン --- */
 .tab-scan {
-  justify-content: flex-end;
-  padding-bottom: 6px;
+  flex: none;
+  pointer-events: auto;
+  text-decoration: none;
 }
 .tab-scan-btn {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
-  margin-top: -24px;
-  border-radius: 27px;
+  width: 58px;
+  height: 58px;
+  border-radius: 29px;
   background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent));
   color: var(--on-accent);
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 45%, transparent);
-  border: 3px solid var(--bg);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 40%, rgba(0, 0, 0, 0.2)), inset 0 0.5px 0 rgba(255, 255, 255, 0.35);
 }
 .tab-badge {
   position: absolute;
@@ -1821,18 +1898,93 @@ button.stamp {
   transform: rotate(45deg);
 }
 
-/* 押したときに少し沈む */
+/* 押した手ごたえ：押すとすっと沈み（0.1秒）、離すと少しだけ弾んで戻る（ばねの曲線）。
+   動きを減らす設定の人は下の prefers-reduced-motion で動きが消え、色の変化だけ残る */
+:root {
+  --ease-spring: linear(0, 0.21 6%, 0.55 13%, 0.85 21%, 1.04 30%, 1.11 37%, 1.1 44%, 1.05 52%, 1.01 62%, 0.99 74%, 1);
+}
+.chip,
+.btn-primary,
+.btn-secondary,
+.fab,
+.hub-item,
+.tab-scan-btn,
+.tabbar-pill .tab,
+.mode-switch button,
+.map-link,
+.card:is(a):not(.record-row),
+.record-row > * {
+  transition:
+    transform 0.4s var(--ease-spring),
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
 .chip:active,
 .btn-primary:active,
 .btn-secondary:active,
 .fab:active,
 .hub-item:active,
-.tab-scan-btn:active {
-  transform: scale(0.96);
+.tab-scan:active .tab-scan-btn,
+.tabbar-pill .tab:active,
+.mode-switch button:active,
+.map-link:active,
+.card:is(a):not(.record-row):active {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
 }
-.card:is(a):active,
+.btn-primary:disabled:active,
+.btn-secondary:disabled:active,
+.chip:disabled:active {
+  transform: none;
+}
+/* 一覧の行は帯の中なので、行ごと縮めず中身だけ少し沈めて、地を少し暗くする */
 .record-row:active {
   background: var(--surface-2);
+}
+.record-row:active > * {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
+}
+.card:is(a):not(.record-row):active,
+.hub-item:active {
+  background: var(--surface-2);
+}
+
+/* チップを押すと、押した指の位置から色が広がる（PressFx が --ink-x/y/r を入れる） */
+.chip {
+  position: relative;
+  /* hidden だと横並びの列でチップが縮んで字が切れるので clip にする */
+  overflow: clip;
+  isolation: isolate;
+}
+.chip[data-ink]::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: var(--ink-x, 50%);
+  top: var(--ink-y, 50%);
+  width: calc(var(--ink-r, 80px) * 2);
+  height: calc(var(--ink-r, 80px) * 2);
+  margin: calc(var(--ink-r, 80px) * -1) 0 0 calc(var(--ink-r, 80px) * -1);
+  border-radius: 50%;
+  background: var(--accent);
+  pointer-events: none;
+  animation: chip-ink 0.45s ease-out forwards;
+}
+@keyframes chip-ink {
+  from {
+    transform: scale(0);
+    opacity: 0.32;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
 }
 
 /* 入力中の欄はテーマ色でふちどる */
@@ -2217,6 +2369,10 @@ input[type="search"]::-webkit-search-cancel-button {
   .launch {
     display: none !important;
   }
+}
+/* 一度出し終わったら、画面が作り直されても起動画面は出さない（LaunchScreen の LAUNCH_BOOT） */
+html[data-launched] .launch {
+  display: none !important;
 }
 /* まだ画面に見えていない新しいスタンプは、押す前の空きの枠で待つ */
 .stamp-wait {
@@ -3932,6 +4088,1065 @@ html[data-text="large"] body {
 }
 .recent-open .muted {
   font-size: 13px;
+}
+
+/* --- 合言葉の案内（調べる・料理から） --- */
+.pass-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--accent);
+}
+.pass-note > p {
+  margin: 0;
+}
+.pass-note .text-btn {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  margin-left: 6px;
+  text-decoration: underline;
+  font-size: 13px;
+}
+.pass-body {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  display: grid;
+  gap: 8px;
+}
+.pass-body p {
+  margin: 0;
+  color: var(--muted);
+}
+/* 白い箱の中なので、入力欄は灰色の地で見せる（調べるの色付きの箱の「白く浮かせる」より強く） */
+.pass-body .input.input.input {
+  background: var(--fill);
+  box-shadow: none;
+}
+.pass-body strong {
+  margin-top: 4px;
+  font-size: 14px;
+}
+.pass-body ul {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--muted);
+}
+
+/* --- ホーム画面に追加の案内 --- */
+.install-hint img {
+  border-radius: 14px;
+  box-shadow: var(--shadow-lift);
+}
+.install-hint ol {
+  margin: 0;
+  width: 100%;
+  text-align: left;
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 12px 14px 12px 2.2em;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.install-hint .btn-primary {
+  width: 100%;
+}
+
+/* --- 節目のお祝い --- */
+.party {
+  position: relative;
+  overflow: hidden;
+}
+.party .btn-primary {
+  width: 100%;
+}
+.party p {
+  min-height: 0;
+}
+.party-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.party h2 {
+  margin: 0;
+}
+.badge-row {
+  list-style: none;
+  margin: 4px 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  font-size: 12px;
+}
+.badge-row li {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 64px;
+}
+
+/* --- 好み画面の称号としるし --- */
+.title-card {
+  gap: 12px;
+}
+.title-now {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.title-now > div {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+.title-now .muted {
+  font-size: 12px;
+}
+.title-now strong {
+  font-size: 20px;
+}
+.title-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--fill);
+  margin: 4px 0 2px;
+  overflow: hidden;
+}
+.title-bar div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.badges summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.badges summary::-webkit-details-marker { display: none; }
+.badges summary::after {
+  content: "›";
+  color: var(--muted);
+  transition: transform 0.2s ease;
+}
+.badges[open] summary::after {
+  transform: rotate(90deg);
+}
+.badge-peek {
+  flex: 1;
+}
+.badge-grid {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 8px;
+  text-align: center;
+}
+.badge-grid li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  font-size: 12px;
+}
+.badge-grid strong {
+  font-size: 13px;
+  margin-top: 4px;
+}
+.badge-grid .muted {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* --- 先月のふりかえり --- */
+.recap {
+  border-radius: 22px;
+  padding: 18px;
+  color: #fff;
+  background: linear-gradient(155deg, var(--accent-l), color-mix(in srgb, var(--accent-l) 60%, #8fa2ff));
+  display: grid;
+  gap: 10px;
+}
+.recap-eyebrow {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.recap h2 {
+  margin: -6px 0 2px;
+  font-size: 22px;
+  color: #fff;
+}
+.recap-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.recap-stats div,
+.recap-best {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 2px;
+}
+.recap-stats span,
+.recap-best span {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.recap-stats strong {
+  font-size: 24px;
+}
+.recap-best {
+  color: #fff;
+  text-decoration: none;
+}
+.recap-best strong {
+  font-size: 16px;
+}
+.recap p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.recap .row {
+  gap: 8px;
+}
+.recap-btn {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--accent-l);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+.recap-close {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+/* --- 友だちと好みくらべ --- */
+.match-hero {
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+.match-label {
+  font-weight: 700;
+  font-size: 15px;
+}
+.match-score {
+  font-size: 48px;
+  line-height: 1.1;
+  color: var(--accent);
+}
+.match-score small {
+  font-size: 20px;
+}
+.match-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  font-size: 13px;
+}
+.match-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.match-note {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+  align-self: stretch;
+}
+.match-h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.match-favs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.match-favs li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+}
+.match-favs li > div {
+  flex: 1;
+  display: grid;
+}
+.match-favs .muted {
+  font-size: 12px;
+}
+.match-qr {
+  align-items: center;
+  text-align: center;
+}
+.qr {
+  width: 200px;
+  background: #fff;
+  padding: 8px;
+  border-radius: 12px;
+}
+.qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 好み画面の「友だちと好みくらべ」は横いっぱいの1枚 */
+.hub-match {
+  grid-column: 1 / -1;
+}
+
+/* --- 称号・しるしのメダル（金属に彫り込んだ絵。派手にしない） --- */
+.medal {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.22));
+}
+.medal-shine {
+  animation: medal-in 0.5s ease-out both;
+}
+@keyframes medal-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.medal-glint {
+  transform-box: view-box;
+  animation: medal-glint 3.2s ease-in-out 0.4s infinite;
+}
+@keyframes medal-glint {
+  0%, 55% { translate: 0 0; }
+  85%, 100% { translate: 150px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .medal-shine, .medal-glint { animation: none; }
+}
+.title-plate {
+  justify-self: start;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding-bottom: 2px;
+  border-bottom: 2px solid;
+}
+.title-ladder {
+  list-style: none;
+  margin: 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  text-align: center;
+  font-size: 10.5px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+.title-ladder li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+.title-ladder li[data-now="true"] {
+  color: var(--text);
+  font-weight: 700;
+}
+.party .title-plate {
+  justify-self: center;
+}
+.badge-peek {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.badge-grid li[data-done="false"] strong {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* --- 好み：「わたしの傾向／称号」の切り替えと並べ替え --- */
+.taste-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.taste-actions .hub-item {
+  padding: 12px;
+}
+.taste-actions .hub-item strong {
+  font-size: 14px;
+}
+.taste-actions .hub-item .muted {
+  font-size: 12px;
+}
+.hub-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.hub-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 14px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 15px;
+}
+.hub-row + .hub-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 54px;
+  right: 0;
+  border-top: 0.5px solid var(--line);
+}
+.hub-row strong {
+  flex: 1;
+  font-weight: 500;
+}
+.hub-row::after {
+  content: "›";
+  color: var(--muted);
+  font-size: 18px;
+  opacity: 0.6;
+}
+.hub-row .hub-value {
+  font-size: 20px;
+}
+.hub-row .hub-value small {
+  font-size: 12px;
+  font-weight: 500;
+}
+.hub-row .muted {
+  font-size: 14px;
+}
+.hub-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.hub-row:active {
+  background: var(--fill);
+}
+.reorder-lead {
+  margin: 4px 4px 0;
+  font-size: 13px;
+}
+.reorder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reorder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 4px 0 16px;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  font-weight: 600;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.reorder-row[data-drag] {
+  position: relative;
+  z-index: 2;
+  cursor: grabbing;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  scale: 1.02;
+}
+.reorder-handle {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: grab;
+}
+
+/* --- 縦に長くならないよう畳む（記録の月・辞典・気になる） --- */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* 記録一覧：月ごとに畳む */
+.month-body,
+.fold-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.month-body {
+  margin-top: 8px;
+}
+.fold-body {
+  gap: 6px;
+}
+.month-fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  font-weight: 700;
+}
+.month-fold > summary::after,
+.term-row > summary::after,
+.tips-fold > summary::after {
+  content: "›";
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 400;
+  transition: transform 0.15s;
+}
+.month-fold[open] > summary::after,
+.term-row[open] > summary::after,
+.tips-fold[open] > summary::after {
+  transform: rotate(90deg);
+}
+.month-fold-count {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.month-fold[open] > summary {
+  background: none;
+  box-shadow: none;
+  padding: 4px 4px 0;
+}
+
+/* 先月のふりかえり：はじめは1行の帯 */
+.recap-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--radius);
+  color: #fff;
+  background: linear-gradient(155deg, var(--accent-l), color-mix(in srgb, var(--accent-l) 60%, #8fa2ff));
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.recap-band .recap-eyebrow {
+  grid-column: 1;
+  font-size: 12px;
+}
+.recap-band strong {
+  grid-column: 1;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recap-band::after {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  content: "›";
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+/* 辞典：選び方の目安は1行に畳む */
+.tips-fold > summary {
+  display: flex;
+  align-items: center;
+}
+.tips-fold > summary h2 {
+  margin: 0;
+}
+.tips-fold[open] > summary {
+  margin-bottom: 6px;
+}
+
+/* 辞典：用語は名前だけの1行。押すと説明が開く */
+.term-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.term-group-head {
+  margin: 6px 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.term-row {
+  position: relative;
+  padding: 0 16px;
+}
+.term-row + .term-row::before,
+.wish-row + .wish-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  border-top: 0.5px solid var(--line);
+}
+.term-row > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 46px;
+  padding: 12px 0;
+  box-sizing: border-box;
+}
+.term-row > summary strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.term-row > summary strong .muted {
+  font-weight: 400;
+  font-size: 13px;
+}
+.term-row > summary > .muted {
+  font-size: 11px;
+}
+.term-row[open] {
+  padding-bottom: 12px;
+}
+.term-row[open] > summary {
+  padding-bottom: 6px;
+}
+
+/* 気になる：1件1行。右に「＋記録」、説明と「外す」は押したときだけ */
+.wish-row {
+  position: relative;
+}
+.wish-row details {
+  padding: 0 16px;
+}
+.wish-row summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: center;
+  align-items: center;
+  min-height: 56px;
+  gap: 1px 8px;
+  padding: 10px 84px 10px 0;
+}
+.wish-row summary::after {
+  content: "›";
+  grid-column: 2;
+  grid-row: 1 / 3;
+  color: var(--muted);
+  font-size: 20px;
+  transition: transform 0.15s;
+}
+.wish-row details[open] summary::after {
+  transform: rotate(90deg);
+}
+.wish-row summary strong {
+  grid-column: 1;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wish-row summary .muted {
+  grid-column: 1;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wish-row details[open] {
+  padding-bottom: 12px;
+}
+.wish-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.wish-remove {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--danger, #d92d20);
+}
+.wish-add {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+/* 辞典の「すべて」：種類ごとの目次。閉じた行どうしは詰めて並べる */
+.term-fold + .term-fold {
+  margin-top: -4px;
+}
+
+/* --- シート・ポップアップは一段手前（ダークでは明るい地＋上のふちの光） --- */
+.sheet,
+.welcome,
+.confirm-box,
+.confirm-cancel {
+  --surface: var(--surface-raised);
+  background: var(--surface-raised);
+}
+.sheet,
+.welcome {
+  box-shadow: var(--raised-edge);
+}
+
+/* --- 数字は丸い書体、単位は小さく薄く --- */
+.num,
+.detail-score-num,
+.meter-num,
+.star-rating-num,
+.hub-value,
+.compare-overall strong,
+.match-score,
+.jmap-count {
+  font-family: var(--num-font);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.detail-score-num {
+  font-weight: 800;
+}
+.hub-value {
+  font-weight: 800;
+}
+.hub-value small,
+.unit {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 1px;
+}
+/* 日ごとの合計は小さい字なので、単位は縮めず色だけ薄く */
+.date-total .unit {
+  font-size: inherit;
+  margin-left: 0;
+}
+.detail-list dd .num {
+  font-size: 1.08em;
+  font-weight: 700;
+}
+
+/* --- 消す前の確認（iPhone のアクションシートの形） --- */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0 10px calc(10px + env(safe-area-inset-bottom));
+  animation: fade-in 0.2s ease;
+}
+.confirm-sheet {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: sheet-up 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.confirm-backdrop.is-closing {
+  animation: fade-out 0.18s ease forwards;
+}
+.confirm-backdrop.is-closing .confirm-sheet {
+  animation: sheet-down 0.18s ease-in forwards;
+}
+.confirm-box {
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: var(--raised-edge);
+}
+.confirm-head {
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.confirm-head p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.confirm-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  font-size: 15px;
+}
+.confirm-preview strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.confirm-preview .thumb {
+  flex-shrink: 0;
+}
+.confirm-photo {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.confirm-action,
+.confirm-cancel {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  border: none;
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.confirm-action {
+  background: none;
+  border-top: 0.5px solid var(--line);
+  color: var(--danger);
+  font-weight: 600;
+}
+.confirm-cancel {
+  border-radius: 16px;
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: var(--raised-edge);
+}
+.confirm-action:active,
+.confirm-cancel:active {
+  background: var(--fill);
+}
+@keyframes sheet-down {
+  to {
+    transform: translateY(110%);
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confirm-backdrop,
+  .confirm-sheet,
+  .confirm-backdrop.is-closing,
+  .confirm-backdrop.is-closing .confirm-sheet {
+    animation: none;
+  }
+}
+
+/* --- 記録の詳細：テーマ色は「画像にして送る」だけ。点数は種類の色、種類・五角形はお酒の種類の色 --- */
+/* 点数の欄は上の帯と同じ色（種類・焙煎の色）でなじませる。★だけ山吹 */
+.detail-score {
+  background: color-mix(in srgb, var(--kind) 14%, var(--surface));
+}
+.detail-score-label,
+.detail-score-num {
+  color: var(--kind);
+}
+.map-link {
+  background: var(--fill);
+  color: var(--text);
+}
+/* 灰の地のボタン（脇役）と、テーマ色で塗ったボタン（その画面でいちばん押してほしいもの） */
+.btn-secondary.btn-plain {
+  background: var(--fill);
+  color: var(--text);
+}
+.btn-secondary.btn-main {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* 詳細の上に、そのお酒の種類の色をうっすら差して、下で地に溶かす */
+.sub-header {
+  transition: background-color 0.2s ease;
+}
+.sub-header[data-top]:has(+ .detail-page) {
+  background: color-mix(in srgb, var(--kind) var(--tint-mix), var(--bg));
+}
+.detail-page {
+  position: relative;
+  isolation: isolate;
+  --tint-mix: 20%;
+}
+.sub-header {
+  --tint-mix: 20%;
+}
+.detail-tint {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  background: linear-gradient(color-mix(in srgb, var(--kind) var(--tint-mix), var(--bg)), var(--bg));
+  pointer-events: none;
+}
+/* 名前と点数は色の上にじかに置く（白いカードにしない） */
+.detail-page .detail-hero {
+  background: transparent;
+  box-shadow: none;
+  padding: 4px 4px 0;
+}
+.detail-page .detail-hero .kind-tag {
+  background: color-mix(in srgb, var(--kind) 14%, var(--surface));
+}
+.detail-page .detail-score {
+  background: color-mix(in srgb, var(--kind) 14%, var(--surface));
+}
+.detail-page .detail-when {
+  border-top-color: color-mix(in srgb, var(--kind) 22%, var(--line));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .detail-page,
+  :root:not([data-theme="light"]) .sub-header {
+    --tint-mix: 30%;
+  }
+}
+:root[data-theme="dark"] .detail-page,
+:root[data-theme="dark"] .sub-header {
+  --tint-mix: 30%;
+}
+
+/* --- 画面がつながって動く（View Transitions。src/lib/viewTransition.ts） --- */
+/* タブバーは動かさず、その場に残す */
+.tabbar {
+  view-transition-name: tabbar;
+}
+/* 移る途中は、ふだんのふわっと出る動きを止めて二重に動かないようにする */
+:root[data-vt] .page-enter,
+.page-enter[data-entered] {
+  animation: none;
+}
+/* 一覧の行（押したときに名前を付ける）と、詳細の上がつながる */
+.detail-hero {
+  view-transition-name: rec-card;
+}
+.detail-hero h2 {
+  view-transition-name: rec-name;
+}
+::view-transition-group(rec-card),
+::view-transition-group(rec-name) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-old(rec-name),
+::view-transition-new(rec-name) {
+  height: 100%;
+  width: auto;
+  object-fit: none;
+  object-position: left top;
+}
+:root[data-vt="open"]::view-transition-old(root),
+:root[data-vt="back"]::view-transition-old(root) {
+  animation: vt-fade-out 0.2s ease both;
+}
+:root[data-vt="open"]::view-transition-new(root),
+:root[data-vt="back"]::view-transition-new(root) {
+  animation: vt-fade-in 0.28s ease 0.06s both;
+}
+:root[data-vt="tab"]::view-transition-old(root) {
+  animation: vt-tab-out 0.18s ease-in both;
+}
+:root[data-vt="tab"]::view-transition-new(root) {
+  animation: vt-tab-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vt-tab-out {
+  to {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+@keyframes vt-tab-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
 }
 /* 使い方ページの「画面の案内をもう一度見る」 */
 .guide-tours {

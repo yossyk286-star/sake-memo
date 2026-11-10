@@ -157,23 +157,38 @@ export async function importJSON(text: string): Promise<number> {
   }
   const db = await getDB();
   // 写真の変換を先に済ませる（トランザクションの途中で待つと閉じてしまうため）
+  // 人から受け取ったファイルかもしれないので、形の違う記録は飛ばし、写真は中に埋め込まれた画像（data:image）だけ読む
+  // （よそのサイトの URL を書かれても取りに行かない）
   const records = await Promise.all(
-    (data.records as ExportedRecord[]).map(async ({ photo, photos, ...r }) => ({
+    (data.records as ExportedRecord[]).filter((r) => isEntry(r) && typeof r.date === "string").map(async ({ photo, photos, ...r }) => ({
       ...r,
-      photos: await Promise.all((photos ?? (photo ? [photo] : [])).map(async (u) => (await fetch(u)).blob())),
+      photos: await Promise.all(
+        (Array.isArray(photos) ? photos : photo ? [photo] : []).filter(isImageData).map(async (u) => (await fetch(u)).blob()),
+      ),
     })),
   );
   const tx = db.transaction(["records", "wishes", "bottles"], "readwrite");
   for (const r of records) await tx.objectStore("records").put(r);
-  for (const w of (data.wishes ?? []) as WishDrink[]) await tx.objectStore("wishes").put(w);
-  for (const b of (data.bottles ?? []) as Bottle[]) await tx.objectStore("bottles").put(b);
+  for (const w of (Array.isArray(data.wishes) ? (data.wishes as WishDrink[]).filter(isEntry) : [])) await tx.objectStore("wishes").put(w);
+  for (const b of (Array.isArray(data.bottles) ? (data.bottles as Bottle[]).filter(isEntry) : [])) await tx.objectStore("bottles").put(b);
   await tx.done;
   if (data.prefs) savePrefs({ ...loadPrefs(), ...data.prefs });
   importSaved(data.lookups);
   if (Array.isArray(data.myTerms)) {
     const mine = loadMyTerms();
-    const added = (data.myTerms as MyTerm[]).filter((t) => !mine.some((m) => m.term === t.term));
+    const added = (data.myTerms as MyTerm[]).filter((t) => typeof t?.term === "string" && !mine.some((m) => m.term === t.term));
     saveMyTerms([...mine, ...added]);
   }
-  return data.records.length;
+  return records.length;
+}
+
+/** 読み込むファイルの記録・気になる・家の分が、少なくとも id を持っているか */
+function isEntry<T>(x: T): x is T {
+  const o = x as Record<string, unknown> | null;
+  return !!o && typeof o === "object" && typeof o.id === "string" && !!o.id;
+}
+
+/** 埋め込まれた画像（data:image/…;base64,…）だけ */
+function isImageData(u: unknown): u is string {
+  return typeof u === "string" && /^data:image\/(jpeg|png|webp|gif|heic|heif);base64,/.test(u);
 }

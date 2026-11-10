@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SingleChips } from "@/components/ChipGroup";
 import { kindColor, Stars, stars, yen } from "@/components/RecordCard";
-import { announceBuddy } from "@/lib/buddy";
+import { announceBuddy, pick } from "@/lib/buddy";
 import { deleteBottle, listBottles, listRecords, putBottle } from "@/lib/db";
 import { KINDS, STYLES_BY_KIND } from "@/lib/glossary";
 import AbvInput from "@/components/AbvInput";
@@ -14,6 +14,7 @@ import { bestServeNote, serveNoteText } from "@/lib/serveNote";
 import type { Bottle, Kind, TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import { tr, trJoin, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
   return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, abv: null, boughtAt: today(), finished: false };
@@ -234,7 +235,7 @@ export default function BottlesPage() {
     if (b.low && !bottles?.find((x) => x.id === b.id)?.low)
       announceBuddy({
         mood: "normal",
-        text: tr("{0}、そろそろなくなりそう？次の1本探す？", b.name),
+        text: pick([tr("{0}、そろそろなくなりそう？次の1本探す？", b.name), tr("{0}、残り少なくなってきたね。次も同じのにする？", b.name)]),
         action: { label: tr("調べる"), href: "/scan" },
       });
     await putBottle(b);
@@ -242,7 +243,7 @@ export default function BottlesPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm(tr("このお酒を削除しますか？（記録は残ります）"))) return;
+    if (!(await askConfirm({ message: tr("このお酒を削除しますか？（記録は残ります）"), action: tr("削除") }))) return;
     await deleteBottle(id);
     setBottles((bs) => bs?.filter((x) => x.id !== id) ?? null);
   }

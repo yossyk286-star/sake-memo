@@ -301,6 +301,84 @@ export async function compareImage(axes: string[], series: (ShareSeries & { sub:
   return toBlob(canvas);
 }
 
+export type CardShare = {
+  /** 上の小さな見出し（「10月のふりかえり」など） */
+  eyebrow: string;
+  title: string;
+  /** 大きな数字のタイル（2つまで） */
+  stats: { label: string; value: string }[];
+  /** その下に並べる文 */
+  lines: string[];
+};
+
+/** お祝い・先月のふりかえりを1枚の画像にする。アプリの色の地に白い文字 */
+export async function cardImage(c: CardShare) {
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = W;
+  const ctx = canvas.getContext("2d")!;
+  const g = ctx.createLinearGradient(0, 0, W, W);
+  g.addColorStop(0, COLORS.accent);
+  g.addColorStop(1, COLORS.series[0] === COLORS.accent ? "#5a6fd0" : COLORS.series[0]);
+  ctx.fillStyle = COLORS.accent;
+  ctx.fillRect(0, 0, W, W);
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, W);
+  ctx.globalAlpha = 1;
+  // うっすら光の丸を重ねて、のっぺりしないように
+  ctx.fillStyle = "rgba(255,255,255,0.07)";
+  ctx.beginPath();
+  ctx.arc(W - 120, 140, 320, 0, Math.PI * 2);
+  ctx.fill();
+
+  let y = PAD + 40;
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.font = font(36);
+  ctx.fillText(c.eyebrow, PAD, y + 30);
+  y += 70;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = font(78, true);
+  for (const line of wrap(ctx, c.title, W - PAD * 2, 2)) {
+    ctx.fillText(line, PAD, y + 70);
+    y += 96;
+  }
+  y += 36;
+  if (c.stats.length) {
+    const gap = 24;
+    const w = (W - PAD * 2 - gap * (c.stats.length - 1)) / c.stats.length;
+    c.stats.forEach((s, i) => {
+      const x = PAD + i * (w + gap);
+      ctx.fillStyle = "rgba(255,255,255,0.16)";
+      roundRect(ctx, x, y, w, 210, 32);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      ctx.font = font(32);
+      ctx.fillText(s.label, x + 32, y + 62);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = font(92, true);
+      ctx.fillText(wrap(ctx, s.value, w - 64, 1)[0], x + 32, y + 168);
+    });
+    y += 210 + 44;
+  }
+  ctx.fillStyle = "#ffffff";
+  ctx.font = font(40);
+  for (const text of c.lines) {
+    for (const line of wrap(ctx, text, W - PAD * 2, 2)) {
+      if (y > W - PAD - 110) break;
+      ctx.fillText(line, PAD, y + 40);
+      y += 60;
+    }
+    y += 10;
+  }
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.font = font(34, true);
+  ctx.textAlign = "right";
+  ctx.fillText(tr(APP_NAME), W - PAD, W - PAD);
+  ctx.textAlign = "left";
+  return toBlob(canvas);
+}
+
 /** 共有シートで送る。共有できない端末では画像を保存する */
 export async function shareImage(blob: Blob, name: string) {
   const file = new File([blob], `${name}.png`, { type: "image/png" });

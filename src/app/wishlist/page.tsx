@@ -7,6 +7,7 @@ import { deleteWish, listWishes, type WishDrink } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import EmptyState from "@/components/EmptyState";
 import { tr, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 /** メニューで「気になる」と印を付けた、次に試したいお酒の一覧 */
 export default function WishlistPage() {
@@ -20,7 +21,7 @@ export default function WishlistPage() {
 
   async function remove(id: string) {
     const name = wishes?.find((w) => w.id === id)?.name;
-    if (!confirm(tr("{0}気になるリストから外しますか？", name ? tr("「{0}」を", name) : ""))) return;
+    if (!(await askConfirm({ message: tr("{0}気になるリストから外しますか？", name ? tr("「{0}」を", name) : ""), action: tr("外す") }))) return;
     await deleteWish(id);
     setWishes((ws) => ws?.filter((w) => w.id !== id) ?? null);
   }
@@ -65,46 +66,37 @@ export default function WishlistPage() {
             </EmptyState>
           </div>
         )}
-        {shown.map((w, i) => (
-          <article key={w.id} className="card" data-tour={i === 0 ? "wish-item" : undefined}>
-            <div className="card-top">
-              <h2>{trv(w.name)}</h2>
-              <span className="muted">
-                {new Date(w.savedAt).toLocaleDateString("ja-JP", {
-                  month: "numeric",
-                  day: "numeric",
-                })}
-              </span>
-            </div>
-            <div className="tags">
-              {[w.kind, w.style, w.origin].filter(Boolean).map((t) => (
-                <span key={t} className="tag">
-                  {trv(t)}
-                </span>
-              ))}
-            </div>
-            {w.menuNote && (
-              <p className="muted">{tr("メニューの説明：{0}", w.menuNote)}</p>
-            )}
-            <p className="term-desc">{trv(w.explanation)}</p>
-            <div className="row">
-              <Link
-                href={`/new?wish=${w.id}`}
-                className="btn-primary"
-                style={{ flex: 1 }}
-              >
-                {tr("＋ 記録に追加")}
-              </Link>
-              <button
-                type="button"
-                className="btn-secondary btn-danger"
-                onClick={() => remove(w.id)}
-              >
-                {tr("外す")}
-              </button>
-            </div>
-          </article>
-        ))}
+        {shown.length > 0 && (
+          <div className="list-group">
+            {shown.map((w, i) => (
+              <div key={w.id} className="wish-row" data-tour={i === 0 ? "wish-item" : undefined}>
+                <details>
+                  <summary>
+                    <strong>{trv(w.name)}</strong>
+                    <span className="muted">
+                      {[w.kind, w.style, w.origin].filter(Boolean).map((t) => trv(t as string)).join("・")}
+                    </span>
+                  </summary>
+                  <div className="fold-body">
+                  {w.menuNote && <p className="muted">{tr("メニューの説明：{0}", w.menuNote)}</p>}
+                  <p className="term-desc">{trv(w.explanation)}</p>
+                  <div className="wish-foot">
+                    <span className="muted">
+                      {tr("{0}に保存", new Date(w.savedAt).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" }))}
+                    </span>
+                    <button type="button" className="btn-ghost wish-remove" onClick={() => remove(w.id)}>
+                      {tr("外す")}
+                    </button>
+                  </div>
+                  </div>
+                </details>
+                <Link href={`/new?wish=${w.id}`} className="wish-add" aria-label={tr("「{0}」を記録に追加", w.name)}>
+                  {tr("＋記録")}
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
     </>
   );

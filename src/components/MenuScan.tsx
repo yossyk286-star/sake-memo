@@ -18,12 +18,13 @@ import { addPending, fetchOnline, loadPending, OfflineError, setPending as saveP
 import PendingPhotos from "./PendingPhotos";
 import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
 import Skeleton from "./Skeleton";
-import { announceBuddy } from "@/lib/buddy";
+import { announceBuddy, pick } from "@/lib/buddy";
 import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
 import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
 import { abvText } from "@/lib/abv";
 import { findCocktail } from "@/lib/cocktails";
+import PasscodeField from "./PasscodeField";
 import { loadDishRanks, loadTodayMenu, saveDishRanks, type FoodMenu, type MenuRank } from "@/lib/foodPairing";
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { MOODS, moodFromText, wordMatch } from "@/lib/moods";
@@ -34,6 +35,7 @@ import Hint from "./Hint";
 import MenuPicks, { scoreWord } from "./MenuPicks";
 import TasteBars from "./TasteBars";
 import { getLang, tr, trJoin, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 /** 相棒が「好きなやつ」を教えた一覧。アプリを開いている間は同じ一覧で何度も言わない */
 const announcedScans = new Set<string>();
@@ -229,8 +231,8 @@ export default function MenuScan({
       setPairing(null);
     }
   }
-  function hide(names: string[], label: string) {
-    if (!confirm(tr("{0}を一覧から消しますか？", label))) return;
+  async function hide(names: string[], label: string) {
+    if (!(await askConfirm({ message: tr("{0}を一覧から消しますか？", label), action: tr("消す") }))) return;
     setUndo({ label, drinks });
     setLocalHit(null);
     replaceDrinks(drinks.filter((d) => !names.includes(d.name)));
@@ -283,7 +285,7 @@ export default function MenuScan({
     const key = drinks.map((d) => d.name).join("|");
     if (announcedScans.has(key)) return;
     announcedScans.add(key);
-    announceBuddy({ mood: "happy", text: tr("「{0}」、きっと好きなやつだよ", drinks[best].name) });
+    announceBuddy({ mood: "happy", text: pick([tr("「{0}」、きっと好きなやつだよ", drinks[best].name), tr("「{0}」が好みに合いそう！", drinks[best].name), tr("ぼくのおすすめは「{0}」かな", drinks[best].name)]) });
   }, [best, drinks]);
 
   // 気分を選んだら、その順に並べる（番号はおすすめの計算と同じ、元の並びのまま持つ）。いくつでも選べる
@@ -615,21 +617,13 @@ export default function MenuScan({
         </Hint>
       )}
       {!savedPasscode && (
-        <div className="field">
-          <label className="label" htmlFor="scan-pass">
-            {tr("合言葉")}
-          </label>
-          <input
-            id="scan-pass"
-            className="input"
-            type="text"
-            autoComplete="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            value={passcode}
-            onChange={(e) => setPasscode(e.target.value)}
-          />
-        </div>
+        <PasscodeField
+          value={passcode}
+          onChange={setPasscode}
+          need={tr("撮って読み取るには「合言葉」が要ります。")}
+          free={[tr("カクテル47種の解説（名前で調べる）"), tr("よくある料理に合うお酒（料理から）"), tr("記録・辞典・味マップ・スタンプ帳")]}
+          forceOpen={error.includes("合言葉")}
+        />
       )}
 
       <PendingPhotos
@@ -701,14 +695,6 @@ export default function MenuScan({
           </button>
         )}
       </div>
-      {status === "done" && (
-        <dl className={styles.howTo}>
-          <dt>{tr("撮る・写真から")}</dt>
-          <dd>{tr("メニューやラベルを読み取る")}</dd>
-          <dt>{tr("文字で")}</dt>
-          <dd>{tr("お酒の名前を打って調べる")}</dd>
-        </dl>
-      )}
 
       {status === "reading" && (
         <Skeleton
@@ -954,17 +940,17 @@ export default function MenuScan({
             <p className={styles.lead}>{tr("ここから下は{0}が入っていないもの", mustWords)}</p>
           )}
           <article
-            className={`${styles.drink} ${i === best ? styles.best : ""}`}
+            className={`${styles.drink} ${i === best ? styles.best : ""} ${open ? "" : styles.closed}`}
           >
-            {/* 右上の角に置き、度数や「＋記録」から離して押し間違いを防ぐ */}
-            <button
+            {/* 右上の角に置き、度数や「＋記録」から離して押し間違いを防ぐ。閉じたカードでは「＋記録」が右にあるので、開いたときだけ出す */}
+            {open && <button
               type="button"
               className={styles.remove}
               aria-label={tr("{0}を一覧から外す", b.name)}
               onClick={() => hide([b.name], tr("「{0}」", b.name))}
             >
               ✕
-            </button>
+            </button>}
             {i === best && picks && (
               <div className={styles.pick}>
                 <strong>{tr("あなたへのおすすめ")}</strong>
@@ -979,9 +965,16 @@ export default function MenuScan({
             >
               <span className={styles.cardTop}>
                 <span className={styles.name}>{trv(b.name)}</span>
-                {b.abv != null && <span className={styles.abv}>{abvText(b.abv, b.abvStated)}</span>}
+                {open && b.abv != null && <span className={styles.abv}>{abvText(b.abv, b.abvStated)}</span>}
               </span>
             </button>
+            {!open && (
+              <button type="button" className={styles.oneLine} onClick={() => setOpenCard(b.name)}>
+                {match && `${"●".repeat(match.score)}${"○".repeat(5 - match.score)} `}
+                {b.abv != null && `${abvText(b.abv, b.abvStated)}・`}
+                {tasteWords(b)}｜{trJoin([b.kind, b.style]) || tr("種類不明")}
+              </button>
+            )}
             {open && (
               <>
                 {match && (
@@ -1075,13 +1068,13 @@ export default function MenuScan({
                 </details>
               </>
             )}
+            {/* 閉じたカードは押すと開くことが分かるよう、右上の角に「⌄」を付ける（開くとそこが ✕ になる） */}
+            {!open && (
+              <button type="button" className={styles.chev} tabIndex={-1} aria-hidden="true" onClick={() => setOpenCard(b.name)}>
+                ⌄
+              </button>
+            )}
             <div className={styles.actions}>
-              {!open && (
-                <button type="button" className={styles.oneLine} onClick={() => setOpenCard(b.name)}>
-                  {match && `${"●".repeat(match.score)}${"○".repeat(5 - match.score)} `}
-                  {tasteWords(b)}｜{trJoin([b.kind, b.style]) || tr("種類不明")}
-                </button>
-              )}
               <button
                 type="button"
                 className={`${styles.act} ${styles.actMain}`}
@@ -1099,7 +1092,7 @@ export default function MenuScan({
               >
                 {wished ? "★" : "☆"}
               </button>
-              {open ? (
+              {open && (
                 <button
                   type="button"
                   className={styles.act}
@@ -1108,15 +1101,6 @@ export default function MenuScan({
                   onClick={() => addBottle(b)}
                 >
                   {bottled.includes(b.name) ? tr("家のお酒 ✓") : tr("＋家のお酒")}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={styles.act}
-                  aria-label={tr("詳しく見る")}
-                  onClick={() => setOpenCard(b.name)}
-                >
-                  ⋯
                 </button>
               )}
             </div>

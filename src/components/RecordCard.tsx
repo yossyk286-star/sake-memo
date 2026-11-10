@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, type CSSProperties } from "react";
 import { photosOf, usePhotoURLs } from "@/lib/photo";
 import type { Kind, TastingRecord } from "@/lib/types";
 import { getLang, tr, trJoin } from "@/lib/i18n";
+import { isPlainClick, nameForTransition, transitionTo } from "@/lib/viewTransition";
 
 /** 文の中で使う総合評価。「★4」「★3.5」のように数字で出す */
 export function stars(n: number) {
@@ -66,12 +68,22 @@ function Thumb({ record: r }: { record: TastingRecord }) {
   const [url] = usePhotoURLs(first);
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className="thumb" style={{ borderColor: kindColor(r.kind) }} />;
+    return <img src={url} alt="" className="thumb" loading="lazy" decoding="async" style={{ borderColor: kindColor(r.kind) }} />;
   }
   return (
     <span className="thumb thumb-mark" style={{ "--kc": kindColor(r.kind) } as React.CSSProperties} aria-hidden="true">
       {r.kind ? KIND_LOOK[r.kind][getLang() === "en" ? "en" : "mark"] : tr("酒")}
     </span>
+  );
+}
+
+/** 消す確認シートに出す「何を消すか」（マーク＋名前） */
+export function RecordPreview({ record }: { record: TastingRecord }) {
+  return (
+    <>
+      <Thumb record={record} />
+      <strong>{drinkTitle(record)}</strong>
+    </>
   );
 }
 
@@ -85,8 +97,19 @@ export default function RecordCard({ record: r, showDate = true }: { record: Tas
     r.price && yen(r.price),
     showDate && shortDate(r.date),
   ].filter(Boolean);
+  const router = useRouter();
+  const href = `/record?id=${r.id}`;
+  /** 押した行が上へ広がって詳細になる（使えない端末ではふつうに移る） */
+  function open(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!isPlainClick(e)) return;
+    e.preventDefault();
+    const row = e.currentTarget;
+    nameForTransition(row, "rec-card");
+    nameForTransition(row.querySelector("h2"), "rec-name");
+    transitionTo(() => router.push(href), () => !!document.querySelector(".detail-hero"), "open");
+  }
   return (
-    <Link href={`/record?id=${r.id}`} className="card record-row">
+    <Link href={href} className="card record-row" data-rid={r.id} onClick={open}>
       <Thumb record={r} />
       <div className="record-row-body">
         <div className="record-row-top">

@@ -23,7 +23,7 @@ export const GUIDE: GuideSection[] = [
   {
     id: "scan",
     title: { ja: "お店でメニューやラベルを調べる", en: "Look up a menu or label" },
-    where: { ja: "真ん中のカメラ（調べる）→「飲み物から」", en: "Center camera (Explore) → “Drinks”" },
+    where: { ja: "右下の虫めがね（調べる）→「飲み物から」", en: "Magnifier at bottom right (Explore) → “Drinks”" },
     href: "/scan",
     steps: [
       { ja: "撮る・写真から（5枚まで）・文字で、のどれかで調べると、お酒ごとに解説とおすすめの飲み方が出ます。", en: "Shoot, pick up to 5 photos, or type a name to get notes and serving tips for each drink." },
@@ -70,7 +70,19 @@ export const GUIDE: GuideSection[] = [
     steps: [
       { ja: "味マップ・産地スタンプ帳・お店・くらべる（五角形の重ね合わせ）で、記録をふり返れます。", en: "Look back with the taste map, origin stamps, shops and compare (overlaid charts)." },
       { ja: "「わたしの好み」に好きな味を登録すると、おすすめや店員さんに見せる画面に使われます。", en: "Set “My taste” and it's used for picks and the staff screen." },
+      { ja: "上の「わたしの傾向／称号」で切り替えます。右上の「並べ替え」で、よく見るものを上に動かせます。", en: "Switch between “My trends” and “My collection” at the top. Use “Reorder” to move what you check most to the top." },
       { ja: "記録の画面の「AI に聞く」で、そのお酒のことを質問できます。", en: "Use “Ask AI” on a record to ask about that drink." },
+    ],
+  },
+  {
+    id: "match",
+    title: { ja: "称号・しるし・友だちと好みくらべ", en: "Titles, badges & taste match" },
+    where: { ja: "好みタブの「マイコレクション」", en: "Taste tab → My collection" },
+    href: "/match",
+    steps: [
+      { ja: "記録が増えると称号が上がり、10杯目・産地5か所などで「しるし」が取れます。取れたときはお祝いが出て、画像で送れます。", en: "Your title goes up as you log more, and you earn badges like 10 drinks or 5 origins. Each comes with a little celebration you can share." },
+      { ja: "「友だちと好みくらべ」で自分の好みをリンクや QR で送ると、相手の画面で好みが重なり相性が出ます。送るのは味の平均と★の高かった名前だけです。", en: "“Taste match with a friend” sends your taste as a link or QR. Your friend sees both tastes overlaid with a match score. Only average taste and favorite names are sent." },
+      { ja: "毎月はじめに、記録の画面の上に「先月のふりかえり」が出ます。", en: "At the start of each month, a recap of last month appears on the Log screen." },
     ],
   },
   {
@@ -87,7 +99,7 @@ export const GUIDE: GuideSection[] = [
     title: { ja: "合言葉と AI", en: "Passcode & AI" },
     where: { ja: "はじめて撮るときに入力", en: "Entered the first time you shoot" },
     steps: [
-      { ja: "読み取り・名前で調べる・AI に聞くは合言葉が必要です。一度入れると覚えています。", en: "Reading, name search and Ask AI need the passcode. It's remembered after the first time." },
+      { ja: "読み取り・名前で調べる・AI に聞くは合言葉が必要です（AI を使うたびにお金がかかるため）。一度入れると覚えています。合言葉がなくても、記録・辞典・カクテル47種・よくある料理は使えます。", en: "Reading, name search and Ask AI need the passcode (AI costs money each time). It's remembered after the first time. Without it you can still log, use the glossary, 47 cocktails and common dishes." },
       { ja: "一度調べたお酒は端末に残るので、次からは AI を使わずにすぐ出ます。", en: "Drinks you've looked up are saved, so next time they show instantly without AI." },
     ],
   },
@@ -151,7 +163,7 @@ export const TOURS: Record<TourId, { path: string; label: Text; steps: TourStep[
     path: "/wishlist",
     label: { ja: "気になる", en: "Want" },
     steps: [
-      { target: "wish-item", text: { ja: "調べる画面で「☆」を付けたお酒が、ここにたまります。飲んだら「記録する」でそのまま記録できます。", en: "Drinks you star (☆) while exploring collect here. Tap “Record” after you drink one." } },
+      { target: "wish-item", text: { ja: "調べる画面で「☆」を付けたお酒が、ここにたまります。押すと説明が開き、右の「＋」でそのまま記録できます。", en: "Drinks you star (☆) while exploring collect here. Tap one for notes, or “+” to record it." } },
       { target: "wish-sort", text: { ja: "種類で分けたり、甘口・辛口の順に並べ替えたりできます。", en: "Filter by type, or sort from sweet to dry." } },
     ],
   },
@@ -159,9 +171,9 @@ export const TOURS: Record<TourId, { path: string; label: Text; steps: TourStep[
     path: "/taste",
     label: { ja: "好み", en: "Taste" },
     steps: [
-      { target: "taste-show", text: { ja: "好みを大きな字で出して、お店で「こういうのください」と見せられます。", en: "Show your taste in large type at a bar: “Something like this, please.”" } },
-      { target: "taste-hub", text: { ja: "産地スタンプ帳・行ったお店・気になるお酒・家のお酒はここから。", en: "Origin stamps, shops you've visited, your Want list and bottles at home are here." } },
-      { target: "taste-prefs", text: { ja: "記録が少ないうちは、ここで好みを自分で登録できます。", en: "While you have few records, you can set your taste here yourself." } },
+      { target: "taste-view", text: { ja: "「わたしの傾向」は味の好み、「マイコレクション」は称号やスタンプ帳・お店・気になる・家のお酒です。", en: "“My trends” shows your taste; “My collection” has badges, stamps, shops, your Want list and bottles at home." } },
+      { target: "taste-show", text: { ja: "好みを大きな字で出して、お店で見せられます。友だちと好みくらべもできます。", en: "Show your taste in large type at the shop, or compare tastes with a friend." } },
+      { target: "taste-sort", text: { ja: "並ぶ順番は「並べ替え」で好きに変えられます。", en: "Use “Reorder” to change the order of sections." } },
     ],
   },
   settings: {

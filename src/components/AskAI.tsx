@@ -121,7 +121,7 @@ export default function AskAI({
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
-        <button type="submit" className="btn-secondary" disabled={busy || !question.trim()}>
+        <button type="submit" className="btn-secondary btn-plain" disabled={busy || !question.trim()}>
           {busy ? tr("考え中…") : tr("聞く")}
         </button>
       </form>

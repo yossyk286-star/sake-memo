@@ -6,7 +6,7 @@ import { MultiChips, SingleChips } from "./ChipGroup";
 import AbvInput from "./AbvInput";
 import GlossarySheet from "./GlossarySheet";
 import SavedCheck from "./SavedCheck";
-import { shortDate, stars } from "./RecordCard";
+import { RecordPreview, shortDate, stars } from "./RecordCard";
 import { announceBuddy, buddyLine } from "@/lib/buddy";
 import { deleteRecord, putRecord, listRecords } from "@/lib/db";
 import { clearStash, saveStash } from "@/lib/recordDraft";
@@ -24,6 +24,7 @@ import { PhotoAddButton, PhotoRow } from "./PhotoAdd";
 import { emptyServeNote, GLASSES, hasServeNote, TEMP_NAMES } from "@/lib/serveNote";
 import type { Kind, Overall, RecordDraft, Score, ServeNote, TastingRecord } from "@/lib/types";
 import { tr, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 const SCORES: Score[] = [1, 2, 3, 4, 5];
 
@@ -252,7 +253,13 @@ export default function RecordForm({
   const router = useRouter();
 
   async function remove() {
-    if (!initial || !confirm(tr("この記録を削除しますか？"))) return;
+    if (!initial) return;
+    const ok = await askConfirm({
+      preview: <RecordPreview record={initial} />,
+      message: tr("この記録を削除しますか？"),
+      action: tr("削除"),
+    });
+    if (!ok) return;
     await deleteRecord(initial.id);
     router.replace("/");
   }

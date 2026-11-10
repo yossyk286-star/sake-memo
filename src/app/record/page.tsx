@@ -16,11 +16,17 @@ import { recordImage, shareImage } from "@/lib/shareImage";
 import { useRecordFromQuery } from "@/lib/useRecord";
 import type { QA } from "@/lib/types";
 import { tr, trJoin, trv } from "@/lib/i18n";
+import NumText from "@/components/NumText";
+import { useRouter } from "next/navigation";
+import { isPlainClick, nameForTransition, transitionTo } from "@/lib/viewTransition";
 
 /** AI に聞くときにタップで入る質問 */
 const SUGGESTIONS = ["おいしい飲み方は？", "合う料理は？", "似た味のお酒は？", "どんな造りのお酒？"];
 
 type Row = [string, string];
+
+/** 数字を丸い書体で出す欄（名前などに入った数字はそのまま） */
+const NUMERIC = new Set(["度数", "値段"]);
 
 /** 見出しと、入っている欄だけの表。1つも入っていなければ何も出さない */
 function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
@@ -33,7 +39,7 @@ function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
         {filled.map(([k, v]) => (
           <div key={k} style={{ display: "contents" }}>
             <dt>{trv(k)}</dt>
-            <dd>{trv(v)}</dd>
+            <dd>{NUMERIC.has(k) ? <NumText text={trv(v)} /> : trv(v)}</dd>
           </div>
         ))}
       </dl>
@@ -43,6 +49,15 @@ function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
 
 function DetailBody() {
   const loaded = useRecordFromQuery();
+  const router = useRouter();
+  // いちばん上にいるときだけ、上のバーにもお酒の色を差す（スクロールしたらふつうの色に戻す）
+  const [atTop, setAtTop] = useState(true);
+  useEffect(() => {
+    const onScroll = () => setAtTop(window.scrollY < 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   // AI に聞いた答えや写真を足したらその場で表示を変える
   const [r, setR] = useState(loaded);
   useEffect(() => setR(loaded), [loaded]);
@@ -87,6 +102,25 @@ function DetailBody() {
     setR(next);
   }
 
+  /** 一覧へ戻るとき、詳細が縮んで元の行へ帰る。行が見つからなければふつうに重ねて切り替える */
+  function back(e: React.MouseEvent) {
+    if (!isPlainClick(e)) return;
+    e.preventDefault();
+    const id = r?.id;
+    transitionTo(
+      () => router.push("/"),
+      () => {
+        if (location.pathname !== "/") return false;
+        const row = id ? document.querySelector(`[data-rid="${CSS.escape(id)}"]`) : null;
+        if (!row) return !!document.querySelector(".record-row, .empty-state, .empty");
+        nameForTransition(row, "rec-card");
+        nameForTransition(row.querySelector("h2"), "rec-name");
+        return true;
+      },
+      "back",
+    );
+  }
+
   // 空の欄は出さない。まとまりごとに分けて表で見せる
   const drinkRows: Row[] = r
     ? [
@@ -124,8 +158,8 @@ function DetailBody() {
 
   return (
     <>
-      <header className="sub-header">
-        <Link href="/" className="back">
+      <header className="sub-header" data-top={atTop ? "" : undefined} style={r ? ({ "--kind": kindColor(r.kind) } as React.CSSProperties) : undefined}>
+        <Link href="/" className="back" onClick={back}>
           {tr("‹ 戻る")}
         </Link>
         <h1>{tr("記録")}</h1>
@@ -137,7 +171,9 @@ function DetailBody() {
       </header>
       {r === null && <p className="empty">{tr("記録が見つかりませんでした。")}</p>}
       {r && (
-        <main className="content" style={{ paddingTop: 16 }}>
+        <main className="content detail-page" style={{ paddingTop: 16, "--kind": kindColor(r.kind) } as React.CSSProperties}>
+          {/* 上からそのお酒の種類の色がうっすら差して、下で地に溶ける */}
+          <div className="detail-tint" aria-hidden="true" />
           {/* 写真があるときは上に出して右下に小さく足すボタンを重ねる。ないときは下のボタンの列から足す */}
           {photos.length > 0 && (
             <div className="photo-wrap">
@@ -154,7 +190,7 @@ function DetailBody() {
             <div className="detail-hero-top">
               <div className="detail-hero-name">
                 {r.kind && (
-                  <span className="tag kind-tag" style={{ "--kind": kindColor(r.kind) } as React.CSSProperties}>
+                  <span className="tag kind-tag">
                     {trJoin([r.kind, r.style])}
                   </span>
                 )}
@@ -183,7 +219,7 @@ function DetailBody() {
               <div className="card detail-taste">
                 {filledScores.length >= 3 && (
                   <div className="detail-radar">
-                    <RadarChart axes={scores.map(([a]) => a)} series={[{ label: tr("この記録"), values: scores.map(([, v]) => v) }]} showValues />
+                    <RadarChart axes={scores.map(([a]) => a)} series={[{ label: tr("この記録"), values: scores.map(([, v]) => v) }]} showValues color="var(--kind)" />
                   </div>
                 )}
                 {/* 五角形が出るときは角に数字があるので、目盛りは五角形が出ないとき（2つ以下）だけ */}
@@ -233,10 +269,10 @@ function DetailBody() {
             history={r.qa ?? []}
             onAnswered={addQA}
           />
-          <button type="button" className="btn-secondary" onClick={share}>
+          <button type="button" className="btn-secondary btn-main" onClick={share}>
             {tr("画像にして送る")}
           </button>
-          <Link href={`/compare?a=${r.id}`} className="btn-secondary">
+          <Link href={`/compare?a=${r.id}`} className="btn-secondary btn-plain">
             {tr("ほかの記録とくらべる")}
           </Link>
           {photos.length === 0 && (

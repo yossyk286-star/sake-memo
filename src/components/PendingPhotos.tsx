@@ -1,6 +1,7 @@
 "use client";
 
 import { tr } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 /** 電波がなくて読み取れなかった写真があるときのお知らせ。電波が戻ったら呼び出し側が自動で読み取る */
 export default function PendingPhotos({
@@ -30,8 +31,8 @@ export default function PendingPhotos({
           className="btn-secondary"
           style={{ flex: 1, background: "none", color: "var(--muted)" }}
           disabled={busy}
-          onClick={() => {
-            if (confirm(tr("取っておいた写真を消しますか？"))) onDiscard();
+          onClick={async () => {
+            if (await askConfirm({ message: tr("取っておいた写真を消しますか？"), action: tr("消す") })) onDiscard();
           }}
         >
           {tr("消す")}

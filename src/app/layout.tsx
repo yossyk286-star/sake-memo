@@ -2,17 +2,52 @@ import type { Metadata, Viewport } from "next";
 import ServiceWorker from "@/components/ServiceWorker";
 import Buddy from "@/components/Buddy";
 import ClearField from "@/components/ClearField";
+import ConfirmHost from "@/components/ConfirmSheet";
 import LangGate from "@/components/LangGate";
-import LaunchScreen from "@/components/LaunchScreen";
+import LaunchScreen, { LAUNCH_BOOT } from "@/components/LaunchScreen";
 import TabBar from "@/components/TabBar";
 import Welcome from "@/components/Welcome";
+import InstallHint from "@/components/InstallHint";
+import Milestones from "@/components/Milestones";
 import ThemeSync from "@/components/ThemeSync";
+import PressFx from "@/components/PressFx";
 import { THEME_BOOT } from "@/lib/theme";
+import localFont from "next/font/local";
 import "./globals.css";
+
+/**
+ * 数字だけに使う丸い書体（M PLUS Rounded 1c の英数字の部分だけ。日本語はいつもの書体のまま）。
+ * Google Fonts から読むと日本語の分まで250個の書体指定が全画面の CSS に入って重くなるので、英数字のファイルだけ同梱する
+ */
+const numFont = localFont({
+  src: [
+    { path: "./fonts/m-plus-rounded-1c-700-latin.woff2", weight: "700" },
+    { path: "./fonts/m-plus-rounded-1c-800-latin.woff2", weight: "800" },
+  ],
+  variable: "--font-num",
+  display: "swap",
+  declarations: [
+    {
+      prop: "unicode-range",
+      value: "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
+});
 
 export const metadata: Metadata = {
   title: "さけメモ",
-  description: "飲んだお酒を記録して、だんだん詳しくなるアプリ",
+  description: "メニューを撮るだけで、どんなお酒かすぐわかる。飲んだお酒を記録して、だんだん詳しくなるアプリ",
+  metadataBase: new URL("https://sake-memo.vercel.app"),
+  // LINE などで URL を送ったときに出る画像と一言
+  openGraph: {
+    title: "さけメモ",
+    description: "メニューを撮るだけで、どんなお酒かすぐわかる。飲んだお酒を記録して、だんだん詳しくなるアプリ",
+    siteName: "さけメモ",
+    locale: "ja_JP",
+    type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "さけメモ" }],
+  },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
   appleWebApp: { capable: true, title: "さけメモ", statusBarStyle: "default", startupImage: startupImages() },
 };
 
@@ -41,7 +76,7 @@ function startupImages() {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f2f2f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: dark)", color: "#11131c" },
   ],
   viewportFit: "cover",
 };
@@ -53,9 +88,9 @@ export default function RootLayout({
 }>) {
   return (
     // data-theme / data-accent は THEME_BOOT が描画前に付けるので、React の食い違い警告を出さない
-    <html lang="ja" suppressHydrationWarning>
+    <html lang="ja" className={numFont.variable} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT + LAUNCH_BOOT }} />
       </head>
       <body>
         <LaunchScreen />
@@ -65,9 +100,13 @@ export default function RootLayout({
           <Buddy />
           <ClearField />
           <Welcome />
+          <Milestones />
+          <InstallHint />
+          <ConfirmHost />
         </LangGate>
         <ServiceWorker />
         <ThemeSync />
+        <PressFx />
       </body>
     </html>
   );
