@@ -168,9 +168,20 @@
 }
 
 .shootCol {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 8px;
+}
+
+/* 撮るボタンは横いっぱい、「写真から」「名前で調べる」はその下に横並び */
+.shootCol > :first-child,
+.shootCol > :last-child:nth-child(2) {
+  grid-column: 1 / -1;
+}
+
+.shootCol > :not(:first-child) {
+  min-width: 0;
+  padding: 0 8px;
 }
 
 .shootRow {

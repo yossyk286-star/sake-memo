@@ -77,8 +77,9 @@ function Thumb({ record: r }: { record: TastingRecord }) {
 
 /** 記録の一覧の1行。2行に詰めて、画面にたくさん並ぶようにする。showDate=false は日付で区切った一覧用 */
 export default function RecordCard({ record: r, showDate = true }: { record: TastingRecord; showDate?: boolean }) {
+  // 種類は左のマークでわかるので、タイプから書く（店や値段まで見えるように）
   const sub = [
-    trJoin([r.kind, r.style]),
+    r.style && trJoin([r.style]),
     r.serve && tr(r.serve),
     r.shop && tr(r.shop),
     r.price && yen(r.price),

@@ -8,6 +8,7 @@ import {
   type SortKey,
 } from "@/lib/genre";
 import { tr, trv } from "@/lib/i18n";
+import SortPick from "@/components/SortPick";
 
 /** ジャンルの絞り込みと、甘口・辛口などの並び替え。ジャンルは出てくるものだけ並べる */
 export default function GenreSortBar({
@@ -19,6 +20,7 @@ export default function GenreSortBar({
   sorts,
   defaultLabel,
   extra,
+  search,
 }: {
   genres: (Genre | null)[];
   genre: Genre | null;
@@ -29,10 +31,23 @@ export default function GenreSortBar({
   defaultLabel: string;
   /** ジャンルの前に並べるボタン（★4以上など） */
   extra?: React.ReactNode;
+  /** 並び替えボタンの左に置く検索欄 */
+  search?: React.ReactNode;
 }) {
   const used = GENRES.filter((g) => genres.includes(g));
   return (
     <>
+      <div className="search-sort">
+        {search}
+        <SortPick
+          value={sort}
+          options={(["default", ...sorts] as SortKey[]).map((k) => ({
+            key: k,
+            label: k === "default" ? tr(defaultLabel) : tr(SORT_LABELS[k]),
+          }))}
+          onChange={onSort}
+        />
+      </div>
       {(used.length > 1 || extra) && (
         <div
           className="scroll-row"
@@ -54,19 +69,6 @@ export default function GenreSortBar({
           ))}
         </div>
       )}
-      <div className="scroll-row" role="group" aria-label={tr("並び替え")}>
-        {(["default", ...sorts] as SortKey[]).map((s) => (
-          <button
-            key={s}
-            type="button"
-            className="chip"
-            aria-pressed={sort === s}
-            onClick={() => onSort(s)}
-          >
-            {s === "default" ? tr(defaultLabel) : tr(SORT_LABELS[s])}
-          </button>
-        ))}
-      </div>
     </>
   );
 }

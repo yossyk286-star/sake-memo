@@ -111,25 +111,23 @@ export default function TastePage() {
           <span className="muted">{tr("好みを大きく表示して「こういうのください」")}</span>
         </Link>
         <nav className="hub" aria-label={tr("記録のまとめ")}>
-          <Link href="/stamps" className="hub-item">
+          <Link href="/stamps" className="hub-item hub-num">
             <strong>{tr("産地スタンプ帳")}</strong>
-            <span className="muted">
-              {tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)}
-            </span>
+            <HubValue text={tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)} />
           </Link>
-          <Link href="/shops" className="hub-item">
+          <Link href="/shops" className="hub-item hub-num">
             <strong>{tr("お店")}</strong>
-            <span className="muted">{tr("{0}軒", shopCount)}</span>
+            <HubValue text={tr("{0}軒", shopCount)} />
           </Link>
-          <Link href="/wishlist" className="hub-item">
+          <Link href="/wishlist" className="hub-item hub-num">
             <strong>{tr("気になるお酒")}</strong>
-            <span className="muted">{tr("{0}件", wishCount)}</span>
+            <HubValue text={tr("{0}件", wishCount)} />
           </Link>
-          <Link href="/bottles" className="hub-item">
+          <Link href="/bottles" className="hub-item hub-num">
             <strong>{tr("家のお酒")}</strong>
-            <span className="muted">{tr("{0}本", bottleCount)}</span>
+            <HubValue text={tr("{0}本", bottleCount)} />
           </Link>
-          <Link href="/prefs" className="hub-item">
+          <Link href="/prefs" className="hub-item hub-wide">
             <strong>{tr("わたしの好み")}</strong>
             <span className="muted">{tr("自分で登録")}</span>
           </Link>
@@ -188,5 +186,16 @@ export default function TastePage() {
         )}
       </main>
     </>
+  );
+}
+
+/** 「5 / 66か所」「2軒」の頭の数字を大きく、残りを小さく出す */
+function HubValue({ text }: { text: string }) {
+  const m = /^(\d+)\s*(.*)$/.exec(text);
+  return (
+    <span className="hub-value">
+      {m ? m[1] : text}
+      {m?.[2] && <small>{m[2]}</small>}
+    </span>
   );
 }

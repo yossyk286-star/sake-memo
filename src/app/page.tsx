@@ -118,15 +118,17 @@ export default function RecordsPage() {
             <label htmlFor="r-search" className="visually-hidden">
               {tr("記録を検索")}
             </label>
-            <input
-              id="r-search"
-              type="search"
-              className="input"
-              placeholder={tr("名前・店・味で探す")}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
             <GenreSortBar
+              search={
+                <input
+                  id="r-search"
+                  type="search"
+                  className="input"
+                  placeholder={tr("名前・店・味で探す")}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              }
               genres={genresUsed}
               genre={genre}
               onGenre={setGenre}
