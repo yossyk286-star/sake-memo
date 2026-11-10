@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
 import { announceBuddy, buddyOn, setBuddyOn } from "@/lib/buddy";
-import { exportJSON, importJSON } from "@/lib/db";
+import { importJSON } from "@/lib/db";
+import { daysSince, lastBackup, saveBackup } from "@/lib/backup";
 import { ACCENTS, DEFAULT_THEME, loadTheme, saveTheme, type Appearance, type Theme } from "@/lib/theme";
 import { loadLangSetting, saveLangSetting, tr, trv, type LangSetting } from "@/lib/i18n";
 
@@ -26,7 +27,9 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [buddy, setBuddy] = useState(true);
   const [lang, setLang] = useState<LangSetting>("auto");
+  const [last, setLast] = useState<number | null>(null);
   useEffect(() => {
+    setLast(lastBackup());
     setTheme(loadTheme());
     setLang(loadLangSetting());
     setBuddy(buddyOn());
@@ -45,13 +48,8 @@ export default function SettingsPage() {
   }
 
   async function download() {
-    const blob = new Blob([await exportJSON()], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `sake-memo-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    // すぐ片付けると iPhone で保存が始まらないことがあるので、少し待つ
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    if (!(await saveBackup())) return;
+    setLast(lastBackup());
     setMessage(tr("書き出しました。ファイルを iCloud やメールなどに保存しておくと安心です。"));
   }
 
@@ -158,6 +156,13 @@ export default function SettingsPage() {
           <h2>{tr("バックアップ")}</h2>
           <p className="muted" style={{ lineHeight: 1.7 }}>
             {tr("記録はこの端末の中だけに保存されています。機種変更のときや念のために、ファイルに書き出しておけます。")}
+          </p>
+          <p className="muted" style={{ margin: 0 }}>
+            {last === null
+              ? tr("まだ書き出していません")
+              : daysSince(last) === 0
+                ? tr("最後に書き出した日：今日")
+                : tr("最後に書き出した日：{0}日前", daysSince(last))}
           </p>
           <div className="row">
             <button type="button" className="btn-secondary" onClick={download}>

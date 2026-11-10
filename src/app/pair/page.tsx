@@ -34,6 +34,8 @@ import {
 import { genreColor, genreOf } from "@/lib/genre";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 import { shrinkForReading } from "@/lib/photo";
+import { addPending, fetchOnline, loadPending, OfflineError, setPending as savePending } from "@/lib/pending";
+import PendingPhotos from "@/components/PendingPhotos";
 import { loadPrefs } from "@/lib/prefs";
 import type { Bottle, TastingRecord } from "@/lib/types";
 import { getLang, tr, trv } from "@/lib/i18n";
@@ -158,7 +160,7 @@ export default function PairPage() {
 
   async function post(payload: object) {
     const code = normalizePasscode(passcode);
-    const res = await fetch("/api/read-menu", {
+    const res = await fetchOnline("/api/read-menu", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...payload, likes: likesText(), passcode: code, lang: getLang() }),
@@ -179,15 +181,26 @@ export default function PairPage() {
     const files = picked.slice(0, MAX_PHOTOS);
     if (files.length === 0 || reading) return;
     if (!passcode.trim()) return setError("先に合言葉を入れてください");
-    if (!navigator.onLine) return setError("オフラインのため読み取れません。電波のあるところでもう一度お試しください");
+    const allOk = await readPhotos(files);
+    if (allOk && picked.length > MAX_PHOTOS) setError(tr("一度に読み取れるのは{0}枚までです。残りはもう一度選んでください", MAX_PHOTOS));
+  }
+
+  /** 何枚かを順に読み取る。電波がなくて読めなかった写真は取っておいて、電波が戻ったら読み取る */
+  async function readPhotos(files: Blob[]): Promise<boolean> {
     setError("");
     setReading(true);
     // 同じ日に続けて撮ったメニュー（表と裏、フードとおつまみなど）は入れ替えずに、新しい分を上に足す
-    const before = menu && menuDate === today() ? menu : [];
+    const before = menuRef2.current.menu && menuRef2.current.date === today() ? menuRef2.current.menu : [];
     let all = before;
     let lastError = "";
     let failed = 0;
+    const offline: Blob[] = [];
     for (const [i, file] of files.entries()) {
+      // 途中で電波が切れたら、残りは送らずに取っておく
+      if (offline.length > 0) {
+        offline.push(file);
+        continue;
+      }
       if (files.length > 1) setProgress({ at: i + 1, of: files.length });
       try {
         // 小さい字も読めるよう、長辺1600pxまでにして送る（Haiku なので料金はほぼ変わらない）
@@ -200,6 +213,10 @@ export default function PairPage() {
         setResult(null);
         setJustRead(true);
       } catch (err) {
+        if (err instanceof OfflineError) {
+          offline.push(file);
+          continue;
+        }
         failed++;
         lastError = err instanceof Error ? err.message : "読み取れませんでした";
       }
@@ -207,10 +224,47 @@ export default function PairPage() {
     setAddedCount(before.length > 0 && all.length > before.length ? all.length - before.length : null);
     setProgress(null);
     setReading(false);
+    if (offline.length > 0) {
+      try {
+        setPending(await addPending("food", await Promise.all(offline.map(shrinkForReading))));
+      } catch {
+        setError(new OfflineError().message);
+      }
+    }
     if (failed > 0)
       setError(files.length > 1 ? tr("{0}枚のうち{1}枚は読み取れませんでした。その写真だけ撮り直してみてください", files.length, failed) : lastError);
-    else if (picked.length > MAX_PHOTOS) setError(tr("一度に読み取れるのは{0}枚までです。残りはもう一度選んでください", MAX_PHOTOS));
+    return failed === 0 && offline.length === 0;
   }
+
+  // 電波がなくて取っておいた写真。開いたときと電波が戻ったときに読み取る
+  const [pending, setPending] = useState<Blob[]>([]);
+  const menuRef2 = useRef<{ menu: typeof menu; date: typeof menuDate }>({ menu: null, date: "" });
+  menuRef2.current = { menu, date: menuDate };
+  const readPendingRef = useRef<() => void>(() => {});
+  const autoTried = useRef(false);
+  readPendingRef.current = async () => {
+    if (reading || !passcode.trim() || !navigator.onLine) return;
+    const list = await loadPending("food");
+    if (list.length === 0) return setPending([]);
+    await savePending("food", []);
+    setPending([]);
+    await readPhotos(list);
+  };
+  useEffect(() => {
+    loadPending("food").then(setPending);
+    const onOnline = () => readPendingRef.current();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, []);
+  // 合言葉と前のメニューを読み込んだあと、電波があればすぐ読み取る
+  useEffect(() => {
+    if (restored && pending.length > 0 && navigator.onLine && !autoTried.current) {
+      // 開いたときに自動で読むのは1回だけ（電波はあるのにつながらないとき、何度も繰り返さないように）
+      autoTried.current = true;
+      readPendingRef.current();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restored, pending.length > 0]);
 
   /** 今日読み取った飲み物メニューを、この料理に合う順に AI に並べてもらう */
   async function rankDrinkMenu(d: string) {
@@ -359,6 +413,18 @@ export default function PairPage() {
             </button>
           ))}
         </div>
+        <PendingPhotos
+          count={pending.length}
+          busy={reading}
+          onRead={() => {
+            if (!navigator.onLine) return setError("まだ電波がありません。電波のあるところでもう一度お試しください");
+            readPendingRef.current();
+          }}
+          onDiscard={() => {
+            savePending("food", []);
+            setPending([]);
+          }}
+        />
         <div className="pair-shoot">
           <label className="btn-primary" aria-disabled={reading}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

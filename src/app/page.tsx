@@ -10,6 +10,8 @@ import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import { getLang, tr } from "@/lib/i18n";
+import { dayTotal } from "@/lib/dayTotal";
+import BackupNudge from "@/components/BackupNudge";
 
 const WEEKDAYS = "日月火水木金土";
 
@@ -110,6 +112,7 @@ export default function RecordsPage() {
       )}
 
       <main className="content" style={{ paddingBottom: 96 }}>
+        {records && <BackupNudge count={records.length} />}
         {records && records.length > 0 && (
           <div className="filter-bar">
             <label htmlFor="r-search" className="visually-hidden">
@@ -160,7 +163,13 @@ export default function RecordsPage() {
         )}
         {days.map((day) => (
           <section key={day.date} className="day">
-            {day.date && <h2 className="date-head">{dateHead(day.date)}</h2>}
+            {day.date && (
+              <h2 className="date-head">
+                {dateHead(day.date)}
+                {/* 絞り込み中は一部の記録だけになるので、その日の合計は出さない */}
+                {!filtering && <span className="date-total">{dayTotal(day.records)}</span>}
+              </h2>
+            )}
             <div className="list-group">
               {day.records.map((r) => (
                 <SwipeRecord

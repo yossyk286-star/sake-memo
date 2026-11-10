@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { MultiChips, SingleChips } from "./ChipGroup";
 import AbvInput from "./AbvInput";
 import GlossarySheet from "./GlossarySheet";
 import SavedCheck from "./SavedCheck";
+import { shortDate, stars } from "./RecordCard";
 import { announceBuddy, buddyLine } from "@/lib/buddy";
 import { deleteRecord, putRecord, listRecords } from "@/lib/db";
+import { clearStash, saveStash } from "@/lib/recordDraft";
 import {
   ALL_SERVES,
   FLAVORS,
@@ -229,6 +231,8 @@ export default function RecordForm({
   prefill,
   drinkFilled = false,
   fromWish = false,
+  autosave = false,
+  resumed = false,
   onSaved,
 }: {
   initial?: TastingRecord;
@@ -240,6 +244,10 @@ export default function RecordForm({
   fromWish?: boolean;
   /** 保存後の動き。なければ一覧（編集なら詳細）に戻る */
   onSaved?: (record: TastingRecord) => void;
+  /** 入力のたびに書きかけとして残す（新しい記録の画面で、前の書きかけが残っていないとき） */
+  autosave?: boolean;
+  /** 書きかけの続きを開いたとき true（開いた時点から書きかけとして残す） */
+  resumed?: boolean;
 }) {
   const router = useRouter();
 
@@ -273,12 +281,49 @@ export default function RecordForm({
     } catch {}
   }
 
+  // 自分で何か入れたら true（開いただけの読み取り結果などは書きかけとして残さない）
+  const touched = useRef(resumed);
+  const update = (fn: (d: RecordDraft) => RecordDraft) => {
+    touched.current = true;
+    setDraft(fn);
+  };
   const set = <K extends keyof RecordDraft>(key: K, value: RecordDraft[K]) =>
-    setDraft((d) => ({ ...d, [key]: value }));
+    update((d) => ({ ...d, [key]: value }));
+
+  // 書きかけを残す（新しい記録の画面だけ）。前の書きかけが残っている間は上書きしない
+  useEffect(() => {
+    if (!autosave || initial || !touched.current) return;
+    const t = setTimeout(() => saveStash(draft), 300);
+    return () => clearTimeout(t);
+  }, [draft, initial, autosave]);
+
+  // 前に飲んだお酒の名前を候補に出す。同じ名前を選んだら蔵元・産地なども入れて、前回の★を見せる
+  const [past, setPast] = useState<TastingRecord[]>([]);
+  const pastNames = [...new Set(past.map((r) => r.name.trim()).filter(Boolean))];
+  const sameName = (a: string, b: string) => a.trim().normalize("NFKC").toLowerCase() === b.trim().normalize("NFKC").toLowerCase();
+  const before = draft.name.trim() ? past.filter((r) => r.id !== initial?.id && sameName(r.name, draft.name)) : [];
+
+  function setName(name: string) {
+    const hit = initial ? undefined : past.find((r) => sameName(r.name, name));
+    update((d) => {
+      // 自分で入れた蔵元・産地・種類があれば、そちらを優先する
+      if (!hit || d.maker || d.origin || d.kind) return { ...d, name };
+      return {
+        ...d,
+        name,
+        kind: hit.kind,
+        style: hit.style,
+        maker: hit.maker,
+        origin: hit.origin,
+        abv: d.abv ?? hit.abv ?? null,
+      };
+    });
+  }
 
   // 過去に入れた店名を候補に出す
   useEffect(() => {
     listRecords().then((rs) => {
+      setPast(rs);
       setShopNames([...new Set(rs.map((r) => r.shop).filter(Boolean))]);
       // 今日すでに記録した店があれば、新しい記録の店名に先に入れておく
       const latest = rs[0];
@@ -302,7 +347,7 @@ export default function RecordForm({
       : serveBase;
 
   function setKind(kind: Kind | null) {
-    setDraft((d) => ({
+    update((d) => ({
       ...d,
       kind,
       style: kind && d.style && STYLES_BY_KIND[kind].includes(d.style) ? d.style : null,
@@ -320,7 +365,7 @@ export default function RecordForm({
   async function onPhotos(files: FileList | null) {
     try {
       const added = await shrinkPhotos(files);
-      setDraft((d) => ({ ...d, photos: [...d.photos, ...added] }));
+      update((d) => ({ ...d, photos: [...d.photos, ...added] }));
     } catch {
       setError("写真を読み込めませんでした");
     }
@@ -342,6 +387,7 @@ export default function RecordForm({
       updatedAt: now,
     };
     await putRecord(record);
+    if (autosave && !initial) clearStash();
     // ✓ を少し見せてから移る（動きを減らす設定の人はすぐ移る）
     setSaved(true);
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) await new Promise((r) => setTimeout(r, 700));
@@ -365,9 +411,21 @@ export default function RecordForm({
         id="f-name"
         className="input"
         placeholder={tr("例：獺祭 純米大吟醸45")}
+        list="drink-names"
         value={draft.name}
-        onChange={(e) => set("name", e.target.value)}
+        onChange={(e) => setName(e.target.value)}
       />
+      <datalist id="drink-names">
+        {pastNames.map((n) => (
+          <option key={n} value={n} />
+        ))}
+      </datalist>
+      {before.length > 0 && (
+        <p className="muted past-note">
+          {tr("前に飲んだ：{0}・{1}・{2}", stars(before[0].overall), shortDate(before[0].date), before[0].shop)}
+          {before.length > 1 && tr("（ほか{0}回）", before.length - 1)}
+        </p>
+      )}
     </div>
   );
 
