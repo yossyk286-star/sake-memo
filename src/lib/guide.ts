@@ -70,14 +70,14 @@ export const GUIDE: GuideSection[] = [
     steps: [
       { ja: "味マップ・産地スタンプ帳・お店・くらべる（五角形の重ね合わせ）で、記録をふり返れます。", en: "Look back with the taste map, origin stamps, shops and compare (overlaid charts)." },
       { ja: "「わたしの好み」に好きな味を登録すると、おすすめや店員さんに見せる画面に使われます。", en: "Set “My taste” and it's used for picks and the staff screen." },
-      { ja: "上の「わたしの傾向／称号」で切り替えます。右上の「並べ替え」で、よく見るものを上に動かせます。", en: "Switch between “My trends” and “Title” at the top. Use “Reorder” to move what you check most to the top." },
+      { ja: "上の「わたしの傾向／称号」で切り替えます。右上の「並べ替え」で、よく見るものを上に動かせます。", en: "Switch between “My trends” and “My collection” at the top. Use “Reorder” to move what you check most to the top." },
       { ja: "記録の画面の「AI に聞く」で、そのお酒のことを質問できます。", en: "Use “Ask AI” on a record to ask about that drink." },
     ],
   },
   {
     id: "match",
     title: { ja: "称号・しるし・友だちと好みくらべ", en: "Titles, badges & taste match" },
-    where: { ja: "好みタブの「称号」", en: "Taste tab → Title" },
+    where: { ja: "好みタブの「マイコレクション」", en: "Taste tab → My collection" },
     href: "/match",
     steps: [
       { ja: "記録が増えると称号が上がり、10杯目・産地5か所などで「しるし」が取れます。取れたときはお祝いが出て、画像で送れます。", en: "Your title goes up as you log more, and you earn badges like 10 drinks or 5 origins. Each comes with a little celebration you can share." },
