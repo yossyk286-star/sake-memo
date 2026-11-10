@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -122,7 +123,7 @@ function NewRecord() {
       <>
         <header className="sub-header">
           <Link href="/bottles" className="back">
-            {tr("‹ 戻る")}
+            <BackChevron />
           </Link>
           <h1>{tr("家のお酒を記録")}</h1>
         </header>
@@ -135,7 +136,7 @@ function NewRecord() {
     <>
       <header className="sub-header">
         <Link href="/" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("新しい記録")}</h1>
       </header>

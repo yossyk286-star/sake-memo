@@ -12,6 +12,14 @@ const TABS = [
     href: "/",
     label: "記録",
     icon: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
+    solid: (
+      <>
+        <path d="M9 6h11M9 12h11M9 18h11" strokeWidth="2.6" />
+        <circle cx="4.5" cy="6" r="1.7" fill="currentColor" stroke="none" />
+        <circle cx="4.5" cy="12" r="1.7" fill="currentColor" stroke="none" />
+        <circle cx="4.5" cy="18" r="1.7" fill="currentColor" stroke="none" />
+      </>
+    ),
   },
   {
     href: "/glossary",
@@ -19,6 +27,12 @@ const TABS = [
     icon: (
       <>
         <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" />
+        <path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" />
+      </>
+    ),
+    solid: (
+      <>
+        <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" fill="currentColor" />
         <path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" />
       </>
     ),
@@ -33,16 +47,29 @@ const TABS = [
         <path d="M15.5 15.5 20 20" />
       </>
     ),
+    solid: (
+      <>
+        <circle cx="10.5" cy="10.5" r="6.5" fill="currentColor" fillOpacity="0.22" />
+        <path d="M15.5 15.5 20 20" strokeWidth="2.8" />
+      </>
+    ),
   },
   {
     href: "/wishlist",
     label: "気になる",
     icon: <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />,
+    solid: <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="currentColor" />,
   },
   {
     href: "/taste",
     label: "好み",
     icon: <path d="M5 20v-7M12 20V5M19 20v-10M3 20h18" />,
+    solid: (
+      <>
+        <path d="M5 19v-6M12 19V5M19 19v-9" strokeWidth="3.4" />
+        <path d="M3 20.5h18" />
+      </>
+    ),
   },
 ];
 
@@ -129,7 +156,8 @@ export default function TabBar() {
                 strokeLinejoin="round"
                 aria-hidden="true"
               >
-                {t.icon}
+                {/* 選んでいるタブは塗りの絵にする（CSS で一瞬弾む） */}
+                {isActive(t.href) ? t.solid : t.icon}
               </svg>
               {trv(t.label)}
             </Link>
@@ -139,7 +167,7 @@ export default function TabBar() {
         <Link href={scan.href} className="tab-scan" data-tour="tab-scan" aria-label={trv(scan.label)} aria-current={scanActive ? "page" : undefined} onClick={go(scan.href)}>
           <span className="tab-scan-btn">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              {scan.icon}
+              {scanActive ? scan.solid : scan.icon}
             </svg>
             {scanned > 0 && (
               <span className="tab-badge" aria-label={BADGE_LABEL(scanned)}>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import GenreSortBar from "@/components/GenreSortBar";
+import SearchField from "@/components/SearchField";
 import Hint from "@/components/Hint";
 import SwipeRecord from "@/components/SwipeRecord";
 import { listRecords } from "@/lib/db";
@@ -171,14 +172,7 @@ export default function RecordsPage() {
             </label>
             <GenreSortBar
               search={
-                <input
-                  id="r-search"
-                  type="search"
-                  className="input"
-                  placeholder={tr("名前・店・味で探す")}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
+                <SearchField id="r-search" name="records" placeholder={tr("名前・店・味で探す")} value={query} onChange={setQuery} />
               }
               genres={genresUsed}
               genre={genre}

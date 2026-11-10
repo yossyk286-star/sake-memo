@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MultiChips } from "@/components/ChipGroup";
@@ -119,7 +120,7 @@ export default function PrefsPage() {
     <>
       <header className="sub-header">
         <Link href="/taste" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("わたしの好み")}</h1>
       </header>

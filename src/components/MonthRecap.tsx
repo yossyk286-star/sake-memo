@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { APP, WORDS } from "@/lib/appeal";
@@ -70,7 +71,7 @@ export default function MonthRecap({ records, titleOf }: { records: TastingRecor
           className="recap-btn"
           onClick={async () => {
             const blob = await cardImage({ eyebrow: tr("先月のふりかえり"), title, stats, lines });
-            await shareImage(blob, title).catch(() => alert(tr("共有できませんでした")));
+            await shareImage(blob, title).catch(() => toast("共有できませんでした", { tone: "warn" }));
           }}
         >
           {tr("画像で送る")}

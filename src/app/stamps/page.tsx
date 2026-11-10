@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -245,7 +246,10 @@ export default function StampsPage() {
       if (localStorage.getItem(VIEW_KEY) === "旅日記") setView("旅日記");
     } catch {}
   }, []);
+  // 切り替えた向き（中身を押した側から入れ替える）。開いたときは動かさない
+  const [swap, setSwap] = useState("");
   const pick = (v: View) => {
+    if (v !== view) setSwap(v === "旅日記" ? "swap-next" : "swap-prev");
     setView(v);
     try {
       localStorage.setItem(VIEW_KEY, v);
@@ -275,7 +279,7 @@ export default function StampsPage() {
     <>
       <header className="sub-header">
         <Link href="/taste" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("産地スタンプ帳")}</h1>
       </header>
@@ -303,7 +307,7 @@ export default function StampsPage() {
       )}
 
       {/* 右下の地図ボタンに最後のカードが隠れないように */}
-      <main className="content" style={{ paddingBottom: 96 }}>
+      <main key={view} className={`content ${swap}`} style={{ paddingBottom: 96 }}>
         {view === "旅日記" && records && <Diary entries={diary} popOf={popOf} />}
         {view === "スタンプ帳" && REGIONS.map((r) => {
           const done = r.places.filter((c) => stamps.has(c.name)).length;

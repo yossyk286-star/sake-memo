@@ -3,6 +3,8 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { markSheetOrigin } from "@/lib/sheetDepth";
 import { drinkTitle, stars } from "@/components/RecordCard";
 import { JAPAN_BOXES, JAPAN_PATHS, JAPAN_VIEWBOX, OKINAWA_SHIFT } from "@/lib/japanMap";
 import { REGIONS, type Stamp } from "@/lib/origins";
@@ -39,6 +41,7 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
     } catch {}
   };
   useEffect(() => {
+    markSheetOrigin();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -71,7 +74,8 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
     </path>
   );
 
-  return (
+  // 後ろの画面（.app）を奥へ下げるので、シートはその外（body の直下）に置く
+  return createPortal(
     <div className="sheet-backdrop" onClick={onClose}>
       <section
         className="sheet jmap-sheet"
@@ -158,6 +162,7 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
 
         <p className="jmap-credit">{mode === "日本" ? tr("地図：MapSVG（CC BY 4.0）") : tr("地図：Natural Earth")}</p>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

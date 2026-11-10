@@ -3,7 +3,7 @@
 import { useEffect, useId, useState } from "react";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 import type { QA } from "@/lib/types";
-import Skeleton from "./Skeleton";
+import Steps from "./Steps";
 import { getLang, tr, trv } from "@/lib/i18n";
 
 /**
@@ -32,6 +32,8 @@ export default function AskAI({
   const [passcode, setPasscode] = useState("");
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  // 届いた分から書かれていくように出す答え
+  const [partial, setPartial] = useState<{ q: string; a: string } | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -57,13 +59,33 @@ export default function AskAI({
           history: shown.map(({ q, a }) => ({ q, a })),
           passcode: normalizePasscode(passcode),
           lang: getLang(),
+          stream: true,
         }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (res.status === 401) setSaved(false);
-      if (!res.ok) throw new Error(data.error ?? "答えをもらえませんでした");
-      savePasscode(normalizePasscode(passcode));
-      const qa = { q, a: data.answer, at: Date.now() };
+      let answer = "";
+      if (res.ok && res.body && res.headers.get("Content-Type")?.startsWith("text/plain")) {
+        savePasscode(normalizePasscode(passcode));
+        const reader = res.body.getReader();
+        const dec = new TextDecoder();
+        setPartial({ q, a: "" });
+        try {
+          for (let r = await reader.read(); !r.done; r = await reader.read()) {
+            answer += dec.decode(r.value, { stream: true });
+            setPartial({ q, a: answer });
+          }
+        } catch {
+          throw new Error("答えが途中で切れました。もう一度お試しください");
+        }
+        answer = answer.trim();
+        if (!answer) throw new Error("答えをもらえませんでした");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) setSaved(false);
+        if (!res.ok) throw new Error(data.error ?? "答えをもらえませんでした");
+        savePasscode(normalizePasscode(passcode));
+        answer = data.answer;
+      }
+      const qa = { q, a: answer, at: Date.now() };
       if (onAnswered) await onAnswered(qa);
       if (!history) setLocal((l) => [...l, qa]);
       setQuestion("");
@@ -71,11 +93,12 @@ export default function AskAI({
       setError(e instanceof Error ? e.message : "答えをもらえませんでした");
     } finally {
       setBusy(false);
+      setPartial(null);
     }
   }
 
   return (
-    <section className={bare ? "ask-ai ask-ai-bare" : "card ask-ai"}>
+    <section className={`${bare ? "ask-ai ask-ai-bare" : "card ask-ai"}${busy ? " ai-glow" : ""}`}>
       {!bare && <h2 style={{ fontSize: 16 }}>{tr("AI に聞く")}</h2>}
       {shown.map((h) => (
         <div key={h.at} className="ask-qa">
@@ -83,7 +106,14 @@ export default function AskAI({
           <p className="ask-a">{trv(h.a)}</p>
         </div>
       ))}
-      {busy && <Skeleton plain label={tr("考えています…")} lines={3} />}
+      {partial?.a ? (
+        <div className="ask-qa" aria-live="polite">
+          <p className="ask-q">{trv(partial.q)}</p>
+          <p className="ask-a ask-caret">{partial.a}</p>
+        </div>
+      ) : (
+        busy && <Steps title="考えています" steps={["質問を送りました", "答えを考えています", "答えを書きます"]} at={1} />
+      )}
       <div className="scroll-row" style={{ margin: 0 }}>
         {suggestions.map((s) => (
           <button key={s} type="button" className="chip" disabled={busy} onClick={() => ask(s)}>
