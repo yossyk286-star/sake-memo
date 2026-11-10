@@ -25,13 +25,18 @@ interface SakeDB extends DBSchema {
     key: string;
     value: Bottle;
   };
+  /** 書きかけの記録や、電波がなくて読み取れなかった写真など、ちょっとした保存場所 */
+  kv: {
+    key: string;
+    value: unknown;
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<SakeDB>> | null = null;
 
 function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB<SakeDB>("sake-memo", 2, {
+    dbPromise = openDB<SakeDB>("sake-memo", 3, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           const store = db.createObjectStore("records", { keyPath: "id" });
@@ -39,12 +44,25 @@ function getDB() {
           db.createObjectStore("wishes", { keyPath: "id" });
         }
         if (oldVersion < 2) db.createObjectStore("bottles", { keyPath: "id" });
+        if (oldVersion < 3) db.createObjectStore("kv");
       },
     });
     // ブラウザに「消さないで」と依頼する（対応ブラウザのみ）
     navigator.storage?.persist?.().catch(() => {});
   }
   return dbPromise;
+}
+
+export async function getKV<T>(key: string): Promise<T | undefined> {
+  return (await (await getDB()).get("kv", key)) as T | undefined;
+}
+
+export async function setKV(key: string, value: unknown) {
+  await (await getDB()).put("kv", value, key);
+}
+
+export async function deleteKV(key: string) {
+  await (await getDB()).delete("kv", key);
 }
 
 /** 新しい順（日付 → 作成時刻） */

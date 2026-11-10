@@ -1505,6 +1505,17 @@ button.stamp {
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+/* その日の杯数・金額・純アルコール量 */
+.date-total {
+  font-size: 12px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 .date-head:first-child {
   margin-top: 0;
@@ -3549,4 +3560,25 @@ html[lang="en"] .diary-note.quote::before {
 }
 html[lang="en"] .diary-note.quote::after {
   content: "”";
+}
+
+/* しばらく書き出していないときのお知らせ・書きかけの記録 */
+.draft-note,
+.pending-photos,
+.backup-nudge {
+  display: grid;
+  gap: 10px;
+}
+.pending-photos {
+  background: var(--surface);
+}
+.draft-note h2,
+.pending-photos h2,
+.backup-nudge h2 {
+  margin: 0;
+}
+/* 銘柄の下の「前に飲んだ：★4・10/3・〇〇酒場」 */
+.past-note {
+  margin: 4px 0 0;
+  font-size: 13px;
 }
