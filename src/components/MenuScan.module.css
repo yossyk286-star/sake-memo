@@ -199,23 +199,8 @@
 }
 
 /* 撮る・写真から・文字で が何をするかの一言 */
-.howTo {
-  margin: -4px 0 0;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2px 10px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--muted);
-}
 
-.howTo dt {
-  font-weight: 600;
-}
 
-.howTo dd {
-  margin: 0;
-}
 
 /* AI を使わずに出したお酒のカードの中の一言と、調べ直すリンク */
 .localNote {
@@ -378,4 +363,41 @@
 .box.box :global(.btn-secondary),
 .box.box :global(.input) {
   background-color: var(--surface);
+}
+
+/* 閉じたカードは、左に名前と一言、右に「＋記録」「☆」の1段にして低くする */
+.closed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "pick pick" "head act" "line act";
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 10px 12px 10px 16px;
+}
+.closed .pick {
+  grid-area: pick;
+  margin: 0 0 6px;
+}
+.closed .cardHead {
+  grid-area: head;
+  min-width: 0;
+}
+/* 長い名前は2行まで */
+.closed .name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.35;
+}
+.closed .cardTop {
+  min-width: 0;
+}
+.closed .oneLine {
+  grid-area: line;
+}
+.closed .actions {
+  grid-area: act;
 }

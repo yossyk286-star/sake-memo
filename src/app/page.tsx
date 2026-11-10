@@ -28,6 +28,14 @@ function dateHead(date: string) {
   return thisYear ? md : tr("{0}年{1}", y, md);
 }
 
+/** 「2026-10」→「10月」。今年以外は年も出す */
+function monthHead(month: string) {
+  const [y, m] = month.split("-").map(Number);
+  if (getLang() === "en")
+    return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: y === new Date().getFullYear() ? undefined : "numeric" });
+  return y === new Date().getFullYear() ? tr("{0}月", m) : tr("{0}年{1}月", y, m);
+}
+
 export default function RecordsPage() {
   const [records, setRecords] = useState<TastingRecord[] | null>(null);
   const [query, setQuery] = useState("");
@@ -76,9 +84,48 @@ export default function RecordsPage() {
   }, [records, query, genre, goodOnly, sort]);
 
   const filtering = !!query.trim() || !!genre || goodOnly;
+
+  // 日付順のときは月ごとにまとめ、いちばん新しい月だけ開いておく（絞り込み・並べ替え中は全部見せる）
+  const months = useMemo(() => {
+    const out: { month: string; days: typeof days; count: number }[] = [];
+    for (const d of days) {
+      const m = d.date.slice(0, 7);
+      const last = out[out.length - 1];
+      if (last?.month === m) {
+        last.days.push(d);
+        last.count += d.records.length;
+      } else out.push({ month: m, days: [d], count: d.records.length });
+    }
+    return out;
+  }, [days]);
+  const foldMonths = !filtering && sort === "default" && months.length > 1;
   const genresUsed = useMemo(
     () => [...new Set((records ?? []).map(genreOf))],
     [records],
+  );
+
+  const renderDay = (day: (typeof days)[number]) => (
+          <section key={day.date} className="day">
+            {day.date && (
+              <h2 className="date-head">
+                {dateHead(day.date)}
+                {/* 絞り込み中は一部の記録だけになるので、その日の合計は出さない */}
+                {!filtering && <span className="date-total">{dayTotal(day.records)}</span>}
+              </h2>
+            )}
+            <div className="list-group">
+              {day.records.map((r) => (
+                <SwipeRecord
+                  key={r.id}
+                  record={r}
+                  showDate={!day.date}
+                  onDeleted={(id) =>
+                    setRecords((rs) => rs?.filter((x) => x.id !== id) ?? null)
+                  }
+                />
+              ))}
+            </div>
+          </section>
   );
 
   return (
@@ -166,29 +213,17 @@ export default function RecordsPage() {
         {records && records.length > 0 && filtering && days.length === 0 && (
           <p className="empty">{tr("当てはまる記録がありません。")}</p>
         )}
-        {days.map((day) => (
-          <section key={day.date} className="day">
-            {day.date && (
-              <h2 className="date-head">
-                {dateHead(day.date)}
-                {/* 絞り込み中は一部の記録だけになるので、その日の合計は出さない */}
-                {!filtering && <span className="date-total">{dayTotal(day.records)}</span>}
-              </h2>
-            )}
-            <div className="list-group">
-              {day.records.map((r) => (
-                <SwipeRecord
-                  key={r.id}
-                  record={r}
-                  showDate={!day.date}
-                  onDeleted={(id) =>
-                    setRecords((rs) => rs?.filter((x) => x.id !== id) ?? null)
-                  }
-                />
-              ))}
-            </div>
-          </section>
-        ))}
+        {foldMonths
+          ? months.map((m, i) => (
+              <details key={m.month} className="month-fold" open={i === 0}>
+                <summary>
+                  <span>{monthHead(m.month)}</span>
+                  <span className="month-fold-count">{tr("{0}杯", m.count)}</span>
+                </summary>
+                <div className="month-body">{m.days.map(renderDay)}</div>
+              </details>
+            ))
+          : days.map(renderDay)}
       </main>
 
       <Link href="/new" className="fab" data-tour="fab">

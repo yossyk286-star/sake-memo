@@ -4511,3 +4511,221 @@ html[data-text="large"] body {
   color: var(--muted);
   cursor: grab;
 }
+
+/* --- 縦に長くならないよう畳む（記録の月・辞典・気になる） --- */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* 記録一覧：月ごとに畳む */
+.month-body,
+.fold-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.month-body {
+  margin-top: 8px;
+}
+.fold-body {
+  gap: 6px;
+}
+.month-fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  font-weight: 700;
+}
+.month-fold > summary::after,
+.term-row > summary::after,
+.tips-fold > summary::after {
+  content: "›";
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 400;
+  transition: transform 0.15s;
+}
+.month-fold[open] > summary::after,
+.term-row[open] > summary::after,
+.tips-fold[open] > summary::after {
+  transform: rotate(90deg);
+}
+.month-fold-count {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.month-fold[open] > summary {
+  background: none;
+  box-shadow: none;
+  padding: 4px 4px 0;
+}
+
+/* 先月のふりかえり：はじめは1行の帯 */
+.recap-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--radius);
+  color: #fff;
+  background: linear-gradient(155deg, var(--accent-l), color-mix(in srgb, var(--accent-l) 60%, #8fa2ff));
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.recap-band .recap-eyebrow {
+  grid-column: 1;
+  font-size: 12px;
+}
+.recap-band strong {
+  grid-column: 1;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recap-band::after {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  content: "›";
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+/* 辞典：選び方の目安は1行に畳む */
+.tips-fold > summary {
+  display: flex;
+  align-items: center;
+}
+.tips-fold > summary h2 {
+  margin: 0;
+}
+.tips-fold[open] > summary {
+  margin-bottom: 6px;
+}
+
+/* 辞典：用語は名前だけの1行。押すと説明が開く */
+.term-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.term-group-head {
+  margin: 6px 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.term-row {
+  position: relative;
+  padding: 0 16px;
+}
+.term-row + .term-row::before,
+.wish-row + .wish-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 0;
+  border-top: 0.5px solid var(--line);
+}
+.term-row > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 46px;
+  padding: 12px 0;
+  box-sizing: border-box;
+}
+.term-row > summary strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.term-row > summary strong .muted {
+  font-weight: 400;
+  font-size: 13px;
+}
+.term-row > summary > .muted {
+  font-size: 11px;
+}
+.term-row[open] {
+  padding-bottom: 12px;
+}
+.term-row[open] > summary {
+  padding-bottom: 6px;
+}
+
+/* 気になる：1件1行。右に「＋記録」、説明と「外す」は押したときだけ */
+.wish-row {
+  position: relative;
+}
+.wish-row details {
+  padding: 0 16px;
+}
+.wish-row summary {
+  display: grid;
+  align-content: center;
+  min-height: 56px;
+  gap: 1px;
+  padding: 10px 84px 10px 0;
+}
+.wish-row summary strong {
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wish-row summary .muted {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wish-row details[open] {
+  padding-bottom: 12px;
+}
+.wish-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.wish-remove {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--danger, #d92d20);
+}
+.wish-add {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+/* 辞典の「すべて」：種類ごとの目次。閉じた行どうしは詰めて並べる */
+.term-fold + .term-fold {
+  margin-top: -4px;
+}
