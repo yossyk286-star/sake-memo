@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { drinkTitle, stars, yen } from "@/components/RecordCard";
 import TasteMap from "@/components/TasteMap";
 import { summarize, type GroupAverage } from "@/lib/analysis";
@@ -13,47 +13,25 @@ import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import TitleCard from "@/components/TitleCard";
+import { ordered, ReorderList, type Section } from "@/components/Reorder";
+import { APP } from "@/lib/appeal";
 import { tr, trv } from "@/lib/i18n";
 
 const MIN_RECORDS = 5;
-
-function Bars({ title, rows }: { title: string; rows: GroupAverage[] }) {
-  if (rows.length === 0) return null;
-  return (
-    <section className="card" style={{ gap: 12 }}>
-      <h2 style={{ fontSize: 14 }}>{trv(title)}</h2>
-      {rows.map((r) => (
-        <div key={r.label} className="bar-row">
-          <span>{trv(r.label)}</span>
-          <div className="bar-track" aria-hidden="true">
-            <div className="bar-fill" style={{ width: `${(r.average / 5) * 100}%` }} />
-          </div>
-          <span className="bar-value">
-            {r.average.toFixed(1)}
-            <span className="muted" style={{ fontSize: 11, fontWeight: 400 }}>
-              {" "}
-              ({trv(r.count)})
-            </span>
-          </span>
-        </div>
-      ))}
-    </section>
-  );
-}
 
 function average(xs: number[]) {
   return xs.reduce((a, b) => a + b, 0) / xs.length;
 }
 
 /** 値段を入れた記録の平均と、安くて評価の高かったお酒 */
-function PriceCard({ records, budget }: { records: TastingRecord[]; budget: number | null }) {
+function PriceLines({ records, budget }: { records: TastingRecord[]; budget: number | null }) {
   const priced = records.filter((r) => r.price);
   if (priced.length === 0) return null;
   const liked = priced.filter((r) => r.overall >= 4);
   // 評価が高い順、同じなら安い順
   const bargain = [...liked].sort((a, b) => b.overall - a.overall || a.price! - b.price!)[0];
   return (
-    <section className="card" style={{ gap: 6 }}>
+    <>
       <h2 style={{ fontSize: 14 }}>{tr("値段")}</h2>
       <p style={{ margin: 0, fontSize: 14 }}>
         {tr("1杯の平均")}{" "}<strong>{yen(average(priced.map((r) => r.price!)))}</strong>
@@ -77,6 +55,57 @@ function PriceCard({ records, budget }: { records: TastingRecord[]; budget: numb
           </Link>
         </p>
       )}
+    </>
+  );
+}
+
+type View = "taste" | "title";
+const VIEW_KEY = `${APP.id}:taste-view`;
+const ORDER_KEY = `${APP.id}:taste-order`;
+
+function loadOrder(): Record<View, string[]> {
+  try {
+    const s = localStorage.getItem(ORDER_KEY);
+    if (s) return { taste: [], title: [], ...(JSON.parse(s) as Partial<Record<View, string[]>>) };
+  } catch {
+    // 読めないときは元の順
+  }
+  return { taste: [], title: [] };
+}
+
+/** 種類・タイプ・飲み方・産地の評価を、切り替え1枚で見せる */
+function BarsSwitch({ groups }: { groups: [string, GroupAverage[]][] }) {
+  const shown = groups.filter(([, rows]) => rows.length > 0);
+  const [pick, setPick] = useState(0);
+  if (shown.length === 0) return null;
+  const [, rows] = shown[Math.min(pick, shown.length - 1)];
+  return (
+    <section className="card" style={{ gap: 12 }} aria-label={tr("ごとの評価")}>
+      <div className="mode-switch" style={{ gridTemplateColumns: `repeat(${shown.length}, 1fr)` }} role="group" aria-label={tr("分け方")}>
+        {shown.map(([label], i) => (
+          <button key={label} type="button" aria-pressed={i === Math.min(pick, shown.length - 1)} onClick={() => setPick(i)}>
+            {tr(label)}
+          </button>
+        ))}
+      </div>
+      {rows.map((r) => (
+        <div key={r.label} className="bar-row">
+          <span>{trv(r.label)}</span>
+          <div className="bar-track" aria-hidden="true">
+            <div className="bar-fill" style={{ width: `${(r.average / 5) * 100}%` }} />
+          </div>
+          <span className="bar-value">
+            {r.average.toFixed(1)}
+            <span className="muted" style={{ fontSize: 11, fontWeight: 400 }}>
+              {" "}
+              ({trv(r.count)})
+            </span>
+          </span>
+        </div>
+      ))}
+      <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+        {tr("数字は総合の平均（カッコ内は件数）。産地は2杯以上のところだけ。")}
+      </p>
     </section>
   );
 }
@@ -85,12 +114,40 @@ export default function TastePage() {
   const [records, setRecords] = useState<TastingRecord[] | null>(null);
   const [wishCount, setWishCount] = useState(0);
   const [bottleCount, setBottleCount] = useState(0);
+  const [view, setView] = useState<View>("taste");
+  const [order, setOrder] = useState<Record<View, string[]>>({ taste: [], title: [] });
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     listRecords().then(setRecords);
     listWishes().then((ws) => setWishCount(ws.length));
     listBottles().then((bs) => setBottleCount(bs.filter((b) => !b.finished).length));
+    setOrder(loadOrder());
+    try {
+      if (localStorage.getItem(VIEW_KEY) === "title") setView("title");
+    } catch {
+      // 覚えられなくても傾向から出すだけ
+    }
   }, []);
+
+  const pickView = (v: View) => {
+    setView(v);
+    setEditing(false);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      // 覚えられなくてもよい
+    }
+  };
+  const saveOrder = (ids: string[]) => {
+    const next = { ...order, [view]: ids };
+    setOrder(next);
+    try {
+      localStorage.setItem(ORDER_KEY, JSON.stringify(next));
+    } catch {
+      // 覚えられない端末では、開き直すと元の順
+    }
+  };
 
   const stampInfo = useMemo(() => collectStamps(records ?? []), [records]);
   const shopCount = useMemo(() => groupByShop(records ?? []).length, [records]);
@@ -102,90 +159,69 @@ export default function TastePage() {
   const count = records?.length ?? 0;
   const summary = useMemo(() => (records && count >= MIN_RECORDS ? summarize(records) : null), [records, count]);
 
-  return (
-    <>
-      <header className="page-header">
-        <h1>{tr("好み")}</h1>
-      </header>
-      {summary && <p className="lead">{tr("記録 {0}件から。数字は総合の平均（カッコ内は件数）です。", count)}</p>}
-      <main className="content">
-        {records && <TitleCard records={records} />}
-        <Link href="/show" className="hub-item hub-show">
-          <strong>{tr("店員さんに見せる")}</strong>
-          <span className="muted">{tr("好みを大きく表示して「こういうのください」")}</span>
-        </Link>
-        <nav className="hub" aria-label={tr("記録のまとめ")}>
-          <Link href="/stamps" className="hub-item hub-num">
-            <strong>{tr("産地スタンプ帳")}</strong>
-            <HubValue text={tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)} />
-          </Link>
-          <Link href="/shops" className="hub-item hub-num">
-            <strong>{tr("お店")}</strong>
-            <HubValue text={tr("{0}軒", shopCount)} />
-          </Link>
-          <Link href="/wishlist" className="hub-item hub-num">
-            <strong>{tr("気になるお酒")}</strong>
-            <HubValue text={tr("{0}件", wishCount)} />
-          </Link>
-          <Link href="/bottles" className="hub-item hub-num">
-            <strong>{tr("家のお酒")}</strong>
-            <HubValue text={tr("{0}本", bottleCount)} />
-          </Link>
-          <Link href="/match" className="hub-item hub-show hub-match">
-            <strong>{tr("友だちと好みくらべ")}</strong>
-            <span className="muted">{tr("好みをリンクで送って、相性を見る")}</span>
-          </Link>
-          <Link href="/prefs" className="hub-item hub-wide">
-            <strong>{tr("わたしの好み")}</strong>
-            <span className="muted">{tr("自分で登録")}</span>
-          </Link>
-        </nav>
-        {ideas.length > 0 && (
-          <section className="tips">
-            <h2>{tr("次の一杯に")}</h2>
-            <ul className="next-list">
-              {(showAllIdeas ? ideas : ideas.slice(0, 1)).map((i) => (
-                <li key={i.title}>
-                  <strong>{trv(i.title)}</strong>
-                  <span>{trv(i.reason)}</span>
-                  {i.description && <span className="muted">{trv(i.description)}</span>}
-                </li>
-              ))}
-            </ul>
-            {ideas.length > 1 && (
-              <button type="button" className="text-btn next-more" aria-expanded={showAllIdeas} onClick={() => setShowAllIdeas((v) => !v)}>
-                {showAllIdeas ? tr("閉じる") : tr("ほかの案も見る（{0}件）", ideas.length - 1)}
-              </button>
-            )}
-          </section>
-        )}
-        {records && records.length > 0 && <TasteMap records={records} />}
-        {records && <PriceCard records={records} budget={loadPrefs().budget} />}
-        {records && !summary && (
-          <EmptyState
-            title={count === 0 ? tr("好みはこれから見えてくるよ") : tr("あと{0}杯で好みがわかるよ", MIN_RECORDS - count)}
-            actions={[{ href: "/new", label: count === 0 ? tr("1杯目を記録する") : tr("記録する") }]}
-          >
-            {tr("記録が{0}件たまると、あなたの好みの傾向を出すよ（いま {1}件）。", MIN_RECORDS, count)}
-          </EmptyState>
-        )}
-        {summary && (
-          <>
-            <section className="highlight">
-              <span style={{ fontSize: 12, opacity: 0.85 }}>{tr("いまの傾向")}</span>
-              {summary.bestCombo ? (
-                <p className="highlight-main">{tr("{0} の評価が高めです", summary.bestCombo.label)}</p>
-              ) : (
-                <p className="highlight-main">{tr("同じタイプと飲み方の組み合わせが2件以上たまると、ここに出ます")}</p>
-              )}
-            </section>
-            <Bars title={tr("種類ごと")} rows={summary.byKind} />
-            <Bars title={tr("タイプごと")} rows={summary.byStyle} />
-            <Bars title={tr("飲み方ごと")} rows={summary.byServe} />
-            <Bars title={tr("産地ごと（2杯以上）")} rows={summary.byOrigin} />
-            {summary.topFlavors.length > 0 && (
-              <section className="card">
-                <h2 style={{ fontSize: 14 }}>{tr("よく感じる味")}</h2>
+  const tasteSections = ([
+    summary && {
+      id: "trend",
+      label: "いまの傾向",
+      node: (
+        <section className="highlight">
+          <span style={{ fontSize: 12, opacity: 0.85 }}>{tr("いまの傾向")}</span>
+          {summary.bestCombo ? (
+            <p className="highlight-main">{tr("{0} の評価が高めです", summary.bestCombo.label)}</p>
+          ) : (
+            <p className="highlight-main">{tr("同じタイプと飲み方の組み合わせが2件以上たまると、ここに出ます")}</p>
+          )}
+        </section>
+      ),
+    },
+    ideas.length > 0 && {
+      id: "next",
+      label: "次の一杯に",
+      node: (
+        <section className="tips">
+          <h2>{tr("次の一杯に")}</h2>
+          <ul className="next-list">
+            {(showAllIdeas ? ideas : ideas.slice(0, 1)).map((i) => (
+              <li key={i.title}>
+                <strong>{trv(i.title)}</strong>
+                <span>{trv(i.reason)}</span>
+                {i.description && <span className="muted">{trv(i.description)}</span>}
+              </li>
+            ))}
+          </ul>
+          {ideas.length > 1 && (
+            <button type="button" className="text-btn next-more" aria-expanded={showAllIdeas} onClick={() => setShowAllIdeas((v) => !v)}>
+              {showAllIdeas ? tr("閉じる") : tr("ほかの案も見る（{0}件）", ideas.length - 1)}
+            </button>
+          )}
+        </section>
+      ),
+    },
+    records && records.length > 0 && { id: "map", label: "味マップ", node: <TasteMap records={records} /> },
+    summary && {
+      id: "bars",
+      label: "種類・タイプ・飲み方・産地ごと",
+      node: (
+        <BarsSwitch
+          groups={[
+            ["種類", summary.byKind],
+            ["タイプ", summary.byStyle],
+            ["飲み方", summary.byServe],
+            ["産地", summary.byOrigin],
+          ]}
+        />
+      ),
+    },
+    records &&
+      (records.some((r) => r.price) || (summary && summary.topFlavors.length > 0)) && {
+        id: "price",
+        label: "値段・よく感じる味",
+        node: (
+          <section className="card" style={{ gap: 6 }}>
+            <PriceLines records={records} budget={loadPrefs().budget} />
+            {summary && summary.topFlavors.length > 0 && (
+              <>
+                <h2 style={{ fontSize: 14, marginTop: records.some((r) => r.price) ? 8 : 0 }}>{tr("よく感じる味")}</h2>
                 <div className="tags">
                   {summary.topFlavors.map((f) => (
                     <span key={f.label} className="tag" style={{ fontSize: 13 }}>
@@ -193,12 +229,114 @@ export default function TastePage() {
                     </span>
                   ))}
                 </div>
-              </section>
+              </>
+            )}
+          </section>
+        ),
+      },
+    {
+      id: "actions",
+      label: "店員さんに見せる・好みくらべ",
+      node: (
+        <div className="taste-actions">
+          <Link href="/show" className="hub-item hub-show">
+            <strong>{tr("店員さんに見せる")}</strong>
+            <span className="muted">{tr("好みを大きく表示")}</span>
+          </Link>
+          <Link href="/match" className="hub-item hub-show hub-match">
+            <strong>{tr("友だちと好みくらべ")}</strong>
+            <span className="muted">{tr("リンクで相性を見る")}</span>
+          </Link>
+        </div>
+      ),
+    },
+  ] as (Section | false | null | undefined)[]).filter((s): s is Section => !!s);
+
+  const titleSections = ([
+    records && records.length > 0 && { id: "title", label: "称号としるし", node: <TitleCard records={records} /> },
+    {
+      id: "list",
+      label: "スタンプ帳・お店・気になる・家のお酒",
+      node: (
+        <nav className="hub-list" aria-label={tr("記録のまとめ")}>
+          <HubRow href="/stamps" icon="stamp" label="産地スタンプ帳" value={tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)} />
+          <HubRow href="/shops" icon="shop" label="お店" value={tr("{0}軒", shopCount)} />
+          <HubRow href="/wishlist" icon="star" label="気になるお酒" value={tr("{0}件", wishCount)} />
+          <HubRow href="/bottles" icon="bottle" label="家のお酒" value={tr("{0}本", bottleCount)} />
+          <HubRow href="/prefs" icon="pen" label="わたしの好み" note={tr("自分で登録")} />
+        </nav>
+      ),
+    },
+  ] as (Section | false | null | undefined)[]).filter((s): s is Section => !!s);
+
+  const sections = ordered(view === "taste" ? tasteSections : titleSections, order[view]);
+
+  return (
+    <>
+      <header className="page-header">
+        <h1>{tr("好み")}</h1>
+        {records && sections.length > 1 && (
+          <button type="button" className="text-btn" onClick={() => setEditing((v) => !v)} aria-pressed={editing}>
+            {editing ? tr("完了") : tr("並べ替え")}
+          </button>
+        )}
+      </header>
+      <main className="content">
+        <div className="mode-switch" role="group" aria-label={tr("見るもの")}>
+          <button type="button" aria-pressed={view === "taste"} onClick={() => pickView("taste")}>
+            {tr("わたしの傾向")}
+          </button>
+          <button type="button" aria-pressed={view === "title"} onClick={() => pickView("title")}>
+            {tr("称号")}
+          </button>
+        </div>
+        {view === "taste" && records && !summary && (
+          <EmptyState
+            title={count === 0 ? tr("好みはこれから見えてくるよ") : tr("あと{0}杯で好みがわかるよ", MIN_RECORDS - count)}
+            actions={[{ href: "/new", label: count === 0 ? tr("1杯目を記録する") : tr("記録する") }]}
+          >
+            {tr("記録が{0}件たまると、あなたの好みの傾向を出すよ（いま {1}件）。", MIN_RECORDS, count)}
+          </EmptyState>
+        )}
+        {editing ? (
+          <>
+            <p className="muted reorder-lead">{tr("つまんで上下に動かすと、この順で並びます。")}</p>
+            <ReorderList key={view} sections={sections} onOrder={saveOrder} />
+            {order[view].length > 0 && (
+              <button type="button" className="text-btn" onClick={() => saveOrder([])}>
+                {tr("元の順にもどす")}
+              </button>
             )}
           </>
+        ) : (
+          records && sections.map((s) => <Fragment key={s.id}>{s.node}</Fragment>)
         )}
       </main>
     </>
+  );
+}
+
+const ICONS: Record<string, ReactNode> = {
+  stamp: <><circle cx="10" cy="10" r="6.5" /><circle cx="10" cy="10" r="3" /></>,
+  shop: <path d="M3.5 8.5 10 3.5l6.5 5V16h-13z M8 16v-4h4v4" />,
+  star: <path d="m10 3 2.1 4.4 4.8.6-3.5 3.3.9 4.7L10 13.7 5.7 16l.9-4.7L3.1 8l4.8-.6z" />,
+  bottle: <path d="M8 3h4v3.5l1.5 2V17h-7V8.5L8 6.5z M6.5 11h7" />,
+  pen: <path d="M4 16l1-4 8-8 3 3-8 8zM11.5 5.5l3 3" />,
+};
+
+/** 称号の画面の一覧の1行（アイコン・名前・数字・›） */
+function HubRow({ href, icon, label, value, note }: { href: string; icon: string; label: string; value?: string; note?: string }) {
+  return (
+    <Link href={href} className="hub-row">
+      <span className="hub-icon" aria-hidden="true">
+        <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round">
+          {ICONS[icon]}
+        </svg>
+      </span>
+      <strong>{tr(label)}</strong>
+      {value && <HubValue text={value} />}
+      {note && <span className="muted">{note}</span>}
+    </Link>
   );
 }
 

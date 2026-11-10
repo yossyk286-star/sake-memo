@@ -4389,3 +4389,125 @@ html[data-text="large"] body {
   color: var(--muted);
   font-weight: 600;
 }
+
+/* --- 好み：「わたしの傾向／称号」の切り替えと並べ替え --- */
+.taste-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.taste-actions .hub-item {
+  padding: 12px;
+}
+.taste-actions .hub-item strong {
+  font-size: 14px;
+}
+.taste-actions .hub-item .muted {
+  font-size: 12px;
+}
+.hub-list {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.hub-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 14px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 15px;
+}
+.hub-row + .hub-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 54px;
+  right: 0;
+  border-top: 0.5px solid var(--line);
+}
+.hub-row strong {
+  flex: 1;
+  font-weight: 500;
+}
+.hub-row::after {
+  content: "›";
+  color: var(--muted);
+  font-size: 18px;
+  opacity: 0.6;
+}
+.hub-row .hub-value {
+  font-size: 20px;
+}
+.hub-row .hub-value small {
+  font-size: 12px;
+  font-weight: 500;
+}
+.hub-row .muted {
+  font-size: 14px;
+}
+.hub-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.hub-row:active {
+  background: var(--fill);
+}
+.reorder-lead {
+  margin: 4px 4px 0;
+  font-size: 13px;
+}
+.reorder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reorder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 4px 0 16px;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  font-weight: 600;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.reorder-row[data-drag] {
+  position: relative;
+  z-index: 2;
+  cursor: grabbing;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  scale: 1.02;
+}
+.reorder-handle {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: grab;
+}

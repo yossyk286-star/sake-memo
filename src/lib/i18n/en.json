@@ -1531,5 +1531,22 @@
 "+{0}{1}": "+{0}",
 "称号の段": "Title levels",
 "{0}{1}〜": "{0}+",
-"新しい称号": "New title"
+"新しい称号": "New title",
+"ごとの評価": "Ratings by group",
+"分け方": "Group by",
+"数字は総合の平均（カッコ内は件数）。産地は2杯以上のところだけ。": "Average overall rating (count in brackets). Origins with 2+ drinks only.",
+"種類・タイプ・飲み方・産地ごと": "By type, style, serving & origin",
+"値段・よく感じる味": "Price & flavors",
+"店員さんに見せる・好みくらべ": "Show the staff & taste match",
+"好みを大きく表示": "Show my taste big",
+"リンクで相性を見る": "See your match via a link",
+"スタンプ帳・お店・気になる・家のお酒": "Stamps, places, want & bottles",
+"完了": "Done",
+"並べ替え": "Reorder",
+"見るもの": "View",
+"わたしの傾向": "My trends",
+"称号": "Title",
+"つまんで上下に動かすと、この順で並びます。": "Drag up or down to set the order.",
+"元の順にもどす": "Reset order",
+"{0}を動かす（↑↓キー）": "Move {0} (↑↓ keys)"
 }
