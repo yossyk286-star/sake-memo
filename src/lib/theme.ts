@@ -2,13 +2,13 @@
 export type Appearance = "auto" | "light" | "dark";
 
 export const ACCENTS = [
-  { id: "indigo", label: "藍", light: "#3d4fa8", dark: "#8c9cf0" },
-  { id: "blue", label: "青", light: "#0a6cdc", dark: "#4a9eff" },
-  { id: "wine", label: "葡萄", light: "#a3264c", dark: "#f0708f" },
-  { id: "amber", label: "琥珀", light: "#ad5f0b", dark: "#f5a742" },
-  { id: "green", label: "若竹", light: "#2f7d55", dark: "#5cc98e" },
-  { id: "purple", label: "藤", light: "#7344b8", dark: "#b494f2" },
-  { id: "graphite", label: "墨", light: "#3a3d46", dark: "#c9ccd6" },
+  { id: "indigo", label: "藍", light: "#3d4fa8", dark: "#8c9cf0", bgDark: "#11131c" },
+  { id: "blue", label: "青", light: "#0a6cdc", dark: "#4a9eff", bgDark: "#0b131e" },
+  { id: "wine", label: "葡萄", light: "#a3264c", dark: "#f0708f", bgDark: "#190f15" },
+  { id: "amber", label: "琥珀", light: "#ad5f0b", dark: "#f5a742", bgDark: "#19140e" },
+  { id: "green", label: "若竹", light: "#2f7d55", dark: "#5cc98e", bgDark: "#0d1715" },
+  { id: "purple", label: "藤", light: "#7344b8", dark: "#b494f2", bgDark: "#14121d" },
+  { id: "graphite", label: "墨", light: "#3a3d46", dark: "#c9ccd6", bgDark: "#16171a" },
 ] as const;
 
 export type AccentId = (typeof ACCENTS)[number]["id"];
@@ -19,8 +19,8 @@ export type Theme = { appearance: Appearance; accent: AccentId; text?: "normal" 
 const KEY = "sake-memo:theme";
 export const DEFAULT_THEME: Theme = { appearance: "auto", accent: "indigo" };
 
-/** 画面の背景色（ステータスバーの色に使う）。globals.css の --bg と合わせる */
-const BG = { light: "#f2f2f7", dark: "#000000" };
+/** 画面の背景色（ステータスバーの色に使う）。globals.css の --bg と合わせる。ダークはテーマ色ごとの bgDark */
+const BG_LIGHT = "#f2f2f7";
 
 export function loadTheme(): Theme {
   try {
@@ -49,7 +49,7 @@ export function applyTheme(theme: Theme) {
     theme.appearance === "dark" ||
     (theme.appearance === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
   document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
-    m.setAttribute("content", dark ? BG.dark : BG.light);
+    m.setAttribute("content", dark ? (ACCENTS.find((a) => a.id === theme.accent) ?? ACCENTS[0]).bgDark : BG_LIGHT);
   });
 }
 
