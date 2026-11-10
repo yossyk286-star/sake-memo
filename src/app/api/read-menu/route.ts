@@ -183,6 +183,42 @@ export async function POST(req: Request) {
       const q = i === 0 ? `## 見ているもの\n${context}\n\n## 質問\n${t.q}` : t.q;
       return t.a ? [{ role: "user" as const, content: q }, { role: "assistant" as const, content: t.a }] : [{ role: "user" as const, content: q }];
     });
+    // 画面に書かれていくように見せるため、届いた分から少しずつ送る（最初の1つが届くまでの失敗はいつも通り JSON で返す）
+    if (body.stream === true) {
+      try {
+        const it = client.messages
+          .stream({ model: MODEL, max_tokens: 1500, system: sys(ASK_SYSTEM), output_config: { effort: "low" }, messages })
+          [Symbol.asyncIterator]();
+        const textOf = (ev: Anthropic.MessageStreamEvent) =>
+          ev.type === "content_block_delta" && ev.delta.type === "text_delta" ? ev.delta.text : "";
+        // 最初の文字が届くまで待つ（ここまでの失敗は apiError で理由を返す）
+        let first = "";
+        for (let r = await it.next(); !r.done; r = await it.next()) {
+          first = textOf(r.value);
+          if (first) break;
+        }
+        if (!first) return error(422, "うまく答えられませんでした。聞き方を変えてみてください");
+        const enc = new TextEncoder();
+        const out = new ReadableStream<Uint8Array>({
+          async start(c) {
+            c.enqueue(enc.encode(first));
+            try {
+              for (let r = await it.next(); !r.done; r = await it.next()) {
+                const t = textOf(r.value);
+                if (t) c.enqueue(enc.encode(t));
+              }
+              c.close();
+            } catch (e) {
+              console.error("ask stream error", e);
+              c.error(e);
+            }
+          },
+        });
+        return new Response(out, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
+      } catch (e) {
+        return apiError(e);
+      }
+    }
     try {
       const response = await client.messages.create({
         model: MODEL,

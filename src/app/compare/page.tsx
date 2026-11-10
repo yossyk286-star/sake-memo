@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -171,7 +172,7 @@ function CompareBody() {
                     values: TASTE_AXES.map(([, get]) => get(r)),
                   })),
                 );
-                await shareImage(blob, tr("くらべる")).catch(() => alert(tr("共有できませんでした")));
+                await shareImage(blob, tr("くらべる")).catch(() => toast("共有できませんでした", { tone: "warn" }));
               }}
             >
               {tr("画像にして送る")}
