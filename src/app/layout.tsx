@@ -5,6 +5,7 @@ import ClearField from "@/components/ClearField";
 import LangGate from "@/components/LangGate";
 import LaunchScreen from "@/components/LaunchScreen";
 import TabBar from "@/components/TabBar";
+import Welcome from "@/components/Welcome";
 import ThemeSync from "@/components/ThemeSync";
 import { THEME_BOOT } from "@/lib/theme";
 import "./globals.css";
@@ -63,6 +64,7 @@ export default function RootLayout({
           <TabBar />
           <Buddy />
           <ClearField />
+          <Welcome />
         </LangGate>
         <ServiceWorker />
         <ThemeSync />
