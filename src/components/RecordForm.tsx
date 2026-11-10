@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { MultiChips, SingleChips } from "./ChipGroup";
 import AbvInput from "./AbvInput";
 import GlossarySheet from "./GlossarySheet";
-import SavedCheck from "./SavedCheck";
 import { RecordPreview, shortDate, stars } from "./RecordCard";
+import { toast } from "@/lib/toast";
 import { announceBuddy, buddyLine } from "@/lib/buddy";
 import { deleteRecord, putRecord, listRecords } from "@/lib/db";
 import { clearStash, saveStash } from "@/lib/recordDraft";
@@ -275,7 +275,6 @@ export default function RecordForm({
   const [shopNames, setShopNames] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   // 編集はふだん全部の項目を見たいので「くわしく」から。新規は前に選んだほう
   const [mode, setModeState] = useState<FormMode>("くわしく");
   useEffect(() => {
@@ -395,10 +394,8 @@ export default function RecordForm({
     };
     await putRecord(record);
     if (autosave && !initial) clearStash();
-    // ✓ を少し見せてから移る（動きを減らす設定の人はすぐ移る）
-    setSaved(true);
-    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) await new Promise((r) => setTimeout(r, 700));
-    setSaved(false);
+    // 上のカプセルで知らせる（画面を移っても残るので、待たずにすぐ移る）
+    toast("保存しました");
     // 新しい記録のときだけ、相棒がひとこと言う
     if (!initial) listRecords().then((all) => announceBuddy(buddyLine(record, all, { fromWish })));
     if (onSaved) return onSaved(record);
@@ -747,7 +744,6 @@ export default function RecordForm({
           </button>
         )}
 
-        {saved && <SavedCheck />}
         <div className="save-bar">
           <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? tr("保存中…") : tr("保存する")}

@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import AskAI from "@/components/AskAI";
@@ -84,7 +85,7 @@ function DetailBody() {
       footer: trJoin([r.shop, r.date.replaceAll("-", "/")]),
       photo: photos[0] ?? null,
     });
-    await shareImage(blob, drinkTitle(r)).catch(() => alert(tr("共有できませんでした")));
+    await shareImage(blob, drinkTitle(r)).catch(() => toast("共有できませんでした", { tone: "warn" }));
   }
 
   async function addQA(qa: QA) {

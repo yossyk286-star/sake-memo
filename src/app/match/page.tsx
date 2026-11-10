@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import QRCode from "qrcode";
@@ -88,6 +89,7 @@ function Compare({ name, card, records }: { name: string; card: NonNullable<Retu
                     onClick={async () => {
                       await putWish(favToWish(f, tr("{0} さんのおすすめ", who)));
                       setSaved((s) => new Set(s).add(v.title));
+                      toast("気になるに入れました", { tone: "star", action: { label: "見る", href: "/wishlist" } });
                     }}
                   >
                     {on ? tr("☆ 気になるに入れました") : tr("☆ 気になる")}
@@ -116,7 +118,6 @@ function Compare({ name, card, records }: { name: string; card: NonNullable<Retu
 function Send({ records }: { records: TastingRecord[] }) {
   const [name, setName] = useState("");
   const [qr, setQr] = useState("");
-  const [copied, setCopied] = useState(false);
   useEffect(() => setName(loadMyName()), []);
   const card = useMemo(() => myCard(records), [records]);
   const ok = hasTaste(card.t);
@@ -185,12 +186,11 @@ function Send({ records }: { records: TastingRecord[] }) {
             }
           }
           await navigator.clipboard?.writeText(url).catch(() => {});
-          setCopied(true);
+          toast("リンクをコピーしました");
         }}
       >
         {tr("LINE などで送る")}
       </button>
-      {copied && <p className="muted" role="status">{tr("リンクをコピーしました")}</p>}
       {qr && (
         <section className="card match-qr">
           <span className="muted">{tr("となりの人には、この QR を読んでもらう")}</span>

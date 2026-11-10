@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/lib/toast";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { drinkToDraft, type MenuScanResult, type DishIdeas, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
 import { placeOf } from "@/lib/origins";
@@ -17,8 +18,8 @@ import { shrinkForReading } from "@/lib/photo";
 import { addPending, fetchOnline, loadPending, OfflineError, setPending as savePending } from "@/lib/pending";
 import PendingPhotos from "./PendingPhotos";
 import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
-import Skeleton from "./Skeleton";
 import { announceBuddy, pick } from "@/lib/buddy";
+import Steps from "./Steps";
 import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
 import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
@@ -179,6 +180,9 @@ export default function MenuScan({
   }, [drinks]);
   // 何枚か選んだときの「何枚目を読み取り中か」
   const [progress, setProgress] = useState<{ at: number; of: number } | null>(null);
+  // 待つあいだの段（0 写真を整える・1 AI が読む／調べる・2 好みと照らす）と、いま届いたお酒（1枚ずつ浮かべる）
+  const [phase, setPhase] = useState(0);
+  const [fresh, setFresh] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   // 名前で調べる欄は「文字で」を押したときだけ出す（まめメモと同じ）
@@ -271,6 +275,7 @@ export default function MenuScan({
       const added = { ...b, id: crypto.randomUUID(), savedAt: Date.now() };
       await putWish(added);
       setWishes((ws) => [added, ...ws]);
+      toast("気になるに入れました", { tone: "star", action: { label: "見る", href: "/wishlist" } });
     }
   }
 
@@ -403,6 +408,7 @@ export default function MenuScan({
       return false;
     }
     setStatus("reading");
+    setPhase(0);
     let image: string;
     try {
       // 小さい字も読めるよう、長辺1600pxまでにして送る（Haiku なので料金はほぼ変わらない）
@@ -573,8 +579,10 @@ export default function MenuScan({
     setLocalHit(null);
     setSearching("query" in payload ? payload.query : null);
     setStatus("reading");
+    setPhase(1);
     try {
       const data = await post(payload);
+      setPhase(2);
       const found = (data as MenuScanResult).drinks;
       if (found.length === 0)
         throw new Error(
@@ -589,6 +597,7 @@ export default function MenuScan({
       drinksRef.current = next;
       if (found.length > 1) setPairing(null);
       saveLastScan(next, loadLastScan()?.recorded ?? []);
+      setFresh(found.map((d) => d.name));
       setDrinks(next);
       onScanned?.(next);
       setStatus("done");
@@ -638,11 +647,11 @@ export default function MenuScan({
           setPending([]);
         }}
       />
-      <div className={status === "done" ? styles.shootRow : styles.shootCol}>
+      {/* 読み取り中は、押したボタンの段が「いま何をしているか」の帯に変わる */}
+      {status !== "reading" && <div className={status === "done" ? styles.shootRow : styles.shootCol}>
       <label
         data-tour="scan-shoot"
         className={`btn-primary ${styles.shoot}`}
-        aria-disabled={status === "reading"}
       >
         <svg
           width="20"
@@ -658,25 +667,17 @@ export default function MenuScan({
           <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
           <circle cx="12" cy="13" r="3.5" />
         </svg>
-        {status === "reading" && !searching
-          ? progress
-            ? tr("読み取り中…（{0}/{1}枚）", progress.at, progress.of)
-            : tr("読み取り中…")
-          : status === "done"
-            ? tr("撮る")
-            : tr("メニューやラベルを撮って読み取る")}
+        {status === "done" ? tr("撮る") : tr("メニューやラベルを撮って読み取る")}
         <input
           type="file"
           accept="image/*"
           capture="environment"
           onChange={onPhoto}
-          disabled={status === "reading"}
           className="visually-hidden"
         />
       </label>
 
-      {status !== "reading" && (
-        <label className="btn-secondary" data-tour="scan-photo" style={{ cursor: "pointer" }}>
+      <label className="btn-secondary" data-tour="scan-photo" style={{ cursor: "pointer" }}>
           {tr("写真から")}
           {/* capture を付けないとカメラではなく写真の一覧が開く */}
           <input
@@ -687,20 +688,29 @@ export default function MenuScan({
             className="visually-hidden"
           />
         </label>
-      )}
 
-        {status !== "reading" && !textOpen && (
+        {!textOpen && (
           <button type="button" className="btn-secondary" data-tour="scan-text" onClick={() => setTextOpen(true)}>
             {status === "done" ? tr("文字で") : tr("名前で調べる")}
           </button>
         )}
-      </div>
+      </div>}
 
       {status === "reading" && (
-        <Skeleton
-          label={searching ? tr("「{0}」を調べています…", searching) : tr("メニューを読み取っています…")}
-          cards={searching ? 1 : 3}
-          lines={searching ? 3 : 2}
+        <Steps
+          title={
+            searching
+              ? tr("「{0}」を調べています", searching)
+              : progress
+                ? tr("読み取り中…（{0}/{1}枚）", progress.at, progress.of)
+                : tr("メニューを読んでいます")
+          }
+          steps={
+            searching
+              ? ["名前を受け取りました", "お酒の情報を調べています", "好みと照らします"]
+              : ["写真を整えています", "お酒の名前を読んでいます", "好みと照らします"]
+          }
+          at={searching ? Math.max(1, phase) : phase}
         />
       )}
 
@@ -894,7 +904,7 @@ export default function MenuScan({
       )}
         </div>
       )}
-      {pairingBusy && <Skeleton label={tr("合う順を考えています…")} cards={2} lines={1} />}
+      {pairingBusy && <Steps title="合う順を考えています" steps={["お酒の一覧をまとめました", "相性を考えています", "合う順に並べます"]} at={1} />}
       {moodLocal && !pairingBusy && (moodWords.length > 1 || moodWords.some((w) => !MOODS.some((m) => m.label === w))) && (
         <p className={styles.lead}>
           {tr("{0}に合いそうな順に並べました", moodWords.map((w) => tr("「{0}」", w)).join(""))}
@@ -940,7 +950,8 @@ export default function MenuScan({
             <p className={styles.lead}>{tr("ここから下は{0}が入っていないもの", mustWords)}</p>
           )}
           <article
-            className={`${styles.drink} ${i === best ? styles.best : ""} ${open ? "" : styles.closed}`}
+            className={`${styles.drink} ${i === best ? styles.best : ""} ${open ? "" : styles.closed} ${fresh.includes(b.name) ? "reveal-item" : ""}`}
+            style={fresh.includes(b.name) ? { animationDelay: `${Math.min(fresh.indexOf(b.name), 6) * 0.08}s` } : undefined}
           >
             {/* 右上の角に置き、度数や「＋記録」から離して押し間違いを防ぐ。閉じたカードでは「＋記録」が右にあるので、開いたときだけ出す */}
             {open && <button

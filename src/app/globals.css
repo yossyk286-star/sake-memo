@@ -5144,3 +5144,396 @@ details > summary::-webkit-details-marker {
     transform: translateX(14px);
   }
 }
+
+/* ===== 動きとモダンなかたち（すべる切り替え・するっと開く段・進み具合・上のお知らせ・塗りのタブ・大小のタイル） ===== */
+
+/* 切り替え：選んだ側の白い丸を1つの板にして、押した方へすべらせる（何個目か・全部で何個かを :has で数える） */
+.mode-switch {
+  --n: 2;
+  --i: 0;
+  position: relative;
+  isolation: isolate;
+}
+.mode-switch:has(> :nth-child(3)) { --n: 3; }
+.mode-switch:has(> :nth-child(4)) { --n: 4; }
+.mode-switch:has(> :nth-child(5)) { --n: 5; }
+.mode-switch:has(> :nth-child(2):is([aria-pressed="true"], [aria-current="page"])) { --i: 1; }
+.mode-switch:has(> :nth-child(3):is([aria-pressed="true"], [aria-current="page"])) { --i: 2; }
+.mode-switch:has(> :nth-child(4):is([aria-pressed="true"], [aria-current="page"])) { --i: 3; }
+.mode-switch:has(> :nth-child(5):is([aria-pressed="true"], [aria-current="page"])) { --i: 4; }
+.mode-switch::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / var(--n));
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  transform: translateX(calc(100% * var(--i)));
+  transition: transform 0.32s cubic-bezier(0.3, 0.9, 0.3, 1.08);
+}
+.mode-switch:not(:has(> :is([aria-pressed="true"], [aria-current="page"])))::before {
+  opacity: 0;
+}
+:root .mode-switch.mode-switch > :is(button[aria-pressed="true"], a[aria-current="page"]) {
+  background: transparent;
+  box-shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mode-switch::before {
+    background: #636366;
+    box-shadow: none;
+  }
+}
+:root[data-theme="dark"] .mode-switch::before {
+  background: #636366;
+  box-shadow: none;
+}
+/* 切り替えた中身は、押した向きから入れ替わる */
+@keyframes swap-from-right {
+  from { opacity: 0; transform: translateX(14px); }
+}
+@keyframes swap-from-left {
+  from { opacity: 0; transform: translateX(-14px); }
+}
+.swap-next {
+  animation: swap-from-right 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+}
+.swap-prev {
+  animation: swap-from-left 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+}
+
+/* 畳んだ段：開くと中の行が上から順に浮かぶ（高さの動きは SmoothDetails） */
+@keyframes fold-in {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+details[open]:not([data-closing]) > :not(summary) {
+  animation: fold-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) 0.04s backwards;
+}
+.month-fold[data-closing] > summary::after,
+.term-row[data-closing] > summary::after,
+.tips-fold[data-closing] > summary::after,
+.badges[data-closing] summary::after,
+.wish-row details[data-closing] summary::after,
+.pair-dish[data-closing] > summary .pair-chevron {
+  transform: none;
+}
+.guide-item[data-closing] summary::after {
+  transform: translateY(-50%);
+}
+.month-fold > summary::after,
+.term-row > summary::after,
+.tips-fold > summary::after,
+.wish-row summary::after {
+  transition: transform 0.25s cubic-bezier(0.3, 0.9, 0.3, 1.1);
+}
+
+/* AI を待つあいだ：押したボタンが丸い帯になり、いまの段が進む */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.steps-pill {
+  position: relative;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface));
+  font-size: 14px;
+  font-weight: 600;
+  animation: pill-in 0.35s cubic-bezier(0.3, 0.9, 0.3, 1.1) backwards;
+}
+@keyframes pill-in {
+  from { opacity: 0; transform: scaleX(1.6) scaleY(1.05); border-radius: 12px; }
+}
+.steps-pill::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 40%;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: pill-run 1.6s ease-in-out infinite;
+}
+@keyframes pill-run {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+.step-spin {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2.5px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  animation: step-spin 0.8s linear infinite;
+}
+@keyframes step-spin {
+  to { transform: rotate(360deg); }
+}
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 12px 14px;
+  list-style: none;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 14px;
+}
+.steps-list li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+}
+.steps-list li[data-state="now"] {
+  color: var(--text);
+  font-weight: 700;
+}
+.steps-list li[data-state="done"] {
+  color: var(--text);
+}
+.step-ok,
+.step-wait {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+.step-ok {
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+  animation: check-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3) backwards;
+}
+.step-wait {
+  border: 1.5px dashed var(--muted);
+}
+/* 聞いた答えが流れて出るあいだの点滅する棒 */
+.ask-caret::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--accent);
+  animation: caret-blink 1s steps(1) infinite;
+}
+@keyframes caret-blink {
+  50% { opacity: 0; }
+}
+
+/* お知らせ：画面の上のふちから伸びる小さな黒いカプセル */
+.toaster {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 32px);
+  min-height: 40px;
+  padding: 6px 16px 6px 8px;
+  border-radius: 20px;
+  background: #0b0b0d;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+  animation: toast-in 0.45s cubic-bezier(0.3, 0.9, 0.3, 1.15) backwards;
+  overflow: hidden;
+}
+.toast > * {
+  animation: fade-in 0.2s 0.15s ease backwards;
+}
+.toast[data-out] {
+  animation: toast-out 0.3s ease-in forwards;
+}
+@keyframes toast-in {
+  from { clip-path: inset(0 calc(50% - 20px) round 20px); transform: translateY(-6px) scale(0.9); }
+  to { clip-path: inset(0 0 round 20px); }
+}
+@keyframes toast-out {
+  to { clip-path: inset(0 calc(50% - 20px) round 20px); opacity: 0; transform: translateY(-6px) scale(0.9); }
+}
+.toast-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 13px;
+  background: #34c759;
+  color: #fff;
+}
+.toast-icon[data-tone="star"] {
+  background: var(--star, #f0b24a);
+  color: #2a1c0c;
+}
+.toast-icon[data-tone="warn"] {
+  background: #ff9f0a;
+  color: #2a1c0c;
+}
+.toast-msg {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toast-action {
+  flex: none;
+  margin-left: 4px;
+  padding: 4px 2px;
+  border: 0;
+  background: none;
+  color: #ffcf7a;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .toast {
+    background: #2c2c2e;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+  }
+}
+:root[data-theme="dark"] .toast {
+  background: #2c2c2e;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+}
+
+/* タブ：選んだタブのアイコンは塗りの絵にして、ぴょこっと弾ませる */
+@keyframes tab-bounce {
+  0% { transform: scale(0.82); }
+  45% { transform: scale(1.18) translateY(-2px); }
+  75% { transform: scale(0.96); }
+  100% { transform: none; }
+}
+.tabbar-pill .tab[aria-current="page"] svg,
+.tab-scan[aria-current="page"] svg {
+  animation: tab-bounce 0.42s cubic-bezier(0.3, 0.7, 0.4, 1) backwards;
+}
+.tabbar-pill .tab[aria-current="page"] {
+  font-weight: 700;
+}
+
+/* マイコレクション：大小のタイル。1つ目は横いっぱい、2・3つ目は正方形、残りは細い横長 */
+.hub-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+  border-radius: 0;
+}
+.hub-list .hub-row {
+  grid-column: span 2;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  min-height: 50px;
+}
+.hub-list .hub-row + .hub-row::before {
+  display: none;
+}
+.hub-list .hub-row:nth-child(-n + 3) {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  gap: 8px 8px;
+  padding: 12px 14px 14px;
+}
+.hub-list .hub-row:nth-child(-n + 3)::after {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+}
+.hub-list .hub-row:nth-child(-n + 3) strong {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  padding-right: 14px;
+}
+.hub-list .hub-row:nth-child(-n + 3) .hub-icon {
+  width: 26px;
+  height: 26px;
+}
+.hub-list .hub-row:nth-child(-n + 3) :is(.hub-value, .muted, .hub-gauge) {
+  grid-column: 1 / -1;
+  align-self: end;
+}
+.hub-list .hub-row:nth-child(1) {
+  min-height: 128px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 15%, var(--surface)), var(--surface) 72%);
+}
+.hub-list .hub-row:nth-child(1) .hub-value {
+  font-size: 42px;
+  line-height: 1;
+}
+.hub-list .hub-row:nth-child(1) .hub-value small {
+  font-size: 14px;
+  margin-left: 3px;
+}
+.hub-list .hub-row:nth-child(2),
+.hub-list .hub-row:nth-child(3) {
+  grid-column: span 1;
+  min-height: 104px;
+}
+.hub-list .hub-row:nth-child(2) .hub-value,
+.hub-list .hub-row:nth-child(3) .hub-value {
+  font-size: 30px;
+  line-height: 1;
+}
+.hub-gauge {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--fill);
+}
+.hub-gauge > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transform-origin: left;
+  animation: gauge-grow 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) 0.15s backwards;
+}
+@keyframes gauge-grow {
+  from { transform: scaleX(0); }
+}
+.swap-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+article.reveal-item {
+  animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+}
