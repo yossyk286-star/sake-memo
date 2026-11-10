@@ -74,6 +74,17 @@ export const GUIDE: GuideSection[] = [
     ],
   },
   {
+    id: "match",
+    title: { ja: "称号・しるし・友だちと好みくらべ", en: "Titles, badges & taste match" },
+    where: { ja: "好みタブのいちばん上", en: "Top of the Taste tab" },
+    href: "/match",
+    steps: [
+      { ja: "記録が増えると称号が上がり、10杯目・産地5か所などで「しるし」が取れます。取れたときはお祝いが出て、画像で送れます。", en: "Your title goes up as you log more, and you earn badges like 10 drinks or 5 origins. Each comes with a little celebration you can share." },
+      { ja: "「友だちと好みくらべ」で自分の好みをリンクや QR で送ると、相手の画面で好みが重なり相性が出ます。送るのは味の平均と★の高かった名前だけです。", en: "“Taste match with a friend” sends your taste as a link or QR. Your friend sees both tastes overlaid with a match score. Only average taste and favorite names are sent." },
+      { ja: "毎月はじめに、記録の画面の上に「先月のふりかえり」が出ます。", en: "At the start of each month, a recap of last month appears on the Log screen." },
+    ],
+  },
+  {
     id: "glossary",
     title: { ja: "言葉を調べる", en: "Glossary" },
     where: { ja: "辞典タブ", en: "Glossary tab" },
@@ -87,7 +98,7 @@ export const GUIDE: GuideSection[] = [
     title: { ja: "合言葉と AI", en: "Passcode & AI" },
     where: { ja: "はじめて撮るときに入力", en: "Entered the first time you shoot" },
     steps: [
-      { ja: "読み取り・名前で調べる・AI に聞くは合言葉が必要です。一度入れると覚えています。", en: "Reading, name search and Ask AI need the passcode. It's remembered after the first time." },
+      { ja: "読み取り・名前で調べる・AI に聞くは合言葉が必要です（AI を使うたびにお金がかかるため）。一度入れると覚えています。合言葉がなくても、記録・辞典・カクテル47種・よくある料理は使えます。", en: "Reading, name search and Ask AI need the passcode (AI costs money each time). It's remembered after the first time. Without it you can still log, use the glossary, 47 cocktails and common dishes." },
       { ja: "一度調べたお酒は端末に残るので、次からは AI を使わずにすぐ出ます。", en: "Drinks you've looked up are saved, so next time they show instantly without AI." },
     ],
   },

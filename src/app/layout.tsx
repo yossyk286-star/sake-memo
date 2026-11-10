@@ -6,13 +6,26 @@ import LangGate from "@/components/LangGate";
 import LaunchScreen, { LAUNCH_BOOT } from "@/components/LaunchScreen";
 import TabBar from "@/components/TabBar";
 import Welcome from "@/components/Welcome";
+import InstallHint from "@/components/InstallHint";
+import Milestones from "@/components/Milestones";
 import ThemeSync from "@/components/ThemeSync";
 import { THEME_BOOT } from "@/lib/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "さけメモ",
-  description: "飲んだお酒を記録して、だんだん詳しくなるアプリ",
+  description: "メニューを撮るだけで、どんなお酒かすぐわかる。飲んだお酒を記録して、だんだん詳しくなるアプリ",
+  metadataBase: new URL("https://sake-memo.vercel.app"),
+  // LINE などで URL を送ったときに出る画像と一言
+  openGraph: {
+    title: "さけメモ",
+    description: "メニューを撮るだけで、どんなお酒かすぐわかる。飲んだお酒を記録して、だんだん詳しくなるアプリ",
+    siteName: "さけメモ",
+    locale: "ja_JP",
+    type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "さけメモ" }],
+  },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
   appleWebApp: { capable: true, title: "さけメモ", statusBarStyle: "default", startupImage: startupImages() },
 };
 
@@ -65,6 +78,8 @@ export default function RootLayout({
           <Buddy />
           <ClearField />
           <Welcome />
+          <Milestones />
+          <InstallHint />
         </LangGate>
         <ServiceWorker />
         <ThemeSync />

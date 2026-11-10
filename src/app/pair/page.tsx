@@ -1,5 +1,6 @@
 "use client";
 
+import PasscodeField from "@/components/PasscodeField";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -358,21 +359,13 @@ export default function PairPage() {
 
       <main className="content" style={{ paddingBottom: 110 }}>
         {!savedPasscode && (
-          <div className="field">
-            <label className="label" htmlFor="pair-pass">
-              {tr("合言葉（よくある料理なら、なくても使えます）")}
-            </label>
-            <input
-              id="pair-pass"
-              className="input"
-              type="text"
-              autoComplete="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
-            />
-          </div>
+          <PasscodeField
+            value={passcode}
+            onChange={setPasscode}
+            need={tr("メニューを撮る・めずらしい料理を調べるには「合言葉」が要ります。")}
+            free={[tr("よくある料理に合うお酒（下の欄に料理の名前を入れる）"), tr("記録・辞典・味マップ・スタンプ帳")]}
+            forceOpen={error.includes("合言葉")}
+          />
         )}
         <form
           className="row"

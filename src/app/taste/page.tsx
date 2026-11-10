@@ -12,6 +12,7 @@ import { loadPrefs } from "@/lib/prefs";
 import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
+import TitleCard from "@/components/TitleCard";
 import { tr, trv } from "@/lib/i18n";
 
 const MIN_RECORDS = 5;
@@ -108,6 +109,7 @@ export default function TastePage() {
       </header>
       {summary && <p className="lead">{tr("記録 {0}件から。数字は総合の平均（カッコ内は件数）です。", count)}</p>}
       <main className="content">
+        {records && <TitleCard records={records} />}
         <Link href="/show" className="hub-item hub-show">
           <strong>{tr("店員さんに見せる")}</strong>
           <span className="muted">{tr("好みを大きく表示して「こういうのください」")}</span>
@@ -128,6 +130,10 @@ export default function TastePage() {
           <Link href="/bottles" className="hub-item hub-num">
             <strong>{tr("家のお酒")}</strong>
             <HubValue text={tr("{0}本", bottleCount)} />
+          </Link>
+          <Link href="/match" className="hub-item hub-show hub-match">
+            <strong>{tr("友だちと好みくらべ")}</strong>
+            <span className="muted">{tr("好みをリンクで送って、相性を見る")}</span>
           </Link>
           <Link href="/prefs" className="hub-item hub-wide">
             <strong>{tr("わたしの好み")}</strong>
