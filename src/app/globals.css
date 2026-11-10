@@ -42,20 +42,25 @@
   --bar-glow: rgba(255, 255, 255, 0.7);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 10px rgba(0, 0, 0, 0.04);
   --shadow-lift: 0 6px 20px rgba(0, 0, 0, 0.14);
+  /* シート・ポップアップの地（ライトはカードと同じ白。ダークだけ一段明るくする） */
+  --surface-raised: var(--surface);
+  --raised-edge: none;
+  /* 点数・杯数などの数字だけに使う丸い書体（layout.tsx の --font-num）。日本語はいつもの書体 */
+  --num-font: var(--font-num, inherit), -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
   --accent: var(--accent-l);
   --accent-dark: color-mix(in srgb, var(--accent) 82%, #000);
   --accent-soft: color-mix(in srgb, var(--accent) 11%, var(--surface));
   --on-accent: #ffffff;
   --danger: #d1342a;
   --compare: var(--compare-l);
-  /* 種類ごとの色 */
-  --k-sake: #3a63c8;
-  --k-wine: #a8325a;
-  --k-beer: #d08a10;
-  --k-whisky: #9a6431;
-  --k-shochu: #2f9466;
-  --k-other: #8461c0;
-  --k-cocktail: #1d97a6;
+  /* 種類ごとの色。目に見える明るさ（OKLCH の L）を 0.57 にそろえ、色味だけ変える（ビールだけ浮く・ワインだけ沈むことがない） */
+  --k-sake: #5174c4;
+  --k-wine: #b4526e;
+  --k-beer: #9d6e00;
+  --k-whisky: #a36649;
+  --k-shochu: #008e5c;
+  --k-other: #8364b9;
+  --k-cocktail: #008b9f;
   /* 相棒の徳利（白い磁器に藍の帯） */
   --buddy-body: #fffdf7;
   --buddy-ink: #2b2b33;
@@ -89,7 +94,11 @@
     --input-line: rgba(84, 84, 88, 0.75);
     --bar-bg: color-mix(in srgb, var(--surface) 80%, transparent);
     --bar-glow: rgba(255, 255, 255, 0.07);
-    --shadow: none;
+    /* ダークは影が見えないので、カードの上のふちに細い光の線を1本だけ入れて浮かせる */
+    --shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.07);
+    /* シート・ポップアップはカードより一段明るい地にして、上のふちの光も強く */
+    --surface-raised: color-mix(in srgb, var(--accent-d) 11%, #2a2b31);
+    --raised-edge: inset 0 0.5px 0 rgba(255, 255, 255, 0.16), 0 -12px 32px rgba(0, 0, 0, 0.55);
     --shadow-lift: 0 6px 20px rgba(0, 0, 0, 0.5);
     --accent: var(--accent-d);
     --accent-dark: color-mix(in srgb, var(--accent) 70%, #fff);
@@ -97,13 +106,14 @@
     --on-accent: #0b0b10;
     --danger: #ff6961;
     --compare: var(--compare-d);
-    --k-sake: #5c84e6;
-    --k-wine: #d4587e;
-    --k-beer: #e6a63a;
-    --k-whisky: #c08a56;
-    --k-shochu: #4fbf88;
-    --k-other: #a68ae0;
-    --k-cocktail: #3cc0cf;
+    /* ダークは明るさ 0.75 にそろえる */
+    --k-sake: #89acfa;
+    --k-wine: #ed8da5;
+    --k-beer: #d7a53f;
+    --k-whisky: #de9c7e;
+    --k-shochu: #61c594;
+    --k-other: #b89cef;
+    --k-cocktail: #2ec3d5;
     --buddy-body: #e4dfd5;
     --buddy-blush: rgba(255, 128, 150, 0.4);
     color-scheme: dark;
@@ -128,7 +138,11 @@
   --input-line: rgba(84, 84, 88, 0.75);
   --bar-bg: color-mix(in srgb, var(--surface) 80%, transparent);
     --bar-glow: rgba(255, 255, 255, 0.07);
-  --shadow: none;
+  /* ダークは影が見えないので、カードの上のふちに細い光の線を1本だけ入れて浮かせる */
+  --shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.07);
+  /* シート・ポップアップはカードより一段明るい地にして、上のふちの光も強く */
+  --surface-raised: color-mix(in srgb, var(--accent-d) 11%, #2a2b31);
+  --raised-edge: inset 0 0.5px 0 rgba(255, 255, 255, 0.16), 0 -12px 32px rgba(0, 0, 0, 0.55);
   --shadow-lift: 0 6px 20px rgba(0, 0, 0, 0.5);
   --accent: var(--accent-d);
   --accent-dark: color-mix(in srgb, var(--accent) 70%, #fff);
@@ -136,13 +150,14 @@
   --on-accent: #0b0b10;
   --danger: #ff6961;
   --compare: var(--compare-d);
-  --k-sake: #5c84e6;
-  --k-wine: #d4587e;
-  --k-beer: #e6a63a;
-  --k-whisky: #c08a56;
-  --k-shochu: #4fbf88;
-  --k-other: #a68ae0;
-  --k-cocktail: #3cc0cf;
+  /* ダークは明るさ 0.75 にそろえる */
+  --k-sake: #89acfa;
+  --k-wine: #ed8da5;
+  --k-beer: #d7a53f;
+  --k-whisky: #de9c7e;
+  --k-shochu: #61c594;
+  --k-other: #b89cef;
+  --k-cocktail: #2ec3d5;
   --buddy-body: #e4dfd5;
   --buddy-blush: rgba(255, 128, 150, 0.4);
   color-scheme: dark;
@@ -4743,4 +4758,166 @@ details > summary::-webkit-details-marker {
 /* 辞典の「すべて」：種類ごとの目次。閉じた行どうしは詰めて並べる */
 .term-fold + .term-fold {
   margin-top: -4px;
+}
+
+/* --- シート・ポップアップは一段手前（ダークでは明るい地＋上のふちの光） --- */
+.sheet,
+.welcome,
+.confirm-box,
+.confirm-cancel {
+  --surface: var(--surface-raised);
+  background: var(--surface-raised);
+}
+.sheet,
+.welcome {
+  box-shadow: var(--raised-edge);
+}
+
+/* --- 数字は丸い書体、単位は小さく薄く --- */
+.num,
+.detail-score-num,
+.meter-num,
+.star-rating-num,
+.hub-value,
+.compare-overall strong,
+.match-score,
+.jmap-count {
+  font-family: var(--num-font);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.detail-score-num {
+  font-weight: 800;
+}
+.hub-value {
+  font-weight: 800;
+}
+.hub-value small,
+.unit {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 1px;
+}
+/* 日ごとの合計は小さい字なので、単位は縮めず色だけ薄く */
+.date-total .unit {
+  font-size: inherit;
+  margin-left: 0;
+}
+.detail-list dd .num {
+  font-size: 1.08em;
+  font-weight: 700;
+}
+
+/* --- 消す前の確認（iPhone のアクションシートの形） --- */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0 10px calc(10px + env(safe-area-inset-bottom));
+  animation: fade-in 0.2s ease;
+}
+.confirm-sheet {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: sheet-up 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.confirm-backdrop.is-closing {
+  animation: fade-out 0.18s ease forwards;
+}
+.confirm-backdrop.is-closing .confirm-sheet {
+  animation: sheet-down 0.18s ease-in forwards;
+}
+.confirm-box {
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: center;
+  box-shadow: var(--raised-edge);
+}
+.confirm-head {
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.confirm-head p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.confirm-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  font-size: 15px;
+}
+.confirm-preview strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.confirm-preview .thumb {
+  flex-shrink: 0;
+}
+.confirm-photo {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.confirm-action,
+.confirm-cancel {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  border: none;
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.confirm-action {
+  background: none;
+  border-top: 0.5px solid var(--line);
+  color: var(--danger);
+  font-weight: 600;
+}
+.confirm-cancel {
+  border-radius: 16px;
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: var(--raised-edge);
+}
+.confirm-action:active,
+.confirm-cancel:active {
+  background: var(--fill);
+}
+@keyframes sheet-down {
+  to {
+    transform: translateY(110%);
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confirm-backdrop,
+  .confirm-sheet,
+  .confirm-backdrop.is-closing,
+  .confirm-backdrop.is-closing .confirm-sheet {
+    animation: none;
+  }
 }

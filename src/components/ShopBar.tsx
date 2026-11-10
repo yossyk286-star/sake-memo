@@ -1,4 +1,5 @@
 import { tr, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 /**
  * 今日のお店として共有しているメニュー（飲み物・料理）の数と、2軒目に行ったときに空にするボタン。
  * 「同じお店」はその日に読み取ったメニューどうしなので、ここで区切れるようにする
@@ -20,8 +21,8 @@ export default function ShopBar({ drinks, dishes, onReset }: { drinks: number; d
       <button
         type="button"
         className="shop-bar-reset"
-        onClick={() => {
-          if (window.confirm(tr("今日読み取ったメニューを消して、新しいお店にしますか？"))) onReset();
+        onClick={async () => {
+          if (await askConfirm({ message: tr("今日読み取ったメニューを消して、新しいお店にしますか？"), action: tr("新しいお店") })) onReset();
         }}
       >
         {tr("新しいお店")}

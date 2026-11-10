@@ -2,6 +2,7 @@
 
 import { getLang, tr } from "@/lib/i18n";
 import type { Stash } from "@/lib/recordDraft";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 /** 前に書きかけて保存しなかった記録があるとき、新しい記録の画面のいちばん上に出す */
 export default function DraftNote({ stash, onResume, onDiscard }: { stash: Stash; onResume: () => void; onDiscard: () => void }) {
@@ -25,8 +26,8 @@ export default function DraftNote({ stash, onResume, onDiscard }: { stash: Stash
           type="button"
           className="btn-secondary"
           style={{ flex: 1, background: "none", color: "var(--muted)" }}
-          onClick={() => {
-            if (confirm(tr("書きかけの記録を消しますか？"))) onDiscard();
+          onClick={async () => {
+            if (await askConfirm({ message: tr("書きかけの記録を消しますか？"), action: tr("消す") })) onDiscard();
           }}
         >
           {tr("消す")}
