@@ -23,7 +23,7 @@ export const GUIDE: GuideSection[] = [
   {
     id: "scan",
     title: { ja: "お店でメニューやラベルを調べる", en: "Look up a menu or label" },
-    where: { ja: "右下のカメラ（調べる）→「飲み物から」", en: "Camera at bottom right (Explore) → “Drinks”" },
+    where: { ja: "右下の虫めがね（調べる）→「飲み物から」", en: "Magnifier at bottom right (Explore) → “Drinks”" },
     href: "/scan",
     steps: [
       { ja: "撮る・写真から（5枚まで）・文字で、のどれかで調べると、お酒ごとに解説とおすすめの飲み方が出ます。", en: "Shoot, pick up to 5 photos, or type a name to get notes and serving tips for each drink." },
