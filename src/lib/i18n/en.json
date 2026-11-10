@@ -489,6 +489,7 @@
 "例：獺祭 純米大吟醸45、シャブリ": "e.g. Dassai Junmai Daiginjo 45, Chablis",
 "この名前で調べる": "Look up this name",
 "文字で入力して調べる": "Type to look up",
+"名前で調べる": "Look up by name",
 "{0}を一覧から外しました。": "Removed {0} from the list.",
 "元に戻す": "Undo",
 "記録が{0}件以上たまるか、「好み」タブの「わたしの好み」を登録すると、好みに合いそうなお酒に「おすすめ」を付けます。": "Once you have {0}+ entries, or set up “My taste” in the Taste tab, drinks that suit you get a “Recommended” tag.",
