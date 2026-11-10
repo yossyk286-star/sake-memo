@@ -6,7 +6,7 @@ import QRCode from "qrcode";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
 import RadarChart from "@/components/RadarChart";
-import { APP, favToWish, favView } from "@/lib/appeal";
+import { APP, favToWish, favView, WORDS } from "@/lib/appeal";
 import { TASTE_AXES } from "@/lib/axes";
 import { listRecords, listWishes, putWish } from "@/lib/db";
 import { tr, trJoin } from "@/lib/i18n";
@@ -168,7 +168,7 @@ function Send({ records }: { records: TastingRecord[] }) {
           </p>
         )}
         <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-          {tr("送るのは味の平均と、★の高かった{0}の名前だけです。メモ・お店・日付は送りません。", tr("お酒"))}
+          {tr("送るのは味の平均と、★の高かった{0}の名前だけです。メモ・お店・日付は送りません。", WORDS.drink)}
         </p>
       </section>
       <button

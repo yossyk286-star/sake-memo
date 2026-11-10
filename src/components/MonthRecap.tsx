@@ -20,7 +20,7 @@ export default function MonthRecap({ records, titleOf }: { records: TastingRecor
   const title = tr("{0}月の{1}", recap.monthNumber, APP.name);
   const stats = [
     { label: tr("記録した"), value: tr("{0}{1}", recap.count, WORDS.cup) },
-    { label: tr("新しい{0}", WORDS.place), value: tr("+{0}か所", recap.newPlaces.length) },
+    { label: tr("新しい{0}", WORDS.place), value: tr("+{0}{1}", recap.newPlaces.length, WORDS.placeUnit) },
   ];
   const bestLine = tr("いちばん★が高かった：{0}（★{1}）", titleOf(recap.best), recap.best.overall);
   const lines = [
