@@ -12,11 +12,27 @@ import Milestones from "@/components/Milestones";
 import ThemeSync from "@/components/ThemeSync";
 import PressFx from "@/components/PressFx";
 import { THEME_BOOT } from "@/lib/theme";
-import { M_PLUS_Rounded_1c } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-/** 数字だけに使う丸い書体（英数字の分だけ読み込む。日本語はいつもの書体のまま） */
-const numFont = M_PLUS_Rounded_1c({ weight: ["700", "800"], subsets: ["latin"], variable: "--font-num", display: "swap" });
+/**
+ * 数字だけに使う丸い書体（M PLUS Rounded 1c の英数字の部分だけ。日本語はいつもの書体のまま）。
+ * Google Fonts から読むと日本語の分まで250個の書体指定が全画面の CSS に入って重くなるので、英数字のファイルだけ同梱する
+ */
+const numFont = localFont({
+  src: [
+    { path: "./fonts/m-plus-rounded-1c-700-latin.woff2", weight: "700" },
+    { path: "./fonts/m-plus-rounded-1c-800-latin.woff2", weight: "800" },
+  ],
+  variable: "--font-num",
+  display: "swap",
+  declarations: [
+    {
+      prop: "unicode-range",
+      value: "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD",
+    },
+  ],
+});
 
 export const metadata: Metadata = {
   title: "さけメモ",
