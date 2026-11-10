@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -30,7 +31,7 @@ function ShopBody() {
     <>
       <header className="sub-header">
         <Link href="/shops" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{trv(name)}</h1>
       </header>

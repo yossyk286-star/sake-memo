@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -161,7 +162,7 @@ function DetailBody() {
     <>
       <header className="sub-header" data-top={atTop ? "" : undefined} style={r ? ({ "--kind": kindColor(r.kind) } as React.CSSProperties) : undefined}>
         <Link href="/" className="back" onClick={back}>
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("記録")}</h1>
         {r && (

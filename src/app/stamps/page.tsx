@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -278,7 +279,7 @@ export default function StampsPage() {
     <>
       <header className="sub-header">
         <Link href="/taste" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("産地スタンプ帳")}</h1>
       </header>

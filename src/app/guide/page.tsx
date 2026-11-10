@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { GUIDE, startTour, t } from "@/lib/guide";
 import { tr } from "@/lib/i18n";
@@ -10,7 +11,7 @@ export default function GuidePage() {
     <>
       <header className="sub-header">
         <Link href="/settings" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("使い方")}</h1>
       </header>

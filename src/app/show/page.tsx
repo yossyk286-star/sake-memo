@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
@@ -93,7 +94,7 @@ export default function ShowPage() {
     <>
       <header className="sub-header">
         <Link href="/taste" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("店員さんに見せる")}</h1>
         <Link href="/prefs" className="back" style={{ gridColumn: 3, justifySelf: "end" }}>

@@ -5541,3 +5541,191 @@ details[open]:not([data-closing]) > :not(summary) {
 article.reveal-item {
   animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
 }
+
+/* ===== 動きとモダンなかたち その2（写真がぼかしから・AI 待ちの光・丸いガラスの戻る・最近探したもの・シートの後ろが奥へ） ===== */
+
+/* 写真：読み込めるまではぼかして薄く、読み込めたらくっきり */
+img.photo-fade {
+  background: var(--fill);
+  transition: filter 0.45s ease, opacity 0.45s ease, transform 0.45s ease;
+}
+img.photo-fade:not([data-loaded]) {
+  filter: blur(14px) saturate(0.8);
+  opacity: 0.55;
+  transform: scale(1.03);
+}
+
+/* AI が考えている間、カードのふちをテーマ色の細い光がひと回りする（動きを減らす設定では止まった色のふちだけ） */
+@property --glow-a {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+.ai-glow {
+  position: relative;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 20px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.ai-glow::after {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--glow-a),
+    transparent 0 58%,
+    color-mix(in srgb, var(--accent) 45%, transparent) 70%,
+    var(--accent) 80%,
+    transparent 92%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: glow-spin 2.5s linear infinite;
+  pointer-events: none;
+}
+.ai-glow .ai-glow {
+  box-shadow: none;
+}
+.ai-glow .ai-glow::after {
+  display: none;
+}
+@keyframes glow-spin {
+  to {
+    --glow-a: 360deg;
+  }
+}
+
+/* 上の「戻る」「編集」：すりガラスの丸いボタン */
+.back {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  justify-content: center;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), inset 0 0 0 0.5px var(--line), inset 0 1px 0 var(--bar-glow, rgba(255, 255, 255, 0.6));
+  margin: 0 4px;
+}
+.back:has(> svg) {
+  width: 40px;
+  padding: 0;
+}
+
+/* 写真のある記録：写真を画面の上いっぱいに広げ、戻る・編集を写真の上に浮かせる */
+.sub-header:has(+ .detail-page > .photo-wrap) {
+  background: transparent;
+  pointer-events: none;
+}
+.sub-header:has(+ .detail-page > .photo-wrap) > * {
+  pointer-events: auto;
+}
+.sub-header[data-top]:has(+ .detail-page > .photo-wrap) h1 {
+  opacity: 0;
+}
+.sub-header:not([data-top]):has(+ .detail-page > .photo-wrap) {
+  background: var(--bar-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+.detail-page > .photo-wrap {
+  margin: calc(-56px - env(safe-area-inset-top) - 16px) -16px 0;
+}
+.detail-page > .photo-wrap .photo-row {
+  gap: 2px;
+}
+.detail-page > .photo-wrap .photo-item img {
+  height: calc(300px + env(safe-area-inset-top));
+  max-width: 88vw;
+  border-radius: 0;
+}
+.detail-page > .photo-wrap .photo-row:has(.photo-item:only-child) img {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+}
+
+/* 検索欄：押すと広がって右に「やめる」、空なら最近探したもの */
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.search-wrap > .input {
+  flex: 1;
+  min-width: 0;
+  transition: box-shadow 0.2s ease;
+}
+.search-wrap[data-open] > .input {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.search-cancel {
+  flex: none;
+  font-size: 15px;
+  animation: swap-from-right 0.22s ease-out backwards;
+}
+.search-sort:has(.search-wrap[data-open]) .sort-pick {
+  display: none;
+}
+.search-recent {
+  position: absolute;
+  z-index: 15;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+  border-radius: var(--radius);
+  background: var(--surface-raised, var(--surface));
+  box-shadow: var(--shadow-lift, 0 8px 24px rgba(0, 0, 0, 0.16));
+  animation: fold-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+}
+.search-recent-head {
+  margin: 4px 14px 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.search-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.search-recent-item svg {
+  color: var(--muted);
+  flex: none;
+}
+.search-recent-item:active {
+  background: var(--fill);
+}
+
+/* 下から出るシートの後ろで、画面が少し小さく角丸になって奥へ下がる */
+html:has(.sheet-backdrop, .confirm-backdrop) {
+  background: #000;
+}
+.app {
+  transform-origin: 50% var(--sheet-origin-y, 40vh);
+  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), border-radius 0.4s ease, filter 0.4s ease;
+}
+body:has(> .sheet-backdrop, .confirm-backdrop:not(.is-closing)) .app {
+  transform: scale(0.93);
+  border-radius: 18px;
+  overflow: clip;
+  filter: brightness(0.92);
+}

@@ -98,7 +98,7 @@ export default function AskAI({
   }
 
   return (
-    <section className={bare ? "ask-ai ask-ai-bare" : "card ask-ai"}>
+    <section className={`${bare ? "ask-ai ask-ai-bare" : "card ask-ai"}${busy ? " ai-glow" : ""}`}>
       {!bare && <h2 style={{ fontSize: 16 }}>{tr("AI に聞く")}</h2>}
       {shown.map((h) => (
         <div key={h.at} className="ask-qa">

@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -90,7 +91,7 @@ function CompareBody() {
     <>
       <header className="sub-header">
         <Link href={aId ? `/record?id=${aId}` : "/"} className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("くらべる")}</h1>
       </header>

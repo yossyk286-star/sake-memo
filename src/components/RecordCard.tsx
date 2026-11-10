@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, type CSSProperties } from "react";
-import { photosOf, usePhotoURLs } from "@/lib/photo";
+import { markIfLoaded, markLoaded, photosOf, usePhotoURLs } from "@/lib/photo";
 import type { Kind, TastingRecord } from "@/lib/types";
 import { getLang, tr, trJoin } from "@/lib/i18n";
 import { isPlainClick, nameForTransition, transitionTo } from "@/lib/viewTransition";
@@ -68,7 +68,7 @@ function Thumb({ record: r }: { record: TastingRecord }) {
   const [url] = usePhotoURLs(first);
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className="thumb" loading="lazy" decoding="async" style={{ borderColor: kindColor(r.kind) }} />;
+    return <img src={url} alt="" className="thumb photo-fade" loading="lazy" decoding="async" ref={markIfLoaded} onLoad={markLoaded} style={{ borderColor: kindColor(r.kind) }} />;
   }
   return (
     <span className="thumb thumb-mark" style={{ "--kc": kindColor(r.kind) } as React.CSSProperties} aria-hidden="true">

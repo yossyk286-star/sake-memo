@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { markSheetOrigin } from "@/lib/sheetDepth";
 import { tr } from "@/lib/i18n";
 
 /** 消す前の確認（iPhone のアクションシートの形）。ブラウザの confirm() の代わり */
@@ -34,6 +35,7 @@ export default function ConfirmHost() {
 
   useEffect(() => {
     open = (next) => {
+      markSheetOrigin();
       setClosing(false);
       setP(next);
     };

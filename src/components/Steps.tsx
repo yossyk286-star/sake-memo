@@ -11,7 +11,7 @@ export default function Steps({ title, steps, at }: { title: string; steps: stri
         <span className="step-spin" aria-hidden="true" />
         {trv(title)}
       </div>
-      <ol className="steps-list">
+      <ol className="steps-list ai-glow">
         {steps.map((s, i) => {
           const state = i < at ? "done" : i === at ? "now" : "later";
           return (
