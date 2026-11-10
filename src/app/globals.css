@@ -420,7 +420,6 @@ textarea {
   backdrop-filter: saturate(180%) blur(20px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16), 0 0 0 0.5px var(--line), inset 0 0.5px 0 var(--bar-glow);
   pointer-events: auto;
-  transition: flex-grow 0.32s ease;
 }
 .tab {
   flex: 1 1 0;
@@ -438,28 +437,36 @@ textarea {
   font-weight: 600;
   text-decoration: none;
   color: var(--muted);
-  transition: flex 0.32s ease, max-width 0.32s ease, opacity 0.2s ease, background-color 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 .tabbar-pill .tab[aria-current="page"] {
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 13%, transparent);
 }
-/* 縮んだとき：いまの画面のタブだけ残す */
+/* 縮んだとき：いまの画面のタブだけを丸いボタン1つにする（幅を動かすと iPhone の Safari で崩れるので、切り替えて小さく弾ませる） */
 .tabbar[data-mini] .tabbar-pill {
-  flex-grow: 0;
+  flex: 0 0 58px;
+  width: 58px;
+  animation: tabbar-pop 0.25s ease;
 }
 .tabbar[data-mini] .tab:not(.tab-keep) {
-  flex: 0 0 0;
-  max-width: 0;
-  opacity: 0;
+  display: none;
 }
 .tabbar[data-mini] .tab.tab-keep {
-  flex: 0 0 50px;
+  flex: 1 1 auto;
+  max-width: none;
+  gap: 0;
+  font-size: 0;
+}
+@keyframes tabbar-pop {
+  from {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tabbar-pill,
-  .tab {
-    transition: none;
+  .tabbar[data-mini] .tabbar-pill {
+    animation: none;
   }
 }
 
