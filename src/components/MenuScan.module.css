@@ -368,9 +368,9 @@
 /* 閉じたカードは、左に名前と一言、右に「＋記録」「☆」の1段にして低くする */
 .closed {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "pick pick" "head act" "line act";
-  column-gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "pick pick pick" "head chev act" "line chev act";
+  column-gap: 6px;
   row-gap: 2px;
   align-items: center;
   padding: 10px 12px 10px 16px;
@@ -400,4 +400,14 @@
 }
 .closed .actions {
   grid-area: act;
+}
+.closed .chev {
+  grid-area: chev;
+  align-self: stretch;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 22px;
+  cursor: pointer;
 }

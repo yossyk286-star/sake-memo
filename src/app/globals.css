@@ -4678,18 +4678,33 @@ details > summary::-webkit-details-marker {
 }
 .wish-row summary {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-content: center;
+  align-items: center;
   min-height: 56px;
-  gap: 1px;
+  gap: 1px 8px;
   padding: 10px 84px 10px 0;
 }
+.wish-row summary::after {
+  content: "›";
+  grid-column: 2;
+  grid-row: 1 / 3;
+  color: var(--muted);
+  font-size: 20px;
+  transition: transform 0.15s;
+}
+.wish-row details[open] summary::after {
+  transform: rotate(90deg);
+}
 .wish-row summary strong {
+  grid-column: 1;
   font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .wish-row summary .muted {
+  grid-column: 1;
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
