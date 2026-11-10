@@ -287,7 +287,7 @@ export default function TastePage() {
             {tr("わたしの傾向")}
           </button>
           <button type="button" aria-pressed={view === "title"} onClick={() => pickView("title")}>
-            {tr("称号")}
+            {tr("マイコレクション")}
           </button>
         </div>
         {view === "taste" && records && !summary && (
