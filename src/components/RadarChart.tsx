@@ -21,7 +21,16 @@ function point(i: number, n: number, value: number) {
 const toPoints = (ps: (readonly [number, number])[]) => ps.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
 
 /** 1〜5 の評価を多角形のグラフで重ねる。未入力の軸はいちばん内側の輪（0）に置く */
-export default function RadarChart({ axes, series }: { axes: string[]; series: RadarSeries[] }) {
+/** showValues：1つ目の記録の数字を軸名の横に出す（記録の詳細で、目盛りを別に並べなくて済むように） */
+export default function RadarChart({
+  axes,
+  series,
+  showValues = false,
+}: {
+  axes: string[];
+  series: RadarSeries[];
+  showValues?: boolean;
+}) {
   const n = axes.length;
   return (
     <svg
@@ -74,6 +83,11 @@ export default function RadarChart({ axes, series }: { axes: string[]; series: R
         return (
           <text key={a} x={x} y={y} textAnchor={anchor} dominantBaseline={baseline} fontSize="13" fill={empty ? "var(--muted)" : "var(--text)"}>
             {trv(a)}
+            {showValues && series[0]?.values[i] != null && (
+              <tspan dx="4" fontSize="16" fontWeight="700" fill="var(--accent)">
+                {series[0].values[i]}
+              </tspan>
+            )}
           </text>
         );
       })}

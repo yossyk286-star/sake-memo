@@ -99,6 +99,21 @@ export default function SettingsPage() {
             <p className="muted">{tr("「自動」はスマホの設定に合わせて、夜は暗い画面になります。")}</p>
           </div>
           <div className="setting-row">
+            <span>{tr("文字の大きさ")}</span>
+            <div className="mode-switch" role="group" aria-label={tr("文字の大きさ")}>
+              {(["normal", "large"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={(theme.text ?? "normal") === t}
+                  onClick={() => changeTheme({ text: t })}
+                >
+                  {t === "normal" ? tr("標準") : tr("大きめ")}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="setting-row">
             <span>{tr("テーマ色")}</span>
             <div className="swatches" role="group" aria-label={tr("テーマ色")}>
               {ACCENTS.map((a) => (

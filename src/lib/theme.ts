@@ -13,7 +13,8 @@ export const ACCENTS = [
 
 export type AccentId = (typeof ACCENTS)[number]["id"];
 
-export type Theme = { appearance: Appearance; accent: AccentId };
+/** text：文字の大きさ。large は画面全体を少し大きく（暗いお店で読みやすく） */
+export type Theme = { appearance: Appearance; accent: AccentId; text?: "normal" | "large" };
 
 const KEY = "sake-memo:theme";
 export const DEFAULT_THEME: Theme = { appearance: "auto", accent: "indigo" };
@@ -42,6 +43,8 @@ export function applyTheme(theme: Theme) {
   if (theme.appearance === "auto") delete root.dataset.theme;
   else root.dataset.theme = theme.appearance;
   root.dataset.accent = theme.accent;
+  if (theme.text === "large") root.dataset.text = "large";
+  else delete root.dataset.text;
   const dark =
     theme.appearance === "dark" ||
     (theme.appearance === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
@@ -54,4 +57,4 @@ export function applyTheme(theme: Theme) {
  * 画面が出る前に読む小さなスクリプト。React より先に色を決めて、白く光ったり色が切り替わって見えたりしないようにする。
  * layout.tsx の <head> に埋め込む
  */
-export const THEME_BOOT = `(function(){try{var t=JSON.parse(localStorage.getItem(${JSON.stringify(KEY)})||"{}");var r=document.documentElement;if(t.appearance==="light"||t.appearance==="dark")r.dataset.theme=t.appearance;r.dataset.accent=t.accent||"indigo";}catch(e){}})();`;
+export const THEME_BOOT = `(function(){try{var t=JSON.parse(localStorage.getItem(${JSON.stringify(KEY)})||"{}");var r=document.documentElement;if(t.appearance==="light"||t.appearance==="dark")r.dataset.theme=t.appearance;r.dataset.accent=t.accent||"indigo";if(t.text==="large")r.dataset.text="large";}catch(e){}})();`;
