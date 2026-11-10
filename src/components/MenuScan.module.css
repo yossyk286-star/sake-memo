@@ -373,7 +373,8 @@
   column-gap: 10px;
   row-gap: 2px;
   align-items: center;
-  padding: 10px 12px 10px 16px;
+  /* 右上の「⌄」がボタンに重ならないよう、右を空けておく */
+  padding: 10px 30px 10px 16px;
 }
 .closed .pick {
   grid-area: pick;
@@ -400,4 +401,19 @@
 }
 .closed .actions {
   grid-area: act;
+}
+/* 開く前のしるし。開いたときの ✕ と同じ右上の角に置く */
+.closed .chev {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 22px;
+  cursor: pointer;
 }
