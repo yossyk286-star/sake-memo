@@ -14,6 +14,7 @@ import { bestServeNote, serveNoteText } from "@/lib/serveNote";
 import type { Bottle, Kind, TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import { tr, trJoin, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
   return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, abv: null, boughtAt: today(), finished: false };
@@ -242,7 +243,7 @@ export default function BottlesPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm(tr("このお酒を削除しますか？（記録は残ります）"))) return;
+    if (!(await askConfirm({ message: tr("このお酒を削除しますか？（記録は残ります）"), action: tr("削除") }))) return;
     await deleteBottle(id);
     setBottles((bs) => bs?.filter((x) => x.id !== id) ?? null);
   }

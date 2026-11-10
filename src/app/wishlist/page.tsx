@@ -7,6 +7,7 @@ import { deleteWish, listWishes, type WishDrink } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import EmptyState from "@/components/EmptyState";
 import { tr, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 /** メニューで「気になる」と印を付けた、次に試したいお酒の一覧 */
 export default function WishlistPage() {
@@ -20,7 +21,7 @@ export default function WishlistPage() {
 
   async function remove(id: string) {
     const name = wishes?.find((w) => w.id === id)?.name;
-    if (!confirm(tr("{0}気になるリストから外しますか？", name ? tr("「{0}」を", name) : ""))) return;
+    if (!(await askConfirm({ message: tr("{0}気になるリストから外しますか？", name ? tr("「{0}」を", name) : ""), action: tr("外す") }))) return;
     await deleteWish(id);
     setWishes((ws) => ws?.filter((w) => w.id !== id) ?? null);
   }
