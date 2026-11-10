@@ -3704,15 +3704,15 @@ html[lang="en"] .diary-note.quote::after {
   position: absolute;
   border-radius: 16px;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
-  outline: 3px solid #fff;
+  outline: 2px solid #fff;
   outline-offset: 0;
   animation: tour-pulse 1.4s ease-in-out infinite;
   pointer-events: none;
 }
 @keyframes tour-pulse {
   50% {
-    outline-offset: 4px;
-    outline-color: rgba(255, 255, 255, 0.6);
+    outline-offset: 3px;
+    outline-color: rgba(255, 255, 255, 0.5);
   }
 }
 .tour-arrow {

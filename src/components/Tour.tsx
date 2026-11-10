@@ -16,7 +16,7 @@ export function tourSeen(id: TourId) {
   }
 }
 
-type Rect = { top: number; left: number; width: number; height: number };
+type Rect = { top: number; left: number; width: number; height: number; radius: number };
 
 /**
  * 画面の上の案内。光らせたいボタンに data-tour="…" を付けておき、startTour(id) で始める。
@@ -58,7 +58,8 @@ export default function Tour() {
     const el = document.querySelector<HTMLElement>(`[data-tour="${current.target}"]`);
     if (!el) return setRect(null);
     const r = el.getBoundingClientRect();
-    setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+    const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+    setRect({ top: r.top, left: r.left, width: r.width, height: r.height, radius });
   }, [current]);
 
   useLayoutEffect(() => {
@@ -114,14 +115,16 @@ export default function Tour() {
   if (!tour || !current) return null;
 
   // 光らせる枠は少し大きめに。画面の端からははみ出さないようにする
-  const pad = 6;
+  const pad = 3;
   const edge = 4;
   const hole = rect && (() => {
     const top = Math.max(edge, rect.top - pad);
     const left = Math.max(edge, rect.left - pad);
     const right = Math.min(innerWidth - edge, rect.left + rect.width + pad);
     const bottom = Math.min(innerHeight - edge, rect.top + rect.height + pad);
-    return { top, left, width: right - left, height: bottom - top };
+    // 角の丸みはボタンに合わせる
+    const borderRadius = Math.min(Math.max(rect.radius + pad, 10), (bottom - top) / 2);
+    return { top, left, width: right - left, height: bottom - top, borderRadius };
   })();
   // ボタンが画面の下半分なら吹き出しは上に、上半分なら下に出す
   const below = hole ? hole.top + hole.height / 2 < innerHeight / 2 : false;
