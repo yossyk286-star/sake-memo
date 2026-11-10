@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SingleChips } from "@/components/ChipGroup";
@@ -252,7 +253,7 @@ export default function BottlesPage() {
     <>
       <header className="sub-header">
         <Link href="/taste" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("家のお酒")}</h1>
       </header>

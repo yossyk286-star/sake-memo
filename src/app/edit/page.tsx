@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import MenuScan, { PickedDrink } from "@/components/MenuScan";
@@ -18,7 +19,7 @@ function EditBody() {
     <>
       <header className="sub-header">
         <Link href={record ? `/record?id=${record.id}` : "/"} className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("記録を編集")}</h1>
       </header>

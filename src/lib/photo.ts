@@ -39,3 +39,12 @@ export function usePhotoURLs(photos: Blob[]) {
 export function shrinkPhotos(files: FileList | null) {
   return Promise.all([...(files ?? [])].map((f) => shrinkPhoto(f)));
 }
+
+/** 写真はぼかした状態から、読み込めたらくっきりにする（CSS の img.photo-fade[data-loaded]） */
+export function markLoaded(e: { currentTarget: HTMLImageElement }) {
+  e.currentTarget.dataset.loaded = "";
+}
+/** すでに読み込み済み（キャッシュ）の写真は、onLoad を待たずにくっきりにする */
+export function markIfLoaded(img: HTMLImageElement | null) {
+  if (img?.complete && img.naturalWidth > 0) img.dataset.loaded = "";
+}

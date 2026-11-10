@@ -1,5 +1,7 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
+import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import AskAI from "@/components/AskAI";
@@ -92,7 +94,7 @@ function DetailBody() {
       footer: trJoin([r.shop, r.date.replaceAll("-", "/")]),
       photo: photos[0] ?? null,
     });
-    await shareImage(blob, drinkTitle(r)).catch(() => alert(tr("共有できませんでした")));
+    await shareImage(blob, drinkTitle(r)).catch(() => toast("共有できませんでした", { tone: "warn" }));
   }
 
   async function addQA(qa: QA) {
@@ -160,7 +162,7 @@ function DetailBody() {
     <>
       <header className="sub-header" data-top={atTop ? "" : undefined} style={r ? ({ "--kind": kindColor(r.kind) } as React.CSSProperties) : undefined}>
         <Link href="/" className="back" onClick={back}>
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("記録")}</h1>
         {r && (

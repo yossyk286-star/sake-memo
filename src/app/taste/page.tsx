@@ -130,7 +130,10 @@ export default function TastePage() {
     }
   }, []);
 
+  // 切り替えた向き（中身を押した側から入れ替える）。開いたときは動かさない
+  const [swap, setSwap] = useState("");
   const pickView = (v: View) => {
+    if (v !== view) setSwap(v === "title" ? "swap-next" : "swap-prev");
     setView(v);
     setEditing(false);
     try {
@@ -259,7 +262,13 @@ export default function TastePage() {
       label: "スタンプ帳・お店・気になる・家のお酒",
       node: (
         <nav className="hub-list" aria-label={tr("記録のまとめ")}>
-          <HubRow href="/stamps" icon="stamp" label="産地スタンプ帳" value={tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)} />
+          <HubRow
+            href="/stamps"
+            icon="stamp"
+            label="産地スタンプ帳"
+            value={tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)}
+            progress={stampInfo.total ? stampInfo.stamps.size / stampInfo.total : undefined}
+          />
           <HubRow href="/shops" icon="shop" label="お店" value={tr("{0}軒", shopCount)} />
           <HubRow href="/wishlist" icon="star" label="気になるお酒" value={tr("{0}件", wishCount)} />
           <HubRow href="/bottles" icon="bottle" label="家のお酒" value={tr("{0}本", bottleCount)} />
@@ -309,7 +318,13 @@ export default function TastePage() {
             )}
           </>
         ) : (
-          records && sections.map((s) => <Fragment key={s.id}>{s.node}</Fragment>)
+          records && (
+            <div key={view} className={`swap-wrap ${swap}`}>
+              {sections.map((s) => (
+                <Fragment key={s.id}>{s.node}</Fragment>
+              ))}
+            </div>
+          )
         )}
       </main>
     </>
@@ -325,7 +340,22 @@ const ICONS: Record<string, ReactNode> = {
 };
 
 /** 称号の画面の一覧の1行（アイコン・名前・数字・›） */
-function HubRow({ href, icon, label, value, note }: { href: string; icon: string; label: string; value?: string; note?: string }) {
+function HubRow({
+  href,
+  icon,
+  label,
+  value,
+  note,
+  progress,
+}: {
+  href: string;
+  icon: string;
+  label: string;
+  value?: string;
+  note?: string;
+  /** 0〜1。いちばん上の大きなタイルに細い帯で出す */
+  progress?: number;
+}) {
   return (
     <Link href={href} className="hub-row">
       <span className="hub-icon" aria-hidden="true">
@@ -336,6 +366,11 @@ function HubRow({ href, icon, label, value, note }: { href: string; icon: string
       <strong>{tr(label)}</strong>
       {value && <HubValue text={value} />}
       {note && <span className="muted">{note}</span>}
+      {progress !== undefined && (
+        <span className="hub-gauge" aria-hidden="true">
+          <span style={{ width: `${Math.max(2, Math.round(progress * 100))}%` }} />
+        </span>
+      )}
     </Link>
   );
 }

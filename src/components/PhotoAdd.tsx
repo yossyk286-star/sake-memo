@@ -1,6 +1,6 @@
 "use client";
 
-import { usePhotoURLs } from "@/lib/photo";
+import { usePhotoURLs, markIfLoaded, markLoaded } from "@/lib/photo";
 import { tr, trv } from "@/lib/i18n";
 import { askConfirm } from "@/components/ConfirmSheet";
 
@@ -13,7 +13,7 @@ export function PhotoRow({ photos, onRemove }: { photos: Blob[]; onRemove?: (i: 
       {urls.map((u, i) => (
         <div key={u} className="photo-item">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={u} alt={tr("記録の写真 {0}", i + 1)} />
+          <img src={u} alt={tr("記録の写真 {0}", i + 1)} className="photo-fade" ref={markIfLoaded} onLoad={markLoaded} />
           {onRemove && (
             <button type="button" className="photo-remove" aria-label={tr("写真 {0} を外す", i + 1)} onClick={async () => {
                 // eslint-disable-next-line @next/next/no-img-element

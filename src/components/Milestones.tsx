@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/lib/toast";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import BuddyFace from "./BuddyFace";
@@ -46,7 +47,7 @@ export default function Milestones() {
       stats: [],
       lines: [party!.badges.map((b) => tr(b.label)).join("・"), nextLine].filter(Boolean),
     });
-    await shareImage(blob, head).catch(() => alert(tr("共有できませんでした")));
+    await shareImage(blob, head).catch(() => toast("共有できませんでした", { tone: "warn" }));
   }
 
   return (

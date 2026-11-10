@@ -1,5 +1,6 @@
 "use client";
 
+import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
@@ -71,7 +72,7 @@ export default function SettingsPage() {
     <>
       <header className="sub-header">
         <Link href="/" className="back">
-          {tr("‹ 戻る")}
+          <BackChevron />
         </Link>
         <h1>{tr("設定")}</h1>
       </header>

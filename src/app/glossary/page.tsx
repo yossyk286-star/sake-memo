@@ -1,5 +1,6 @@
 "use client";
 
+import SearchField from "@/components/SearchField";
 import { useEffect, useState } from "react";
 import DailyQuiz from "@/components/DailyQuiz";
 import { CATEGORIES, CHOOSING_TIPS, TERMS, type GlossaryCategory } from "@/lib/glossary";
@@ -148,18 +149,18 @@ export default function GlossaryPage() {
         <label htmlFor="g-search" className="visually-hidden">
           {tr("用語を検索")}
         </label>
-        <input
-          id="g-search"
-          data-tour="g-search"
-          type="search"
-          className="input"
-          placeholder={tr("用語を検索")}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setJustAdded(null);
-          }}
-        />
+        <div data-tour="g-search">
+          <SearchField
+            id="g-search"
+            name="glossary"
+            placeholder={tr("用語を検索")}
+            value={query}
+            onChange={(v) => {
+              setQuery(v);
+              setJustAdded(null);
+            }}
+          />
+        </div>
         <div className="scroll-row" data-tour="g-filter">
           {FILTERS.filter((c) => c !== "自分で追加" || myTerms.length > 0).map((c) => (
             <button key={c} type="button" className="chip" aria-pressed={filter === c} onClick={() => setFilter(c)}>
