@@ -4021,31 +4021,6 @@ html[data-text="large"] body {
 .party h2 {
   margin: 0;
 }
-.confetti {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 0;
-  pointer-events: none;
-}
-.confetti i {
-  position: absolute;
-  top: -12px;
-  width: 8px;
-  height: 12px;
-  border-radius: 2px;
-  background: var(--accent);
-  animation: confetti-fall 1.6s ease-in forwards;
-}
-.confetti i[data-c="1"] { background: var(--star); }
-.confetti i[data-c="2"] { background: var(--compare); }
-.confetti i[data-c="3"] { background: #2f9466; }
-@keyframes confetti-fall {
-  0% { transform: translateY(0) rotate(0); opacity: 1; }
-  100% { transform: translateY(420px) rotate(540deg); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .confetti { display: none; }
-}
 .badge-row {
   list-style: none;
   margin: 4px 0;
@@ -4061,16 +4036,6 @@ html[data-text="large"] body {
   justify-items: center;
   gap: 4px;
   width: 64px;
-}
-.badge-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
 }
 
 /* --- 好み画面の称号としるし --- */
@@ -4129,9 +4094,6 @@ html[data-text="large"] body {
 }
 .badge-peek {
   flex: 1;
-  text-align: right;
-  font-size: 18px;
-  letter-spacing: 2px;
 }
 .badge-grid {
   list-style: none;
@@ -4155,11 +4117,6 @@ html[data-text="large"] body {
 .badge-grid .muted {
   font-size: 11px;
   line-height: 1.4;
-}
-.badge-grid li[data-done="false"] .badge-icon {
-  background: var(--fill);
-  filter: grayscale(1);
-  opacity: 0.45;
 }
 
 /* --- 先月のふりかえり --- */
@@ -4318,42 +4275,36 @@ html[data-text="large"] body {
   grid-column: 1 / -1;
 }
 
-/* --- 称号のメダル --- */
+/* --- 称号・しるしのメダル（金属に彫り込んだ絵。派手にしない） --- */
 .medal {
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
-}
-.medal-glint {
-  transform-box: fill-box;
-}
-.medal-shine .medal-glint {
-  animation: medal-glint 2.4s ease-in-out infinite;
-}
-@keyframes medal-glint {
-  0%, 40% { translate: -40px 0; }
-  70%, 100% { translate: 90px 0; }
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.22));
 }
 .medal-shine {
-  animation: medal-pop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation: medal-in 0.5s ease-out both;
 }
-@keyframes medal-pop {
-  from { transform: scale(0.3) rotate(-20deg); opacity: 0; }
-  to { transform: scale(1) rotate(0); opacity: 1; }
+@keyframes medal-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.medal-glint {
+  transform-box: view-box;
+  animation: medal-glint 3.2s ease-in-out 0.4s infinite;
+}
+@keyframes medal-glint {
+  0%, 55% { translate: 0 0; }
+  85%, 100% { translate: 150px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .medal-shine, .medal-shine .medal-glint { animation: none; }
+  .medal-shine, .medal-glint { animation: none; }
 }
 .title-plate {
-  display: inline-block;
   justify-self: start;
-  padding: 3px 12px;
-  border-radius: 6px;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: #fff;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-l) 80%, #fff), var(--accent-l));
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding-bottom: 2px;
+  border-bottom: 2px solid;
 }
 .title-ladder {
   list-style: none;
@@ -4377,6 +4328,14 @@ html[data-text="large"] body {
   font-weight: 700;
 }
 .party .title-plate {
-  font-size: 20px;
   justify-self: center;
+}
+.badge-peek {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.badge-grid li[data-done="false"] strong {
+  color: var(--muted);
+  font-weight: 600;
 }

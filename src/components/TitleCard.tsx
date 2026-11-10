@@ -1,7 +1,8 @@
 "use client";
 
-import Medal, { plateStyle } from "./Medal";
-import { badgesOf, TITLES, WORDS } from "@/lib/appeal";
+import BadgeMedal from "./BadgeMedal";
+import { plateStyle, TitleMedal } from "./Medal";
+import { APP, badgesOf, TITLES, WORDS } from "@/lib/appeal";
 import { tr } from "@/lib/i18n";
 import { titleOf } from "@/lib/milestones";
 import type { TastingRecord } from "@/lib/types";
@@ -15,10 +16,12 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
   return (
     <section className="card title-card" aria-label={tr("称号としるし")}>
       <div className="title-now">
-        <Medal tier={title.tier} size={76} />
+        <TitleMedal tier={title.tier} emblem={APP.emblem} size={72} />
         <div>
           <span className="muted">{tr("いまの称号")}</span>
-          <strong className="title-plate" style={plateStyle(title.tier)}>{tr(title.name ?? "")}</strong>
+          <strong className="title-plate" style={plateStyle(title.tier)}>
+            {tr(title.name ?? "")}
+          </strong>
           <div className="title-bar" aria-hidden="true">
             <div style={{ width: `${Math.round(title.progress * 100)}%` }} />
           </div>
@@ -30,7 +33,7 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
       <ol className="title-ladder" aria-label={tr("称号の段")}>
         {TITLES.map((t, i) => (
           <li key={t.name} data-now={i === title.tier}>
-            <Medal tier={i} size={36} locked={i > title.tier} />
+            <TitleMedal tier={i} emblem={APP.emblem} size={34} locked={i > title.tier} />
             <span>{tr(t.name)}</span>
             <span>{tr("{0}{1}〜", t.at, WORDS.cup)}</span>
           </li>
@@ -42,15 +45,15 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
             {tr("あつめたしるし")} <span className="muted">{done.length} / {badges.length}</span>
           </span>
           <span className="badge-peek" aria-hidden="true">
-            {done.slice(-5).map((b) => b.icon).join(" ")}
+            {done.slice(-4).map((b) => (
+              <BadgeMedal key={b.id} badge={b} size={24} />
+            ))}
           </span>
         </summary>
         <ul className="badge-grid">
           {badges.map((b) => (
             <li key={b.id} data-done={b.done}>
-              <span className="badge-icon" aria-hidden="true">
-                {b.icon}
-              </span>
+              <BadgeMedal badge={b} size={58} />
               <strong>{tr(b.label)}</strong>
               <span className="muted">{b.done ? tr("取りました") : tr(b.how)}</span>
             </li>
