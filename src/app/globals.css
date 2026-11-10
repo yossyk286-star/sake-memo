@@ -750,6 +750,16 @@ textarea.input {
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
+  /* 右端でぶつ切りに見えないよう、画面の端まで流して端をふわっと消す。
+     右の余白があるので、最後まで送ればいちばん右のチップもはっきり見える */
+  margin-right: -16px;
+  padding-right: 32px;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+}
+.scroll-row::-webkit-scrollbar {
+  display: none;
 }
 .tips {
   background: var(--accent-soft);
@@ -889,7 +899,8 @@ textarea.input {
 .detail-radar {
   width: 100%;
   max-width: 260px;
-  margin: -8px auto -4px;
+  /* 下の軸名から下の余白を詰める（目盛りを並べなくなったぶん、カードが間延びしないように） */
+  margin: -8px auto -24px;
 }
 .meters {
   display: grid;
@@ -1259,6 +1270,10 @@ button.stamp {
 .next-list strong {
   font-size: 15px;
 }
+.next-more {
+  align-self: flex-start;
+  margin: 2px 0 -10px;
+}
 
 /* --- くらべる --- */
 .pick-row {
@@ -1469,9 +1484,11 @@ button.stamp {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  /* 長い名前は★に押されて切れないよう2行まで出す */
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .record-row .stars {
   flex-shrink: 0;
@@ -3424,11 +3441,13 @@ body::before {
 }
 /* 暗い画面では白いカードの色だと沈んで見えるので、iPhone と同じく明るい灰色にする */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .mode-switch a[aria-current="page"] {
+  :root:not([data-theme="light"]) .mode-switch a[aria-current="page"],
+  :root:not([data-theme="light"]) .mode-switch button[aria-pressed="true"] {
     background: #636366;
   }
 }
-:root[data-theme="dark"] .mode-switch a[aria-current="page"] {
+:root[data-theme="dark"] .mode-switch a[aria-current="page"],
+:root[data-theme="dark"] .mode-switch button[aria-pressed="true"] {
   background: #636366;
 }
 .shop-bar {
@@ -3872,4 +3891,45 @@ html[lang="en"] .diary-note.quote::after {
 }
 .hub-wide .muted::after {
   content: " ›";
+}
+
+/* 設定の「文字の大きさ：大きめ」。px で作ってあるので、画面全体をひとまわり大きくする */
+html[data-text="large"] body {
+  zoom: 1.12;
+}
+
+/* 調べる画面の下の「最近調べた◯◯」 */
+.recent-lookups {
+  margin: 20px 16px 0;
+}
+.recent-lookups .section-title {
+  margin-bottom: 8px;
+}
+.recent-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.recent-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.recent-open strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+.recent-open .muted {
+  font-size: 13px;
 }

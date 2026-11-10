@@ -183,10 +183,11 @@ function DetailBody() {
               <div className="card detail-taste">
                 {filledScores.length >= 3 && (
                   <div className="detail-radar">
-                    <RadarChart axes={scores.map(([a]) => a)} series={[{ label: tr("この記録"), values: scores.map(([, v]) => v) }]} />
+                    <RadarChart axes={scores.map(([a]) => a)} series={[{ label: tr("この記録"), values: scores.map(([, v]) => v) }]} showValues />
                   </div>
                 )}
-                {filledScores.length > 0 && (
+                {/* 五角形が出るときは角に数字があるので、目盛りは五角形が出ないとき（2つ以下）だけ */}
+                {filledScores.length > 0 && filledScores.length < 3 && (
                   <div className="meters">
                     {filledScores.map(([label, v]) => (
                       <div key={label} className="meter" aria-label={tr("{0} 5段階中{1}", label, v)}>

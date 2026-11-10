@@ -10,7 +10,8 @@ import { tourSeen } from "@/components/Tour";
 import { startTour } from "@/lib/guide";
 import ShopBar from "@/components/ShopBar";
 import { loadTodayMenu, resetShop } from "@/lib/foodPairing";
-import { LAST_SCAN_EVENT, loadLastScan } from "@/lib/lastScan";
+import { LAST_SCAN_EVENT, loadLastScan, saveLastScan } from "@/lib/lastScan";
+import RecentLookups from "@/components/RecentLookups";
 import type { ScannedDrink } from "@/lib/menuScan";
 import { tr } from "@/lib/i18n";
 
@@ -67,6 +68,21 @@ export default function ScanPage() {
           key={shop}
           initialDrinks={drinks}
           onPick={(d) => router.push(`/new?drink=${encodeURIComponent(d.name)}`)}
+        />
+      )}
+
+      {/* 今日まだ何も調べていないときだけ、前に調べたものを下に出す */}
+      {drinks && counts.drinks === 0 && (
+        <RecentLookups
+          onOpen={(d) => {
+            saveLastScan([d]);
+            setDrinks([d]);
+            setShop((n) => n + 1);
+          }}
+          onRecord={(d) => {
+            saveLastScan([d]);
+            router.push(`/new?drink=${encodeURIComponent(d.name)}`);
+          }}
         />
       )}
     </>
