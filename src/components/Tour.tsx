@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { t, TOUR_EVENT, TOURS, type TourId } from "@/lib/guide";
+import { startTour, t, TOUR_EVENT, TOURS, type TourId } from "@/lib/guide";
 import { tr } from "@/lib/i18n";
 
 const SEEN = (id: TourId) => `sake-memo:tour-${id}`;
@@ -47,6 +47,20 @@ export default function Tour() {
   const steps = tour?.steps ?? [];
   const current = steps[step];
 
+  // タブを初めて開いたときは、その画面の案内を出す（ホームは「ようこそ」から始まる）
+  useEffect(() => {
+    if (id) return;
+    const first = (Object.keys(TOURS) as TourId[]).find((k) => k !== "home" && TOURS[k].path === pathname && !tourSeen(k));
+    if (!first) return;
+    // 「ようこそ」が出ているあいだは、閉じるまで待つ
+    const timer = setInterval(() => {
+      if (document.querySelector(".welcome")) return;
+      clearInterval(timer);
+      startTour(first);
+    }, 700);
+    return () => clearInterval(timer);
+  }, [pathname, id]);
+
   // 案内する画面に移る
   useEffect(() => {
     if (tour && pathname !== tour.path) router.push(tour.path);
@@ -84,8 +98,8 @@ export default function Tour() {
         timer = window.setTimeout(measure, 250);
         return;
       }
-      // 2秒たっても出てこないボタンは飛ばす
-      if (++tries > 20) return next();
+      // 1秒たっても出てこないボタン（空のときは出ないものなど）は飛ばす
+      if (++tries > 10) return next();
       timer = window.setTimeout(find, 100);
     };
     find();

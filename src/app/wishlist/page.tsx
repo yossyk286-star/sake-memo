@@ -44,7 +44,7 @@ export default function WishlistPage() {
 
       <main className="content" style={{ paddingTop: 16 }}>
         {wishes && wishes.length > 1 && (
-          <div className="filter-bar">
+          <div className="filter-bar" data-tour="wish-sort">
             <GenreSortBar
               genres={wishes.map(genreOf)}
               genre={genre}
@@ -57,17 +57,19 @@ export default function WishlistPage() {
           </div>
         )}
         {wishes?.length === 0 && (
-          <EmptyState
-            title={tr("気になるお酒、まだないよ")}
-            actions={[{ href: "/scan", label: tr("メニューを撮って探す") }]}
-          >
-            {tr("お店でメニューを撮って「☆ 気になる」を押すと、ここに残るよ。")}
-          </EmptyState>
+          <div data-tour="wish-item">
+            <EmptyState
+              title={tr("気になるお酒、まだないよ")}
+              actions={[{ href: "/scan", label: tr("メニューを撮って探す") }]}
+            >
+              {tr("お店でメニューを撮って「☆ 気になる」を押すと、ここに残るよ。")}
+            </EmptyState>
+          </div>
         )}
         {shown.length > 0 && (
           <div className="list-group">
-            {shown.map((w) => (
-              <div key={w.id} className="wish-row">
+            {shown.map((w, i) => (
+              <div key={w.id} className="wish-row" data-tour={i === 0 ? "wish-item" : undefined}>
                 <details>
                   <summary>
                     <strong>{trv(w.name)}</strong>

@@ -2,7 +2,7 @@
 
 import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
-import { GUIDE, startTour, t } from "@/lib/guide";
+import { GUIDE, startTour, t, TOURS, type TourId } from "@/lib/guide";
 import { tr } from "@/lib/i18n";
 
 /** 使い方。設定から開く。項目を押すと手順が開く */
@@ -34,13 +34,13 @@ export default function GuidePage() {
             )}
           </details>
         ))}
-        <div className="row">
-          <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => startTour("home")}>
-            {tr("記録の画面で案内")}
-          </button>
-          <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => startTour("scan")}>
-            {tr("調べる画面で案内")}
-          </button>
+        <h2 className="section-title">{tr("画面の案内をもう一度見る")}</h2>
+        <div className="guide-tours">
+          {(Object.keys(TOURS) as TourId[]).map((id) => (
+            <button key={id} type="button" className="btn-secondary" onClick={() => startTour(id)}>
+              {t(TOURS[id].label)}
+            </button>
+          ))}
         </div>
       </main>
     </>

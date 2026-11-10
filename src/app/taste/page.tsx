@@ -241,7 +241,7 @@ export default function TastePage() {
       id: "actions",
       label: "店員さんに見せる・好みくらべ",
       node: (
-        <div className="taste-actions">
+        <div className="taste-actions" data-tour="taste-show">
           <Link href="/show" className="hub-item hub-show">
             <strong>{tr("店員さんに見せる")}</strong>
             <span className="muted">{tr("好みを大きく表示")}</span>
@@ -285,13 +285,13 @@ export default function TastePage() {
       <header className="page-header">
         <h1>{tr("好み")}</h1>
         {records && sections.length > 1 && (
-          <button type="button" className="text-btn" onClick={() => setEditing((v) => !v)} aria-pressed={editing}>
+          <button type="button" className="text-btn" onClick={() => setEditing((v) => !v)} aria-pressed={editing} data-tour="taste-sort">
             {editing ? tr("完了") : tr("並べ替え")}
           </button>
         )}
       </header>
       <main className="content">
-        <div className="mode-switch" role="group" aria-label={tr("見るもの")}>
+        <div className="mode-switch" role="group" aria-label={tr("見るもの")} data-tour="taste-view">
           <button type="button" aria-pressed={view === "taste"} onClick={() => pickView("taste")}>
             {tr("わたしの傾向")}
           </button>

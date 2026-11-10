@@ -48,7 +48,7 @@ export default function DailyQuiz() {
 
   const right = chosen === question.answer;
   return (
-    <section className="tips quiz" aria-label={tr("今日の1問")}>
+    <section className="tips quiz" data-tour="g-quiz" aria-label={tr("今日の1問")}>
       <div className="card-top">
         <h2>{round === 0 ? tr("今日の1問") : tr("もう1問（{0}問目）", round + 1)}</h2>
         {stats.solved > 0 && (
