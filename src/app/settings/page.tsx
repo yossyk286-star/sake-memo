@@ -75,6 +75,11 @@ export default function SettingsPage() {
         <h1>{tr("設定")}</h1>
       </header>
       <main className="content" style={{ paddingTop: 16 }}>
+        <Link href="/guide" className="hub-item hub-show">
+          <strong>{tr("使い方")}</strong>
+          <span className="muted">{tr("記録のしかた・お店での調べ方・バックアップなど")}</span>
+        </Link>
+
         <h2 className="section-title">{tr("見た目")}</h2>
         <section className="card" style={{ gap: 14 }}>
           <div className="setting-row">

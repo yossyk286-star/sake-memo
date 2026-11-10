@@ -1389,5 +1389,16 @@
 "記録を書き出しておきませんか？": "Export your records?",
 "電波がなくて読み取れなかった写真：{0}枚": "Photos not read (no signal): {0}",
 "（ほか{0}回）": " (+{0} more)",
-"{0}（{1}）": "{0} ({1})"
+"{0}（{1}）": "{0} ({1})",
+"使い方": "How to use",
+"この画面を開く": "Open this screen",
+"はじめる": "Get started",
+"次へ": "Next",
+"スキップ": "Skip",
+"記録のしかた・お店での調べ方・バックアップなど": "Recording, looking up at a bar, backups and more",
+"画面で案内を見る": "Show me around",
+"おわる": "Done",
+"記録の画面で案内": "Tour: Log screen",
+"調べる画面で案内": "Tour: Explore screen",
+"画面の案内": "Screen tour"
 }

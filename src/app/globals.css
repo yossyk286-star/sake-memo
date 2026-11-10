@@ -3582,3 +3582,209 @@ html[lang="en"] .diary-note.quote::after {
   margin: 4px 0 0;
   font-size: 13px;
 }
+
+/* --- 初めて開いたときの説明 --- */
+.welcome-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  animation: fade-in 0.2s ease;
+}
+.welcome {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 28px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.welcome h2 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+.welcome p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--muted);
+  min-height: 3.4em;
+}
+.welcome-sub {
+  height: 44px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* --- 使い方 --- */
+.guide-item summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+  padding-right: 24px;
+}
+.guide-item summary::-webkit-details-marker {
+  display: none;
+}
+.guide-item summary::after {
+  content: "›";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 20px;
+  transition: transform 0.2s ease;
+}
+.guide-item[open] summary::after {
+  transform: translateY(-50%) rotate(90deg);
+}
+.guide-item summary strong {
+  font-size: 16px;
+  color: var(--text);
+}
+.guide-item summary .muted {
+  font-size: 13px;
+}
+.guide-item ol {
+  margin: 8px 0 0;
+  padding-left: 1.3em;
+  font-size: 14px;
+  line-height: 1.7;
+  display: grid;
+  gap: 4px;
+}
+.guide-open {
+  align-self: flex-start;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.guide-open::after {
+  content: " ›";
+  white-space: pre;
+}
+.welcome:focus { outline: none; }
+
+/* --- 画面の上の案内（矢印と吹き出し） --- */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+.tour-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+/* 光らせるボタンのところだけ抜いて、まわりを暗くする */
+.tour-hole {
+  position: absolute;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+  outline: 2px solid #fff;
+  outline-offset: 0;
+  animation: tour-pulse 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes tour-pulse {
+  50% {
+    outline-offset: 3px;
+    outline-color: rgba(255, 255, 255, 0.5);
+  }
+}
+.tour-arrow {
+  position: absolute;
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+.tour-arrow.up {
+  animation: tour-bob-down 1s ease-in-out infinite;
+}
+.tour-arrow.down {
+  animation: tour-bob-up 1s ease-in-out infinite;
+}
+@keyframes tour-bob-down {
+  50% {
+    transform: translateY(5px);
+  }
+}
+@keyframes tour-bob-up {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.tour-bubble {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  max-width: 420px;
+  margin: 0 auto;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 16px 16px 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  animation: fade-in 0.2s ease;
+}
+.tour-bubble:focus {
+  outline: none;
+}
+.tour-bubble p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.tour-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+.tour-foot .muted {
+  font-size: 13px;
+  margin-right: auto;
+  font-variant-numeric: tabular-nums;
+}
+.tour-skip,
+.tour-next {
+  min-height: 44px;
+  padding: 0 14px;
+  border: none;
+  background: none;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.tour-next {
+  color: var(--accent);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-hole,
+  .tour-arrow {
+    animation: none;
+  }
+}

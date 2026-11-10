@@ -83,7 +83,7 @@ export default function RecordsPage() {
     <>
       <header className="page-header">
         <h1>{tr("さけメモ")}</h1>
-        <Link href="/settings" className="icon-btn" aria-label={tr("設定")}>
+        <Link href="/settings" className="icon-btn" data-tour="settings" aria-label={tr("設定")}>
           <svg
             width="22"
             height="22"
@@ -186,7 +186,7 @@ export default function RecordsPage() {
         ))}
       </main>
 
-      <Link href="/new" className="fab">
+      <Link href="/new" className="fab" data-tour="fab">
         <svg
           width="20"
           height="20"
