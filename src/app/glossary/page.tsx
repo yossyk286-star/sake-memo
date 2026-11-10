@@ -209,7 +209,7 @@ export default function GlossaryPage() {
             <div className="list-group">
               {list.map((t) => (
                 <details
-                  key={`${t.mine}-${t.term}`}
+                  key={`${t.mine}-${t.category}-${t.term}`}
                   className="term-row"
                   open={few || justAdded === t.term}
                   style={{ outline: justAdded === t.term ? "2px solid var(--accent)" : undefined, outlineOffset: -2 }}

@@ -62,7 +62,7 @@ const COCKTAILS: Cocktail[] = [
   { name: "カンパリソーダ", aliases: ["campari soda"], base: "カンパリ", abv: 7, recipe: "カンパリ30ml＋ソーダ", explanation: "ほろ苦い薬草の香り。甘さ控えめで食前酒向き。", taste: [2, 2, 1, 4], pairing: "オリーブ、前菜", style: "リキュール" },
   { name: "カンパリオレンジ", aliases: ["カンパリオレ"], base: "カンパリ", abv: 7, recipe: "カンパリ30ml＋オレンジジュース", explanation: "オレンジの甘さとカンパリのほろ苦さ。", taste: [3, 3, 1, 3], pairing: "生ハム、前菜", style: "リキュール" },
   { name: "スプモーニ", aliases: ["spumoni"], base: "カンパリ", abv: 5, recipe: "カンパリ30ml＋グレープフルーツジュース＋トニックウォーター", explanation: "ほろ苦くて甘酸っぱい、すっきり軽めのカクテル。", taste: [3, 3, 1, 3], pairing: "サラダ、カルパッチョ", style: "リキュール" },
-  { name: "アペロールスプリッツ", aliases: ["aperol spritz", "スプリッツ"], base: "アペロール", abv: 8, recipe: "アペロール＋スパークリングワイン＋ソーダ（3:2:1くらい）", explanation: "オレンジ色の軽い食前酒。ほろ苦さと柑橘の香り。", taste: [3, 3, 1, 4], pairing: "前菜、ポテトチップス", style: "リキュール" },
+  { name: "アペロールスプリッツ", aliases: ["aperol spritz", "スプリッツ"], base: "アペロール", abv: 8, recipe: "スパークリングワイン3：アペロール2：ソーダ1くらい", explanation: "オレンジ色の軽い食前酒。ほろ苦さと柑橘の香り。", taste: [3, 3, 1, 4], pairing: "前菜、ポテトチップス", style: "リキュール" },
   // ワイン・ビール
   { name: "ミモザ", aliases: ["mimosa"], base: "スパークリングワイン", abv: 7, recipe: "スパークリングワイン＋オレンジジュース（1:1）", explanation: "泡とオレンジのやさしい甘さ。ブランチの定番。", taste: [3, 3, 1, 3], pairing: "卵料理、サンドイッチ" },
   { name: "キール", aliases: ["kir"], base: "白ワイン", abv: 11, recipe: "白ワイン＋カシスリキュール少し", explanation: "白ワインにカシスで色と甘さを足した食前酒。", taste: [3, 3, 2, 3], pairing: "前菜、チーズ" },
