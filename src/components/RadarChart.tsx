@@ -75,13 +75,14 @@ export default function RadarChart({
         const sin = Math.sin(angle);
         const [px, py] = point(i, n, MAX);
         const x = px + cos * 10;
-        const y = py + sin * 10;
+        // 文字のそろえは dominant-baseline を使わず、ふつうのベースラインで y をずらす。
+        // iPhone（Safari）は hanging を tspan に引き継がず、数字だけ上に浮いてしまうため
+        const y = py + sin * 10 + (sin < -0.3 ? 0 : sin > 0.3 ? 13 : 5);
         const anchor = cos > 0.3 ? "start" : cos < -0.3 ? "end" : "middle";
-        const baseline = sin < -0.3 ? "auto" : sin > 0.3 ? "hanging" : "middle";
         // どの記録にも入っていない軸は、名前を薄くする
         const empty = series.every((s) => !s.values[i]);
         return (
-          <text key={a} x={x} y={y} textAnchor={anchor} dominantBaseline={baseline} fontSize="13" fill={empty ? "var(--muted)" : "var(--text)"}>
+          <text key={a} x={x} y={y} textAnchor={anchor} fontSize="13" fill={empty ? "var(--muted)" : "var(--text)"}>
             {trv(a)}
             {showValues && series[0]?.values[i] != null && (
               <tspan dx="4" fontSize="16" fontWeight="700" fill="var(--accent)">
