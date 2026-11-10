@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { GUIDE, t, WELCOME_EVENT } from "@/lib/guide";
+import { GUIDE, startTour, t } from "@/lib/guide";
 import { tr } from "@/lib/i18n";
 
 /** 使い方。設定から開く。項目を押すと手順が開く */
@@ -33,13 +33,14 @@ export default function GuidePage() {
             )}
           </details>
         ))}
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={() => window.dispatchEvent(new Event(WELCOME_EVENT))}
-        >
-          {tr("はじめの説明をもう一度見る")}
-        </button>
+        <div className="row">
+          <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => startTour("home")}>
+            {tr("記録の画面で案内")}
+          </button>
+          <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => startTour("scan")}>
+            {tr("調べる画面で案内")}
+          </button>
+        </div>
       </main>
     </>
   );

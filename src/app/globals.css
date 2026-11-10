@@ -3618,22 +3618,6 @@ html[lang="en"] .diary-note.quote::after {
   color: var(--muted);
   min-height: 3.4em;
 }
-.welcome-dots {
-  display: flex;
-  gap: 6px;
-  margin: 4px 0;
-}
-.welcome-dots i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--input-line);
-}
-.welcome-dots i[aria-current] {
-  background: var(--accent);
-  width: 18px;
-  border-radius: 4px;
-}
 .welcome-sub {
   height: 44px;
   border: none;
@@ -3703,3 +3687,105 @@ html[lang="en"] .diary-note.quote::after {
   white-space: pre;
 }
 .welcome:focus { outline: none; }
+
+/* --- 画面の上の案内（矢印と吹き出し） --- */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+.tour-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+/* 光らせるボタンのところだけ抜いて、まわりを暗くする */
+.tour-hole {
+  position: absolute;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+  outline: 3px solid #fff;
+  outline-offset: 0;
+  animation: tour-pulse 1.4s ease-in-out infinite;
+  transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+  pointer-events: none;
+}
+@keyframes tour-pulse {
+  50% {
+    outline-offset: 4px;
+    outline-color: rgba(255, 255, 255, 0.6);
+  }
+}
+.tour-arrow {
+  position: absolute;
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+.tour-arrow.up {
+  animation: tour-bob-down 1s ease-in-out infinite;
+}
+.tour-arrow.down {
+  animation: tour-bob-up 1s ease-in-out infinite;
+}
+@keyframes tour-bob-down {
+  50% {
+    transform: translateY(5px);
+  }
+}
+@keyframes tour-bob-up {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.tour-bubble {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  max-width: 420px;
+  margin: 0 auto;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 18px;
+  padding: 16px 16px 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  animation: fade-in 0.2s ease;
+}
+.tour-bubble:focus {
+  outline: none;
+}
+.tour-bubble p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.tour-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+.tour-foot .muted {
+  font-size: 13px;
+  margin-right: auto;
+  font-variant-numeric: tabular-nums;
+}
+.tour-skip,
+.tour-next {
+  min-height: 44px;
+  padding: 0 14px;
+  border: none;
+  background: none;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.tour-next {
+  color: var(--accent);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-hole,
+  .tour-arrow {
+    animation: none;
+  }
+}

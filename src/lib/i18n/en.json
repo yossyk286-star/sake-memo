@@ -1392,11 +1392,13 @@
 "{0}（{1}）": "{0} ({1})",
 "使い方": "How to use",
 "この画面を開く": "Open this screen",
-"はじめの説明をもう一度見る": "Show the intro again",
 "はじめる": "Get started",
 "次へ": "Next",
 "スキップ": "Skip",
-"使い方をくわしく見る": "See the full guide",
 "記録のしかた・お店での調べ方・バックアップなど": "Recording, looking up at a bar, backups and more",
-"{0} / {1}": "{0} / {1}"
+"画面で案内を見る": "Show me around",
+"おわる": "Done",
+"記録の画面で案内": "Tour: Log screen",
+"調べる画面で案内": "Tour: Explore screen",
+"画面の案内": "Screen tour"
 }

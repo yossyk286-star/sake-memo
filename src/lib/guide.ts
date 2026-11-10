@@ -4,9 +4,6 @@ import { getLang } from "./i18n";
 type Text = { ja: string; en: string };
 export type GuideSection = { id: string; title: Text; where: Text; steps: Text[]; href?: string };
 
-/** 使い方の画面から「はじめの説明」をもう一度出すときのイベント */
-export const WELCOME_EVENT = "app:show-welcome";
-
 export const t = (x: Text) => (getLang() === "en" ? x.en : x.ja);
 
 export const GUIDE: GuideSection[] = [
@@ -105,22 +102,43 @@ export const GUIDE: GuideSection[] = [
   },
 ];
 
-/** 初めて開いたときの説明（数枚） */
-export const WELCOME: { title: Text; body: Text }[] = [
-  {
-    title: { ja: "さけメモへようこそ", en: "Welcome to Sake Memo" },
-    body: { ja: "飲んだお酒を記録して、だんだん詳しくなるアプリです。記録はこの端末の中だけに保存されます。", en: "Record what you drink and learn as you go. Your records stay on this device." },
+/** 初めて開いたときのあいさつ。このあと画面の上で案内（TOURS.home）に進む */
+export const WELCOME = {
+  title: { ja: "さけメモへようこそ", en: "Welcome to Sake Memo" },
+  body: {
+    ja: "飲んだお酒を記録して、だんだん詳しくなるアプリです。記録はこの端末の中だけに保存されます。どこを押すとどうなるか、画面で案内しますね。",
+    en: "Record what you drink and learn as you go. Your records stay on this device. Let me show you around the screen.",
   },
-  {
-    title: { ja: "飲んだら「＋ 記録する」", en: "Tap “Log it” after a drink" },
-    body: { ja: "名前と★だけでも保存できます。味や飲み方は、あとから足せば大丈夫です。", en: "A name and stars are enough. Add taste and serving details whenever you like." },
+};
+
+/** 画面の上で、実際のボタンを光らせて矢印と吹き出しで案内する。target は data-tour の値 */
+export type TourStep = { target: string; text: Text };
+export type TourId = "home" | "scan";
+export const TOURS: Record<TourId, { path: string; steps: TourStep[] }> = {
+  home: {
+    path: "/",
+    steps: [
+      { target: "fab", text: { ja: "飲んだらここを押して記録します。名前と★だけでも保存できます。", en: "Tap here after a drink to record it. A name and stars are enough." } },
+      { target: "tab-scan", text: { ja: "お店ではここ。メニューやラベルを撮ると、お酒ごとの解説とおすすめが出ます。", en: "At a bar, tap here. Shoot a menu or label to get notes and picks for each drink." } },
+      { target: "tab-wishlist", text: { ja: "「☆」を付けた気になるお酒は、ここにたまります。", en: "Drinks you star (☆) collect here." } },
+      { target: "tab-taste", text: { ja: "味マップ・産地スタンプ・店員さんに見せる画面はここから。", en: "Your taste map, origin stamps and the staff screen are here." } },
+      { target: "settings", text: { ja: "使い方とバックアップは、いつでもここ（設定）から。", en: "The guide and backups are always here in Settings." } },
+    ],
   },
-  {
-    title: { ja: "お店では真ん中のカメラ", en: "At a bar, use the center camera" },
-    body: { ja: "メニューやラベルを撮ると、お酒ごとの解説とおすすめが出ます。料理から選ぶこともできます。", en: "Shoot a menu or label to get notes and picks for each drink. You can also choose by food." },
+  scan: {
+    path: "/scan",
+    steps: [
+      { target: "scan-shoot", text: { ja: "ここを押してメニューやラベルを撮ると、お酒ごとに解説とおすすめの飲み方が出ます。", en: "Tap here to shoot a menu or label. You'll get notes and serving tips for each drink." } },
+      { target: "scan-photo", text: { ja: "撮ってある写真からも読み取れます（5枚まで）。", en: "You can also read photos you already took (up to 5)." } },
+      { target: "scan-text", text: { ja: "名前を打って調べることもできます。", en: "Or type a name to look it up." } },
+      { target: "scan-food", text: { ja: "料理のメニューを撮ると、料理ごとに合うお酒が出ます。", en: "Shoot the food menu to see drinks that go with each dish." } },
+      { target: "scan-show", text: { ja: "好みを大きな字で出して、店員さんに見せられます。", en: "Show your taste in large type to the staff." } },
+    ],
   },
-  {
-    title: { ja: "たまるほど好みがわかる", en: "The more you record, the more you learn" },
-    body: { ja: "好みタブで味マップや産地スタンプが見られます。使い方はいつでも設定から見直せます。", en: "See your taste map and origin stamps in the Taste tab. The guide is always in Settings." },
-  },
-];
+};
+
+/** 案内を始めるイベント。detail に TourId */
+export const TOUR_EVENT = "app:start-tour";
+export function startTour(id: TourId) {
+  window.dispatchEvent(new CustomEvent(TOUR_EVENT, { detail: id }));
+}

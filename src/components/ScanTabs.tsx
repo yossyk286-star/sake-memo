@@ -8,7 +8,7 @@ export default function ScanTabs({ current }: { current: "drink" | "food" }) {
       <Link href="/scan" replace aria-current={current === "drink" ? "page" : undefined}>
         {tr("飲み物から")}
       </Link>
-      <Link href="/pair" replace aria-current={current === "food" ? "page" : undefined}>
+      <Link href="/pair" replace data-tour="scan-food" aria-current={current === "food" ? "page" : undefined}>
         {tr("料理から")}
       </Link>
     </nav>
