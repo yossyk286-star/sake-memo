@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import QRCode from "qrcode";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import BuddyFace from "@/components/BuddyFace";
 import RadarChart from "@/components/RadarChart";
@@ -123,7 +122,11 @@ function Send({ records }: { records: TastingRecord[] }) {
   const url = useMemo(() => matchUrl(name || tr("わたし"), card, location.origin), [name, card]);
   useEffect(() => {
     if (!ok) return;
-    QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "L" }).then(setQr).catch(() => setQr(""));
+    // QR を作る部品は送る画面を開いたときだけ読み込む（受け取る画面を軽くする）
+    import("qrcode")
+      .then((QRCode) => QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "L" }))
+      .then(setQr)
+      .catch(() => setQr(""));
   }, [url, ok]);
 
   if (!ok)

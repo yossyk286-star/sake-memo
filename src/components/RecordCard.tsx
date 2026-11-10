@@ -68,7 +68,7 @@ function Thumb({ record: r }: { record: TastingRecord }) {
   const [url] = usePhotoURLs(first);
   if (url) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className="thumb" style={{ borderColor: kindColor(r.kind) }} />;
+    return <img src={url} alt="" className="thumb" loading="lazy" decoding="async" style={{ borderColor: kindColor(r.kind) }} />;
   }
   return (
     <span className="thumb thumb-mark" style={{ "--kc": kindColor(r.kind) } as React.CSSProperties} aria-hidden="true">
