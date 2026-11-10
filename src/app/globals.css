@@ -4317,3 +4317,66 @@ html[data-text="large"] body {
 .hub-match {
   grid-column: 1 / -1;
 }
+
+/* --- 称号のメダル --- */
+.medal {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+}
+.medal-glint {
+  transform-box: fill-box;
+}
+.medal-shine .medal-glint {
+  animation: medal-glint 2.4s ease-in-out infinite;
+}
+@keyframes medal-glint {
+  0%, 40% { translate: -40px 0; }
+  70%, 100% { translate: 90px 0; }
+}
+.medal-shine {
+  animation: medal-pop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes medal-pop {
+  from { transform: scale(0.3) rotate(-20deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .medal-shine, .medal-shine .medal-glint { animation: none; }
+}
+.title-plate {
+  display: inline-block;
+  justify-self: start;
+  padding: 3px 12px;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-l) 80%, #fff), var(--accent-l));
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.title-ladder {
+  list-style: none;
+  margin: 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  text-align: center;
+  font-size: 10.5px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+.title-ladder li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+.title-ladder li[data-now="true"] {
+  color: var(--text);
+  font-weight: 700;
+}
+.party .title-plate {
+  font-size: 20px;
+  justify-self: center;
+}

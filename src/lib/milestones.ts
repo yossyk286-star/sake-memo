@@ -8,6 +8,8 @@ export function titleOf(count: number) {
   const next = TITLES[at + 1] ?? null;
   const from = now?.at ?? 0;
   return {
+    /** 何段目か（0 から）。まだ記録がなければ -1 */
+    tier: at,
     name: now?.name ?? null,
     next: next ? { name: next.name, left: next.at - count } : null,
     /** 次の称号までの進み具合（0〜1）。いちばん上なら 1 */

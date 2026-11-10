@@ -1,7 +1,7 @@
 "use client";
 
-import BuddyFace from "./BuddyFace";
-import { badgesOf, WORDS } from "@/lib/appeal";
+import Medal, { plateStyle } from "./Medal";
+import { badgesOf, TITLES, WORDS } from "@/lib/appeal";
 import { tr } from "@/lib/i18n";
 import { titleOf } from "@/lib/milestones";
 import type { TastingRecord } from "@/lib/types";
@@ -15,10 +15,10 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
   return (
     <section className="card title-card" aria-label={tr("称号としるし")}>
       <div className="title-now">
-        <BuddyFace mood="happy" size={52} />
+        <Medal tier={title.tier} size={76} />
         <div>
           <span className="muted">{tr("いまの称号")}</span>
-          <strong>{tr(title.name ?? "")}</strong>
+          <strong className="title-plate" style={plateStyle(title.tier)}>{tr(title.name ?? "")}</strong>
           <div className="title-bar" aria-hidden="true">
             <div style={{ width: `${Math.round(title.progress * 100)}%` }} />
           </div>
@@ -27,6 +27,15 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
           </span>
         </div>
       </div>
+      <ol className="title-ladder" aria-label={tr("称号の段")}>
+        {TITLES.map((t, i) => (
+          <li key={t.name} data-now={i === title.tier}>
+            <Medal tier={i} size={36} locked={i > title.tier} />
+            <span>{tr(t.name)}</span>
+            <span>{tr("{0}{1}〜", t.at, WORDS.cup)}</span>
+          </li>
+        ))}
+      </ol>
       <details className="badges">
         <summary>
           <span>

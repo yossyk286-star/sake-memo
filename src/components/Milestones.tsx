@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import BuddyFace from "./BuddyFace";
+import Medal, { plateStyle } from "./Medal";
 import { WORDS, type Badge } from "@/lib/appeal";
 import { listRecords } from "@/lib/db";
 import { tr } from "@/lib/i18n";
@@ -56,9 +57,16 @@ export default function Milestones() {
             <i key={i} style={{ left: `${6 + i * 6.5}%`, animationDelay: `${(i % 5) * 0.12}s` }} data-c={i % 4} />
           ))}
         </div>
-        <BuddyFace mood="happy" size={72} />
+        {party.title ? <Medal tier={titleOf(party.count).tier} size={120} shine /> : <BuddyFace mood="happy" size={72} />}
         <span className="party-count">{tr("記録 {0}{1}目", party.count, WORDS.cup)}</span>
-        <h2 id="party-title">{head}</h2>
+        {party.title ? (
+          <h2 id="party-title">
+            <span className="muted" style={{ display: "block", fontSize: 14, fontWeight: 600 }}>{tr("新しい称号")}</span>
+            <span className="title-plate" style={plateStyle(titleOf(party.count).tier)}>{tr(party.title)}</span>
+          </h2>
+        ) : (
+          <h2 id="party-title">{head}</h2>
+        )}
         {party.badges.length > 0 && (
           <ul className="badge-row">
             {party.badges.slice(0, 4).map((b) => (
