@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import BuddyFace from "./BuddyFace";
 import Tour from "./Tour";
@@ -16,15 +17,18 @@ const KEY = "sake-memo:welcome-seen";
 export default function Welcome() {
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
+  // 好みのリンクから来た人は、まずその画面を見てもらう（あいさつは次に記録の画面を開いたとき）
+  const fromLink = usePathname().startsWith("/match");
 
   useEffect(() => {
+    if (fromLink) return;
     let seen = false;
     try {
       seen = !!localStorage.getItem(KEY);
     } catch {}
     // 前から使っている人（記録がある人）には出さない
     if (!seen) listRecords().then((rs) => (rs.length === 0 ? setOpen(true) : close()));
-  }, []);
+  }, [fromLink]);
 
   useEffect(() => {
     // 読み上げで最初から読まれるよう、開いたら説明の箱にフォーカスを移す

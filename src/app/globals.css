@@ -3937,3 +3937,383 @@ html[data-text="large"] body {
 .recent-open .muted {
   font-size: 13px;
 }
+
+/* --- 合言葉の案内（調べる・料理から） --- */
+.pass-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--accent);
+}
+.pass-note > p {
+  margin: 0;
+}
+.pass-note .text-btn {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  margin-left: 6px;
+  text-decoration: underline;
+  font-size: 13px;
+}
+.pass-body {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  display: grid;
+  gap: 8px;
+}
+.pass-body p {
+  margin: 0;
+  color: var(--muted);
+}
+/* 白い箱の中なので、入力欄は灰色の地で見せる（調べるの色付きの箱の「白く浮かせる」より強く） */
+.pass-body .input.input.input {
+  background: var(--fill);
+  box-shadow: none;
+}
+.pass-body strong {
+  margin-top: 4px;
+  font-size: 14px;
+}
+.pass-body ul {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--muted);
+}
+
+/* --- ホーム画面に追加の案内 --- */
+.install-hint img {
+  border-radius: 14px;
+  box-shadow: var(--shadow-lift);
+}
+.install-hint ol {
+  margin: 0;
+  width: 100%;
+  text-align: left;
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 12px 14px 12px 2.2em;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.install-hint .btn-primary {
+  width: 100%;
+}
+
+/* --- 節目のお祝い --- */
+.party {
+  position: relative;
+  overflow: hidden;
+}
+.party .btn-primary {
+  width: 100%;
+}
+.party p {
+  min-height: 0;
+}
+.party-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.party h2 {
+  margin: 0;
+}
+.confetti {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0;
+  pointer-events: none;
+}
+.confetti i {
+  position: absolute;
+  top: -12px;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: confetti-fall 1.6s ease-in forwards;
+}
+.confetti i[data-c="1"] { background: var(--star); }
+.confetti i[data-c="2"] { background: var(--compare); }
+.confetti i[data-c="3"] { background: var(--k-shochu); }
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0); opacity: 1; }
+  100% { transform: translateY(420px) rotate(540deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti { display: none; }
+}
+.badge-row {
+  list-style: none;
+  margin: 4px 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  font-size: 12px;
+}
+.badge-row li {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 64px;
+}
+.badge-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+/* --- 好み画面の称号としるし --- */
+.title-card {
+  gap: 12px;
+}
+.title-now {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.title-now > div {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+.title-now .muted {
+  font-size: 12px;
+}
+.title-now strong {
+  font-size: 20px;
+}
+.title-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--fill);
+  margin: 4px 0 2px;
+  overflow: hidden;
+}
+.title-bar div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.badges summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.badges summary::-webkit-details-marker { display: none; }
+.badges summary::after {
+  content: "›";
+  color: var(--muted);
+  transition: transform 0.2s ease;
+}
+.badges[open] summary::after {
+  transform: rotate(90deg);
+}
+.badge-peek {
+  flex: 1;
+  text-align: right;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+.badge-grid {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 8px;
+  text-align: center;
+}
+.badge-grid li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  font-size: 12px;
+}
+.badge-grid strong {
+  font-size: 13px;
+  margin-top: 4px;
+}
+.badge-grid .muted {
+  font-size: 11px;
+  line-height: 1.4;
+}
+.badge-grid li[data-done="false"] .badge-icon {
+  background: var(--fill);
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+/* --- 先月のふりかえり --- */
+.recap {
+  border-radius: 22px;
+  padding: 18px;
+  color: #fff;
+  background: linear-gradient(155deg, var(--accent-l), color-mix(in srgb, var(--accent-l) 60%, #8fa2ff));
+  display: grid;
+  gap: 10px;
+}
+.recap-eyebrow {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.recap h2 {
+  margin: -6px 0 2px;
+  font-size: 22px;
+  color: #fff;
+}
+.recap-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.recap-stats div,
+.recap-best {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 2px;
+}
+.recap-stats span,
+.recap-best span {
+  font-size: 12px;
+  opacity: 0.85;
+}
+.recap-stats strong {
+  font-size: 24px;
+}
+.recap-best {
+  color: #fff;
+  text-decoration: none;
+}
+.recap-best strong {
+  font-size: 16px;
+}
+.recap p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.recap .row {
+  gap: 8px;
+}
+.recap-btn {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--accent-l);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+.recap-close {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+/* --- 友だちと好みくらべ --- */
+.match-hero {
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+.match-label {
+  font-weight: 700;
+  font-size: 15px;
+}
+.match-score {
+  font-size: 48px;
+  line-height: 1.1;
+  color: var(--accent);
+}
+.match-score small {
+  font-size: 20px;
+}
+.match-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  font-size: 13px;
+}
+.match-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.match-note {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: left;
+  align-self: stretch;
+}
+.match-h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.match-favs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.match-favs li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+}
+.match-favs li > div {
+  flex: 1;
+  display: grid;
+}
+.match-favs .muted {
+  font-size: 12px;
+}
+.match-qr {
+  align-items: center;
+  text-align: center;
+}
+.qr {
+  width: 200px;
+  background: #fff;
+  padding: 8px;
+  border-radius: 12px;
+}
+.qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 好み画面の「友だちと好みくらべ」は横いっぱいの1枚 */
+.hub-match {
+  grid-column: 1 / -1;
+}

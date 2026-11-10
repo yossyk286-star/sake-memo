@@ -24,6 +24,7 @@ import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
 import { abvText } from "@/lib/abv";
 import { findCocktail } from "@/lib/cocktails";
+import PasscodeField from "./PasscodeField";
 import { loadDishRanks, loadTodayMenu, saveDishRanks, type FoodMenu, type MenuRank } from "@/lib/foodPairing";
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { MOODS, moodFromText, wordMatch } from "@/lib/moods";
@@ -615,21 +616,13 @@ export default function MenuScan({
         </Hint>
       )}
       {!savedPasscode && (
-        <div className="field">
-          <label className="label" htmlFor="scan-pass">
-            {tr("合言葉")}
-          </label>
-          <input
-            id="scan-pass"
-            className="input"
-            type="text"
-            autoComplete="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            value={passcode}
-            onChange={(e) => setPasscode(e.target.value)}
-          />
-        </div>
+        <PasscodeField
+          value={passcode}
+          onChange={setPasscode}
+          need={tr("撮って読み取るには「合言葉」が要ります。")}
+          free={[tr("カクテル47種の解説（名前で調べる）"), tr("よくある料理に合うお酒（料理から）"), tr("記録・辞典・味マップ・スタンプ帳")]}
+          forceOpen={error.includes("合言葉")}
+        />
       )}
 
       <PendingPhotos
