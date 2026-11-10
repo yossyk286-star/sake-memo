@@ -5009,13 +5009,14 @@ details > summary::-webkit-details-marker {
   }
 }
 
-/* --- 記録の詳細：テーマ色は「画像にして送る」だけ。点数は★の色、種類・五角形はお酒の種類の色 --- */
+/* --- 記録の詳細：テーマ色は「画像にして送る」だけ。点数は種類の色、種類・五角形はお酒の種類の色 --- */
+/* 点数の欄は上の帯と同じ色（種類・焙煎の色）でなじませる。★だけ山吹 */
 .detail-score {
-  background: color-mix(in srgb, var(--star) 13%, var(--surface));
+  background: color-mix(in srgb, var(--kind) 14%, var(--surface));
 }
 .detail-score-label,
 .detail-score-num {
-  color: var(--star);
+  color: var(--kind);
 }
 .map-link {
   background: var(--fill);
@@ -5032,7 +5033,10 @@ details > summary::-webkit-details-marker {
 }
 
 /* 詳細の上に、そのお酒の種類の色をうっすら差して、下で地に溶かす */
-.sub-header:has(+ .detail-page) {
+.sub-header {
+  transition: background-color 0.2s ease;
+}
+.sub-header[data-top]:has(+ .detail-page) {
   background: color-mix(in srgb, var(--kind) var(--tint-mix), var(--bg));
 }
 .detail-page {
@@ -5063,7 +5067,7 @@ details > summary::-webkit-details-marker {
   background: color-mix(in srgb, var(--kind) 14%, var(--surface));
 }
 .detail-page .detail-score {
-  background: color-mix(in srgb, var(--star) 14%, var(--surface));
+  background: color-mix(in srgb, var(--kind) 14%, var(--surface));
 }
 .detail-page .detail-when {
   border-top-color: color-mix(in srgb, var(--kind) 22%, var(--line));
