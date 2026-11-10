@@ -1067,10 +1067,10 @@ export default function MenuScan({
                 </details>
               </>
             )}
-            {/* 閉じたカードは押すと開くことが分かるよう、ほかの畳んだ行と同じ「›」を付ける */}
+            {/* 閉じたカードは押すと開くことが分かるよう、右上の角に「⌄」を付ける（開くとそこが ✕ になる） */}
             {!open && (
               <button type="button" className={styles.chev} tabIndex={-1} aria-hidden="true" onClick={() => setOpenCard(b.name)}>
-                ›
+                ⌄
               </button>
             )}
             <div className={styles.actions}>
