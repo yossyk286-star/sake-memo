@@ -569,11 +569,22 @@ textarea.input {
   white-space: nowrap;
   transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
+/* 選んだチップ：濃い塗りではなく、うすいテーマ色の地＋濃い文字＋✓（色だけに頼らず ✓ でも分かる） */
 .chip[aria-pressed="true"] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  color: var(--accent);
+  font-weight: 700;
+}
+.chip[aria-pressed="true"]::before {
+  content: "✓";
+  margin-right: 4px;
+  font-weight: 700;
+}
+/* 1〜5 の数字ボタンと、選んだ気分（× で外す）には ✓ を付けない */
+.rating-btns .chip[aria-pressed="true"]::before,
+.mood-chosen .chip[aria-pressed="true"]::before {
+  content: none;
 }
 .help {
   width: 22px;
@@ -1610,10 +1621,11 @@ button.stamp {
   flex-direction: column;
   gap: 8px;
 }
+/* 種類のチップは、選ぶとその種類の色のうすい地＋色文字＋✓ */
 .kind-chip[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--kc) var(--kind-fill-mix), var(--kind-fill-toward));
-  border-color: transparent;
-  color: var(--on-accent);
+  background: color-mix(in srgb, var(--kc) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--kc) 40%, transparent);
+  color: var(--kc);
 }
 
 /* --- 右の「調べる」丸ボタン --- */
@@ -1886,18 +1898,93 @@ button.stamp {
   transform: rotate(45deg);
 }
 
-/* 押したときに少し沈む */
+/* 押した手ごたえ：押すとすっと沈み（0.1秒）、離すと少しだけ弾んで戻る（ばねの曲線）。
+   動きを減らす設定の人は下の prefers-reduced-motion で動きが消え、色の変化だけ残る */
+:root {
+  --ease-spring: linear(0, 0.21 6%, 0.55 13%, 0.85 21%, 1.04 30%, 1.11 37%, 1.1 44%, 1.05 52%, 1.01 62%, 0.99 74%, 1);
+}
+.chip,
+.btn-primary,
+.btn-secondary,
+.fab,
+.hub-item,
+.tab-scan-btn,
+.tabbar-pill .tab,
+.mode-switch button,
+.map-link,
+.card:is(a):not(.record-row),
+.record-row > * {
+  transition:
+    transform 0.4s var(--ease-spring),
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
 .chip:active,
 .btn-primary:active,
 .btn-secondary:active,
 .fab:active,
 .hub-item:active,
-.tab-scan-btn:active {
-  transform: scale(0.96);
+.tab-scan:active .tab-scan-btn,
+.tabbar-pill .tab:active,
+.mode-switch button:active,
+.map-link:active,
+.card:is(a):not(.record-row):active {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
 }
-.card:is(a):active,
+.btn-primary:disabled:active,
+.btn-secondary:disabled:active,
+.chip:disabled:active {
+  transform: none;
+}
+/* 一覧の行は帯の中なので、行ごと縮めず中身だけ少し沈めて、地を少し暗くする */
 .record-row:active {
   background: var(--surface-2);
+}
+.record-row:active > * {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
+}
+.card:is(a):not(.record-row):active,
+.hub-item:active {
+  background: var(--surface-2);
+}
+
+/* チップを押すと、押した指の位置から色が広がる（PressFx が --ink-x/y/r を入れる） */
+.chip {
+  position: relative;
+  /* hidden だと横並びの列でチップが縮んで字が切れるので clip にする */
+  overflow: clip;
+  isolation: isolate;
+}
+.chip[data-ink]::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: var(--ink-x, 50%);
+  top: var(--ink-y, 50%);
+  width: calc(var(--ink-r, 80px) * 2);
+  height: calc(var(--ink-r, 80px) * 2);
+  margin: calc(var(--ink-r, 80px) * -1) 0 0 calc(var(--ink-r, 80px) * -1);
+  border-radius: 50%;
+  background: var(--accent);
+  pointer-events: none;
+  animation: chip-ink 0.45s ease-out forwards;
+}
+@keyframes chip-ink {
+  from {
+    transform: scale(0);
+    opacity: 0.32;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
 }
 
 /* 入力中の欄はテーマ色でふちどる */
@@ -4919,5 +5006,141 @@ details > summary::-webkit-details-marker {
   .confirm-backdrop.is-closing,
   .confirm-backdrop.is-closing .confirm-sheet {
     animation: none;
+  }
+}
+
+/* --- 記録の詳細：テーマ色は「画像にして送る」だけ。点数は★の色、種類・五角形はお酒の種類の色 --- */
+.detail-score {
+  background: color-mix(in srgb, var(--star) 13%, var(--surface));
+}
+.detail-score-label,
+.detail-score-num {
+  color: var(--star);
+}
+.map-link {
+  background: var(--fill);
+  color: var(--text);
+}
+/* 灰の地のボタン（脇役）と、テーマ色で塗ったボタン（その画面でいちばん押してほしいもの） */
+.btn-secondary.btn-plain {
+  background: var(--fill);
+  color: var(--text);
+}
+.btn-secondary.btn-main {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* 詳細の上に、そのお酒の種類の色をうっすら差して、下で地に溶かす */
+.sub-header:has(+ .detail-page) {
+  background: color-mix(in srgb, var(--kind) var(--tint-mix), var(--bg));
+}
+.detail-page {
+  position: relative;
+  isolation: isolate;
+  --tint-mix: 20%;
+}
+.sub-header {
+  --tint-mix: 20%;
+}
+.detail-tint {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  background: linear-gradient(color-mix(in srgb, var(--kind) var(--tint-mix), var(--bg)), var(--bg));
+  pointer-events: none;
+}
+/* 名前と点数は色の上にじかに置く（白いカードにしない） */
+.detail-page .detail-hero {
+  background: transparent;
+  box-shadow: none;
+  padding: 4px 4px 0;
+}
+.detail-page .detail-hero .kind-tag {
+  background: color-mix(in srgb, var(--kind) 14%, var(--surface));
+}
+.detail-page .detail-score {
+  background: color-mix(in srgb, var(--star) 14%, var(--surface));
+}
+.detail-page .detail-when {
+  border-top-color: color-mix(in srgb, var(--kind) 22%, var(--line));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .detail-page,
+  :root:not([data-theme="light"]) .sub-header {
+    --tint-mix: 30%;
+  }
+}
+:root[data-theme="dark"] .detail-page,
+:root[data-theme="dark"] .sub-header {
+  --tint-mix: 30%;
+}
+
+/* --- 画面がつながって動く（View Transitions。src/lib/viewTransition.ts） --- */
+/* タブバーは動かさず、その場に残す */
+.tabbar {
+  view-transition-name: tabbar;
+}
+/* 移る途中は、ふだんのふわっと出る動きを止めて二重に動かないようにする */
+:root[data-vt] .page-enter,
+.page-enter[data-entered] {
+  animation: none;
+}
+/* 一覧の行（押したときに名前を付ける）と、詳細の上がつながる */
+.detail-hero {
+  view-transition-name: rec-card;
+}
+.detail-hero h2 {
+  view-transition-name: rec-name;
+}
+::view-transition-group(rec-card),
+::view-transition-group(rec-name) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-old(rec-name),
+::view-transition-new(rec-name) {
+  height: 100%;
+  width: auto;
+  object-fit: none;
+  object-position: left top;
+}
+:root[data-vt="open"]::view-transition-old(root),
+:root[data-vt="back"]::view-transition-old(root) {
+  animation: vt-fade-out 0.2s ease both;
+}
+:root[data-vt="open"]::view-transition-new(root),
+:root[data-vt="back"]::view-transition-new(root) {
+  animation: vt-fade-in 0.28s ease 0.06s both;
+}
+:root[data-vt="tab"]::view-transition-old(root) {
+  animation: vt-tab-out 0.18s ease-in both;
+}
+:root[data-vt="tab"]::view-transition-new(root) {
+  animation: vt-tab-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vt-tab-out {
+  to {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+@keyframes vt-tab-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
   }
 }

@@ -10,6 +10,7 @@ import Welcome from "@/components/Welcome";
 import InstallHint from "@/components/InstallHint";
 import Milestones from "@/components/Milestones";
 import ThemeSync from "@/components/ThemeSync";
+import PressFx from "@/components/PressFx";
 import { THEME_BOOT } from "@/lib/theme";
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
@@ -89,6 +90,7 @@ export default function RootLayout({
         </LangGate>
         <ServiceWorker />
         <ThemeSync />
+        <PressFx />
       </body>
     </html>
   );
