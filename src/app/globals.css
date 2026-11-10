@@ -3707,7 +3707,6 @@ html[lang="en"] .diary-note.quote::after {
   outline: 3px solid #fff;
   outline-offset: 0;
   animation: tour-pulse 1.4s ease-in-out infinite;
-  transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
   pointer-events: none;
 }
 @keyframes tour-pulse {

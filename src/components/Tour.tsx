@@ -130,9 +130,9 @@ export default function Tour() {
   return (
     <div className="tour" role="dialog" aria-modal="true" aria-label={tr("画面の案内")}>
       {hole ? (
-        <div className="tour-hole" style={hole} aria-hidden="true" />
+        <div key="hole" className="tour-hole" style={hole} aria-hidden="true" />
       ) : (
-        <div className="tour-dim" aria-hidden="true" />
+        <div key="dim" className="tour-dim" aria-hidden="true" />
       )}
       {hole && (
         <>
