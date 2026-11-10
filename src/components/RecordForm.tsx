@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { loadShopToday } from "@/lib/shopToday";
 import { useRouter } from "next/navigation";
 import { MultiChips, SingleChips } from "./ChipGroup";
 import AbvInput from "./AbvInput";
@@ -331,10 +332,10 @@ export default function RecordForm({
     listRecords().then((rs) => {
       setPast(rs);
       setShopNames([...new Set(rs.map((r) => r.shop).filter(Boolean))]);
-      // 今日すでに記録した店があれば、新しい記録の店名に先に入れておく
+      // 調べる画面で今日のお店を入れてあればその名前、なければ今日すでに記録した店を、新しい記録の店名に先に入れておく
       const latest = rs[0];
-      if (!initial && latest?.date === today())
-        setDraft((d) => (d.shop ? d : { ...d, shop: latest.shop }));
+      const shop = loadShopToday() || (latest?.date === today() ? latest.shop : "");
+      if (!initial && shop) setDraft((d) => (d.shop ? d : { ...d, shop }));
     });
   }, [initial]);
 
