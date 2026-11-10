@@ -2218,6 +2218,10 @@ input[type="search"]::-webkit-search-cancel-button {
     display: none !important;
   }
 }
+/* 一度出し終わったら、画面が作り直されても起動画面は出さない（LaunchScreen の LAUNCH_BOOT） */
+html[data-launched] .launch {
+  display: none !important;
+}
 /* まだ画面に見えていない新しいスタンプは、押す前の空きの枠で待つ */
 .stamp-wait {
   border: 1.5px dashed var(--input-line);
