@@ -26,11 +26,15 @@ export default function RadarChart({
   axes,
   series,
   showValues = false,
+  color,
 }: {
   axes: string[];
   series: RadarSeries[];
   showValues?: boolean;
+  /** 1つ目の色を変える（記録の詳細ではお酒の種類の色にする） */
+  color?: string;
 }) {
+  const colors = color ? [color, ...SERIES_COLORS.slice(1)] : SERIES_COLORS;
   const n = axes.length;
   return (
     <svg
@@ -56,14 +60,14 @@ export default function RadarChart({
         return <line key={i} x1={CENTER} y1={CENTER} x2={x} y2={y} stroke="var(--line)" />;
       })}
       {series.map((s, si) => {
-        const color = SERIES_COLORS[si % SERIES_COLORS.length];
+        const c = colors[si % colors.length];
         const ps = s.values.map((v, i) => point(i, n, v ?? 0));
         return (
           <g key={si}>
-            <polygon points={toPoints(ps)} fill={color} fillOpacity={0.18} stroke={color} strokeWidth={2} strokeLinejoin="round" />
+            <polygon points={toPoints(ps)} fill={c} fillOpacity={0.18} stroke={c} strokeWidth={2} strokeLinejoin="round" />
             {/* 角ごとに点を打つ（未入力の角も内側の輪の上に）。重なっても見分けられるよう背景色のふちを付ける */}
             {ps.map(([x, y], i) => (
-              <circle key={i} cx={x} cy={y} r={4.5} fill={color} stroke="var(--surface)" strokeWidth={2} />
+              <circle key={i} cx={x} cy={y} r={4.5} fill={c} stroke="var(--surface)" strokeWidth={2} />
             ))}
           </g>
         );
@@ -85,7 +89,7 @@ export default function RadarChart({
           <text key={a} x={x} y={y} textAnchor={anchor} fontSize="13" fill={empty ? "var(--muted)" : "var(--text)"}>
             {trv(a)}
             {showValues && series[0]?.values[i] != null && (
-              <tspan dx="4" fontSize="16" fontWeight="700" fill="var(--accent)">
+              <tspan dx="4" fontSize="16" fontWeight="700" fill={colors[0]}>
                 {series[0].values[i]}
               </tspan>
             )}
