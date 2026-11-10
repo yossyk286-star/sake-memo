@@ -1,5 +1,6 @@
 export type { FoodMenu, FoodPick, FoodPairing } from "./schemas";
 import type { FoodMenu, FoodPick, FoodPairing } from "./schemas";
+import { saveShopToday } from "./shopToday";
 import { saveLastScan, today } from "./lastScan";
 import type { ScannedDrink } from "./menuScan";
 import { nameKey } from "./savedLookups";
@@ -412,6 +413,7 @@ export function resetShop() {
     localStorage.removeItem(MENU_RANK_KEY);
     localStorage.removeItem(DISH_RANK_KEY);
   } catch {}
+  saveShopToday("");
   saveLastPair({ menu: null, query: loadLastPair()?.query ?? "" });
   saveLastScan([]);
 }
