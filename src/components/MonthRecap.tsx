@@ -12,6 +12,8 @@ import type { TastingRecord } from "@/lib/types";
 export default function MonthRecap({ records, titleOf }: { records: TastingRecord[]; titleOf: (r: TastingRecord) => string }) {
   const recap = useMemo(() => lastMonthRecap(records), [records]);
   const [show, setShow] = useState(false);
+  // 一覧を押し下げないよう、はじめは1行の帯にしておき、押したら開く
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     setShow(!!recap && !recapSeen(recap.month));
   }, [recap]);
@@ -33,6 +35,14 @@ export default function MonthRecap({ records, titleOf }: { records: TastingRecor
     markRecapSeen(recap!.month);
     setShow(false);
   }
+
+  if (!open)
+    return (
+      <button type="button" className="recap-band" aria-expanded={false} onClick={() => setOpen(true)}>
+        <span className="recap-eyebrow">{tr("先月のふりかえり")}</span>
+        <strong>{tr("{0}月 {1}", recap.monthNumber, `${stats[0].value}・${stats[1].label} ${stats[1].value}`)}</strong>
+      </button>
+    );
 
   return (
     <section className="recap" aria-label={tr("先月のふりかえり")}>
