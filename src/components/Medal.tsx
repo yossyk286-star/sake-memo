@@ -5,10 +5,10 @@ const METALS = [
   { hi: "#ecc9a6", mid: "#b98257", lo: "#6e4423" }, // 銅
   { hi: "#f4f5f7", mid: "#bcc1c8", lo: "#6b727c" }, // 銀
   { hi: "#f6e3a6", mid: "#cfa548", lo: "#7c5a14" }, // 金
-  { hi: "#f3f6f9", mid: "#b7c4d1", lo: "#5d6d7e" }, // 白金
-  { hi: "#e6cf8c", mid: "#8a7238", lo: "#3d3015" }, // 古金
+  { hi: "#ffffff", mid: "#d5dbe3", lo: "#4f5966", sheen: "#e9eef7" }, // プラチナ（白く冷たい光）
+  { hi: "#ffffff", mid: "#cfeaf7", lo: "#2f5f7e", facets: true }, // ダイヤモンド（面に光の切り子）
 ];
-const LOCKED = { hi: "#f1f1f4", mid: "#d9d9df", lo: "#a5a5ae" };
+const LOCKED: { hi: string; mid: string; lo: string; sheen?: string; facets?: boolean } = { hi: "#f1f1f4", mid: "#d9d9df", lo: "#a5a5ae" };
 
 /** 彫り込む絵（24×24 の線画）。fill を付けたものは塗りで彫る */
 const ICONS: Record<string, { d: string; fill?: string }> = {
@@ -45,7 +45,7 @@ const ICONS: Record<string, { d: string; fill?: string }> = {
 
 /**
  * 金属のメダル。真ん中のくぼみに絵（icon）か数字（text）を彫り込んだように描く。
- * metal は 0〜4（銅・銀・金・白金・古金）。locked はまだ取っていないもの（灰色でうすく）
+ * metal は 0〜4（銅・銀・金・プラチナ・ダイヤモンド）。locked はまだ取っていないもの（灰色でうすく）
  */
 export default function Medal({
   metal = 2,
@@ -63,7 +63,7 @@ export default function Medal({
   shine?: boolean;
 }) {
   const id = useId().replace(/:/g, "");
-  const c = locked ? LOCKED : METALS[Math.max(0, Math.min(METALS.length - 1, metal))];
+  const c: typeof LOCKED = locked ? LOCKED : METALS[Math.max(0, Math.min(METALS.length - 1, metal))];
   const art = icon ? ICONS[icon] : undefined;
   const ink = locked ? 0.55 : 1;
   // 彫った線：右下に光（hi）、その上に影（lo）を重ねて、くぼんで見せる
@@ -106,6 +106,26 @@ export default function Medal({
       <circle cx="50" cy="50" r="47" fill="none" stroke={c.lo} strokeOpacity="0.5" strokeWidth="1" />
       <circle cx="50" cy="50" r="38.5" fill={c.lo} opacity="0.55" />
       <circle cx="50" cy="50" r="37.5" fill={`url(#f${id})`} />
+      {/* プラチナは斜めに白い光の帯、ダイヤモンドは切り子の面を重ねる */}
+      {c.sheen && (
+        <g clipPath={`url(#c${id})`} opacity="0.75">
+          <path d="M8 70 L70 8 L84 8 L22 84Z" fill={c.sheen} />
+          <path d="M30 92 L92 30 L96 36 L36 96Z" fill="#fff" opacity="0.8" />
+        </g>
+      )}
+      {c.facets && (
+        <g opacity="0.9">
+          <polygon points="50,12.5 76.5,23.5 50,50" fill="#ffffff" opacity="0.55" />
+          <polygon points="76.5,23.5 87.5,50 50,50" fill="#bfe4f5" opacity="0.6" />
+          <polygon points="87.5,50 76.5,76.5 50,50" fill="#e9f7fd" opacity="0.5" />
+          <polygon points="76.5,76.5 50,87.5 50,50" fill="#a9d7ee" opacity="0.55" />
+          <polygon points="50,87.5 23.5,76.5 50,50" fill="#ffffff" opacity="0.45" />
+          <polygon points="23.5,76.5 12.5,50 50,50" fill="#c6e8f7" opacity="0.6" />
+          <polygon points="12.5,50 23.5,23.5 50,50" fill="#f2fbff" opacity="0.7" />
+          <polygon points="23.5,23.5 50,12.5 50,50" fill="#b3def2" opacity="0.5" />
+          <circle cx="50" cy="50" r="37.5" fill="none" stroke="#7fb8d6" strokeWidth="0.8" />
+        </g>
+      )}
       {/* ふちの細い線（打刻のふちどり） */}
       <circle cx="50" cy="50" r="42.5" fill="none" stroke={c.hi} strokeOpacity="0.7" strokeWidth="0.8" strokeDasharray="1.2 2.2" />
       {carve(0.7, c.hi, 0.9 * ink)}
