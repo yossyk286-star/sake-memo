@@ -57,7 +57,17 @@ export default function Tour() {
     if (!current) return;
     const el = document.querySelector<HTMLElement>(`[data-tour="${current.target}"]`);
     if (!el) return setRect(null);
-    const r = el.getBoundingClientRect();
+    // はみ出して描かれる中身（真ん中の丸いカメラなど）も枠に入れる
+    let { top, left, right, bottom } = el.getBoundingClientRect();
+    el.querySelectorAll("*").forEach((c) => {
+      const b = c.getBoundingClientRect();
+      if (!b.width || !b.height) return;
+      top = Math.min(top, b.top);
+      left = Math.min(left, b.left);
+      right = Math.max(right, b.right);
+      bottom = Math.max(bottom, b.bottom);
+    });
+    const r = { top, left, width: right - left, height: bottom - top };
     const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
     setRect({ top: r.top, left: r.left, width: r.width, height: r.height, radius });
   }, [current]);
