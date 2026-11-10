@@ -10,6 +10,7 @@ import { announceBuddy } from "@/lib/buddy";
 import { loadMyTerms, saveMyTerms, type MyTerm } from "@/lib/myTerms";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 import { getLang, tr, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 const FILTERS: ("すべて" | "自分で追加" | "カクテル" | GlossaryCategory)[] = ["すべて", "自分で追加", "カクテル", ...CATEGORIES];
 
@@ -105,8 +106,8 @@ export default function GlossaryPage() {
     setFilter("すべて");
   }
 
-  function remove(term: string) {
-    if (!confirm(tr("「{0}」を辞典から外しますか？", term))) return;
+  async function remove(term: string) {
+    if (!(await askConfirm({ message: tr("「{0}」を辞典から外しますか？", term), action: tr("外す") }))) return;
     const next = myTerms.filter((m) => m.term !== term);
     setMyTerms(next);
     saveMyTerms(next);

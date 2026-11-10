@@ -2,10 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import RecordCard from "./RecordCard";
+import RecordCard, { RecordPreview } from "./RecordCard";
 import { deleteRecord } from "@/lib/db";
 import type { TastingRecord } from "@/lib/types";
 import { tr } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 /** 横にずらしたときに出すボタンの幅 */
 const ACTION_W = 88;
@@ -34,7 +35,12 @@ export default function SwipeRecord({
   }
 
   async function remove() {
-    if (!confirm(tr("この記録を削除しますか？"))) return setDx(0);
+    const ok = await askConfirm({
+      preview: <RecordPreview record={record} />,
+      message: tr("この記録を削除しますか？"),
+      action: tr("削除"),
+    });
+    if (!ok) return setDx(0);
     await deleteRecord(record.id);
     onDeleted(record.id);
   }

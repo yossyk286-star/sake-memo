@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import ServiceWorker from "@/components/ServiceWorker";
 import Buddy from "@/components/Buddy";
 import ClearField from "@/components/ClearField";
+import ConfirmHost from "@/components/ConfirmSheet";
 import LangGate from "@/components/LangGate";
 import LaunchScreen, { LAUNCH_BOOT } from "@/components/LaunchScreen";
 import TabBar from "@/components/TabBar";
@@ -10,7 +11,11 @@ import InstallHint from "@/components/InstallHint";
 import Milestones from "@/components/Milestones";
 import ThemeSync from "@/components/ThemeSync";
 import { THEME_BOOT } from "@/lib/theme";
+import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
+
+/** 数字だけに使う丸い書体（英数字の分だけ読み込む。日本語はいつもの書体のまま） */
+const numFont = M_PLUS_Rounded_1c({ weight: ["700", "800"], subsets: ["latin"], variable: "--font-num", display: "swap" });
 
 export const metadata: Metadata = {
   title: "さけメモ",
@@ -66,7 +71,7 @@ export default function RootLayout({
 }>) {
   return (
     // data-theme / data-accent は THEME_BOOT が描画前に付けるので、React の食い違い警告を出さない
-    <html lang="ja" suppressHydrationWarning>
+    <html lang="ja" className={numFont.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT + LAUNCH_BOOT }} />
       </head>
@@ -80,6 +85,7 @@ export default function RootLayout({
           <Welcome />
           <Milestones />
           <InstallHint />
+          <ConfirmHost />
         </LangGate>
         <ServiceWorker />
         <ThemeSync />

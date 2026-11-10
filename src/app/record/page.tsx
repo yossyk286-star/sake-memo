@@ -16,11 +16,15 @@ import { recordImage, shareImage } from "@/lib/shareImage";
 import { useRecordFromQuery } from "@/lib/useRecord";
 import type { QA } from "@/lib/types";
 import { tr, trJoin, trv } from "@/lib/i18n";
+import NumText from "@/components/NumText";
 
 /** AI に聞くときにタップで入る質問 */
 const SUGGESTIONS = ["おいしい飲み方は？", "合う料理は？", "似た味のお酒は？", "どんな造りのお酒？"];
 
 type Row = [string, string];
+
+/** 数字を丸い書体で出す欄（名前などに入った数字はそのまま） */
+const NUMERIC = new Set(["度数", "値段"]);
 
 /** 見出しと、入っている欄だけの表。1つも入っていなければ何も出さない */
 function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
@@ -33,7 +37,7 @@ function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
         {filled.map(([k, v]) => (
           <div key={k} style={{ display: "contents" }}>
             <dt>{trv(k)}</dt>
-            <dd>{trv(v)}</dd>
+            <dd>{NUMERIC.has(k) ? <NumText text={trv(v)} /> : trv(v)}</dd>
           </div>
         ))}
       </dl>

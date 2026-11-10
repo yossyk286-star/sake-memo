@@ -2,6 +2,7 @@
 
 import { usePhotoURLs } from "@/lib/photo";
 import { tr, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 /** 写真を横に並べる。onRemove があれば1枚ずつ外せる */
 export function PhotoRow({ photos, onRemove }: { photos: Blob[]; onRemove?: (i: number) => void }) {
@@ -14,7 +15,11 @@ export function PhotoRow({ photos, onRemove }: { photos: Blob[]; onRemove?: (i: 
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={u} alt={tr("記録の写真 {0}", i + 1)} />
           {onRemove && (
-            <button type="button" className="photo-remove" aria-label={tr("写真 {0} を外す", i + 1)} onClick={() => confirm(tr("この写真を外しますか？")) && onRemove(i)}>
+            <button type="button" className="photo-remove" aria-label={tr("写真 {0} を外す", i + 1)} onClick={async () => {
+                // eslint-disable-next-line @next/next/no-img-element
+                const preview = <img src={u} alt="" className="confirm-photo" />;
+                if (await askConfirm({ preview, message: tr("この写真を外しますか？"), action: tr("外す") })) onRemove(i);
+              }}>
               ×
             </button>
           )}

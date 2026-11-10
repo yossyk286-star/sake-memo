@@ -8,6 +8,7 @@ import { importJSON } from "@/lib/db";
 import { daysSince, lastBackup, saveBackup } from "@/lib/backup";
 import { ACCENTS, DEFAULT_THEME, loadTheme, saveTheme, type Appearance, type Theme } from "@/lib/theme";
 import { loadLangSetting, saveLangSetting, tr, trv, type LangSetting } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 const APPEARANCES: { id: Appearance; label: string }[] = [
   { id: "auto", label: "自動" },
@@ -57,7 +58,7 @@ export default function SettingsPage() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    if (!confirm(tr("読み込むと、同じ記録は読み込んだ内容で上書きされます。読み込みますか？"))) return;
+    if (!(await askConfirm({ message: tr("読み込むと、同じ記録は読み込んだ内容で上書きされます。読み込みますか？"), action: tr("読み込む") }))) return;
     try {
       const n = await importJSON(await file.text());
       setMessage(tr("{0}件の記録を読み込みました。", n));

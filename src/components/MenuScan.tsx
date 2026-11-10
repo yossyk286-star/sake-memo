@@ -35,6 +35,7 @@ import Hint from "./Hint";
 import MenuPicks, { scoreWord } from "./MenuPicks";
 import TasteBars from "./TasteBars";
 import { getLang, tr, trJoin, trv } from "@/lib/i18n";
+import { askConfirm } from "@/components/ConfirmSheet";
 
 /** 相棒が「好きなやつ」を教えた一覧。アプリを開いている間は同じ一覧で何度も言わない */
 const announcedScans = new Set<string>();
@@ -230,8 +231,8 @@ export default function MenuScan({
       setPairing(null);
     }
   }
-  function hide(names: string[], label: string) {
-    if (!confirm(tr("{0}を一覧から消しますか？", label))) return;
+  async function hide(names: string[], label: string) {
+    if (!(await askConfirm({ message: tr("{0}を一覧から消しますか？", label), action: tr("消す") }))) return;
     setUndo({ label, drinks });
     setLocalHit(null);
     replaceDrinks(drinks.filter((d) => !names.includes(d.name)));
