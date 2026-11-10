@@ -3933,3 +3933,13 @@ html[data-text="large"] body {
 .recent-open .muted {
   font-size: 13px;
 }
+/* 使い方ページの「画面の案内をもう一度見る」 */
+.guide-tours {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.guide-tours .btn-secondary {
+  padding-left: 4px;
+  padding-right: 4px;
+}

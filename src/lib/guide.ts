@@ -113,10 +113,12 @@ export const WELCOME = {
 
 /** 画面の上で、実際のボタンを光らせて矢印と吹き出しで案内する。target は data-tour の値 */
 export type TourStep = { target: string; text: Text };
-export type TourId = "home" | "scan";
-export const TOURS: Record<TourId, { path: string; steps: TourStep[] }> = {
+export type TourId = "home" | "scan" | "glossary" | "wishlist" | "taste" | "settings";
+/** label は使い方ページの「もう一度見る」ボタンの名前 */
+export const TOURS: Record<TourId, { path: string; label: Text; steps: TourStep[] }> = {
   home: {
     path: "/",
+    label: { ja: "記録", en: "Records" },
     steps: [
       { target: "fab", text: { ja: "飲んだらここを押して記録します。名前と★だけでも保存できます。", en: "Tap here after a drink to record it. A name and stars are enough." } },
       { target: "tab-scan", text: { ja: "お店ではここ。メニューやラベルを撮ると、お酒ごとの解説とおすすめが出ます。", en: "At a bar, tap here. Shoot a menu or label to get notes and picks for each drink." } },
@@ -127,12 +129,48 @@ export const TOURS: Record<TourId, { path: string; steps: TourStep[] }> = {
   },
   scan: {
     path: "/scan",
+    label: { ja: "調べる", en: "Explore" },
     steps: [
       { target: "scan-shoot", text: { ja: "ここを押してメニューやラベルを撮ると、お酒ごとに解説とおすすめの飲み方が出ます。", en: "Tap here to shoot a menu or label. You'll get notes and serving tips for each drink." } },
       { target: "scan-photo", text: { ja: "撮ってある写真からも読み取れます（5枚まで）。", en: "You can also read photos you already took (up to 5)." } },
       { target: "scan-text", text: { ja: "名前を打って調べることもできます。", en: "Or type a name to look it up." } },
       { target: "scan-food", text: { ja: "料理のメニューを撮ると、料理ごとに合うお酒が出ます。", en: "Shoot the food menu to see drinks that go with each dish." } },
       { target: "scan-show", text: { ja: "好みを大きな字で出して、店員さんに見せられます。", en: "Show your taste in large type to the staff." } },
+    ],
+  },
+  glossary: {
+    path: "/glossary",
+    label: { ja: "辞典", en: "Glossary" },
+    steps: [
+      { target: "g-search", text: { ja: "言葉を打って探せます。辞典にない言葉は、調べて辞典に足せます。", en: "Type a word to find it. Words that aren't here can be looked up and added." } },
+      { target: "g-filter", text: { ja: "種類や飲み方でしぼり込めます。", en: "Narrow down by type or serving style." } },
+      { target: "g-quiz", text: { ja: "毎日1問のクイズで、少しずつ覚えられます。", en: "A daily quiz helps you learn a little at a time." } },
+    ],
+  },
+  wishlist: {
+    path: "/wishlist",
+    label: { ja: "気になる", en: "Want" },
+    steps: [
+      { target: "wish-item", text: { ja: "調べる画面で「☆」を付けたお酒が、ここにたまります。飲んだら「記録する」でそのまま記録できます。", en: "Drinks you star (☆) while exploring collect here. Tap “Record” after you drink one." } },
+      { target: "wish-sort", text: { ja: "種類で分けたり、甘口・辛口の順に並べ替えたりできます。", en: "Filter by type, or sort from sweet to dry." } },
+    ],
+  },
+  taste: {
+    path: "/taste",
+    label: { ja: "好み", en: "Taste" },
+    steps: [
+      { target: "taste-show", text: { ja: "好みを大きな字で出して、お店で「こういうのください」と見せられます。", en: "Show your taste in large type at a bar: “Something like this, please.”" } },
+      { target: "taste-hub", text: { ja: "産地スタンプ帳・行ったお店・気になるお酒・家のお酒はここから。", en: "Origin stamps, shops you've visited, your Want list and bottles at home are here." } },
+      { target: "taste-prefs", text: { ja: "記録が少ないうちは、ここで好みを自分で登録できます。", en: "While you have few records, you can set your taste here yourself." } },
+    ],
+  },
+  settings: {
+    path: "/settings",
+    label: { ja: "設定", en: "Settings" },
+    steps: [
+      { target: "set-guide", text: { ja: "使い方と、この画面の案内の見直しはここから。", en: "Open the guide and replay these tips here." } },
+      { target: "set-look", text: { ja: "明るさ・文字の大きさ・テーマ色を変えられます。", en: "Change brightness, text size and theme color." } },
+      { target: "set-backup", text: { ja: "記録はこの端末の中だけ。ときどき「書き出す」で残しておくと安心です。", en: "Records stay on this device only. Export them now and then to be safe." } },
     ],
   },
 };

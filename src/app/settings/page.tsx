@@ -75,13 +75,13 @@ export default function SettingsPage() {
         <h1>{tr("設定")}</h1>
       </header>
       <main className="content" style={{ paddingTop: 16 }}>
-        <Link href="/guide" className="hub-item hub-show">
+        <Link href="/guide" className="hub-item hub-show" data-tour="set-guide">
           <strong>{tr("使い方")}</strong>
           <span className="muted">{tr("記録のしかた・お店での調べ方・バックアップなど")}</span>
         </Link>
 
         <h2 className="section-title">{tr("見た目")}</h2>
-        <section className="card" style={{ gap: 14 }}>
+        <section data-tour="set-look" className="card" style={{ gap: 14 }}>
           <div className="setting-row">
             <span>{tr("明るさ")}</span>
             <div className="mode-switch three" role="group" aria-label={tr("明るさ")}>
@@ -172,7 +172,7 @@ export default function SettingsPage() {
         </section>
 
         <h2 className="section-title">{tr("データ")}</h2>
-        <section className="card">
+        <section className="card" data-tour="set-backup">
           <h2>{tr("バックアップ")}</h2>
           <p className="muted" style={{ lineHeight: 1.7 }}>
             {tr("記録はこの端末の中だけに保存されています。機種変更のときや念のために、ファイルに書き出しておけます。")}

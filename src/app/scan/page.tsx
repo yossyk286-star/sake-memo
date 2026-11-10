@@ -6,8 +6,6 @@ import { useEffect, useState } from "react";
 import Hint from "@/components/Hint";
 import MenuScan from "@/components/MenuScan";
 import ScanTabs from "@/components/ScanTabs";
-import { tourSeen } from "@/components/Tour";
-import { startTour } from "@/lib/guide";
 import ShopBar from "@/components/ShopBar";
 import { loadTodayMenu, resetShop } from "@/lib/foodPairing";
 import { LAST_SCAN_EVENT, loadLastScan, saveLastScan } from "@/lib/lastScan";
@@ -32,12 +30,6 @@ export default function ScanPage() {
     return () => window.removeEventListener(LAST_SCAN_EVENT, count);
   }, []);
 
-  // 初めて開いたときは、撮る・写真から・文字で・料理から・店員さんに見せるを画面の上で案内する
-  useEffect(() => {
-    if (tourSeen("scan")) return;
-    const timer = setTimeout(() => startTour("scan"), 600);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <>

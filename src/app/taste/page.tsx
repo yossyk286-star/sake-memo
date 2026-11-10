@@ -108,11 +108,11 @@ export default function TastePage() {
       </header>
       {summary && <p className="lead">{tr("記録 {0}件から。数字は総合の平均（カッコ内は件数）です。", count)}</p>}
       <main className="content">
-        <Link href="/show" className="hub-item hub-show">
+        <Link href="/show" className="hub-item hub-show" data-tour="taste-show">
           <strong>{tr("店員さんに見せる")}</strong>
           <span className="muted">{tr("好みを大きく表示して「こういうのください」")}</span>
         </Link>
-        <nav className="hub" aria-label={tr("記録のまとめ")}>
+        <nav className="hub" data-tour="taste-hub" aria-label={tr("記録のまとめ")}>
           <Link href="/stamps" className="hub-item hub-num">
             <strong>{tr("産地スタンプ帳")}</strong>
             <HubValue text={tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)} />
@@ -129,7 +129,7 @@ export default function TastePage() {
             <strong>{tr("家のお酒")}</strong>
             <HubValue text={tr("{0}本", bottleCount)} />
           </Link>
-          <Link href="/prefs" className="hub-item hub-wide">
+          <Link href="/prefs" className="hub-item hub-wide" data-tour="taste-prefs">
             <strong>{tr("わたしの好み")}</strong>
             <span className="muted">{tr("自分で登録")}</span>
           </Link>
