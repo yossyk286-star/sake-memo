@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LAST_SCAN_EVENT, loadLastScan } from "@/lib/lastScan";
 import { tr, trv } from "@/lib/i18n";
-import { isPlainClick, transitionTo } from "@/lib/viewTransition";
 
 const TABS = [
   {
@@ -83,7 +82,6 @@ const BADGE_LABEL = (n: number) => tr("今日調べたお酒 {0}種類", n);
 
 export default function TabBar() {
   const pathname = usePathname();
-  const router = useRouter();
   // 今日調べたお酒の数。画面を移るたびに読み直す
   const [scanned, setScanned] = useState(0);
   // 下へスクロールしたら帯を縮めて画面を広く見せる。上へ戻すか、いちばん上近くで元に戻す
@@ -124,13 +122,11 @@ export default function TabBar() {
   // 縮んだときに残すタブ（いまの画面。調べる画面などで無いときは記録）
   const keep = others.find((t) => isActive(t.href))?.href ?? "/";
   const scanActive = isActive(scan.href);
-  /** タブを移るとき、ぱっと変えずに前の画面を薄めながら次の画面を重ねる */
-  const go = (href: string) => (e: React.MouseEvent) => {
-    setMini(false);
-    if (!isPlainClick(e) || pathname === href) return;
-    e.preventDefault();
-    transitionTo(() => router.push(href), () => location.pathname === href, "tab");
-  };
+  /**
+   * タブはそのまま移る（次の画面は .page-enter でふわっと出る）。
+   * 画面をつなぐ動き（View Transitions）は、次の画面が描けるまで前の画面を止めて待つので、タブではかくっとして見えた
+   */
+  const go = () => setMini(false);
 
   return (
     <nav className="tabbar" aria-label={tr("メイン")} data-mini={mini ? "" : undefined}>
@@ -143,7 +139,7 @@ export default function TabBar() {
               className={t.href === keep ? "tab tab-keep" : "tab"}
               data-tour={`tab-${t.href.slice(1) || "home"}`}
               aria-current={isActive(t.href) ? "page" : undefined}
-              onClick={go(t.href)}
+              onClick={go}
             >
               <svg
                 width="24"
@@ -164,7 +160,7 @@ export default function TabBar() {
           ))}
         </div>
         {/* 「調べる」はお店で片手で押しやすいよう、帯の外の大きな丸ボタンにする */}
-        <Link href={scan.href} className="tab-scan" data-tour="tab-scan" aria-label={trv(scan.label)} aria-current={scanActive ? "page" : undefined} onClick={go(scan.href)}>
+        <Link href={scan.href} className="tab-scan" data-tour="tab-scan" aria-label={trv(scan.label)} aria-current={scanActive ? "page" : undefined} onClick={go}>
           <span className="tab-scan-btn">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               {scanActive ? scan.solid : scan.icon}

@@ -5150,12 +5150,6 @@ details > summary::-webkit-details-marker {
 :root[data-vt="back"]::view-transition-new(root) {
   animation: vt-fade-in 0.28s ease 0.06s both;
 }
-:root[data-vt="tab"]::view-transition-old(root) {
-  animation: vt-tab-out 0.18s ease-in both;
-}
-:root[data-vt="tab"]::view-transition-new(root) {
-  animation: vt-tab-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
 @keyframes vt-fade-out {
   to {
     opacity: 0;
@@ -5164,18 +5158,6 @@ details > summary::-webkit-details-marker {
 @keyframes vt-fade-in {
   from {
     opacity: 0;
-  }
-}
-@keyframes vt-tab-out {
-  to {
-    opacity: 0;
-    transform: translateX(-14px);
-  }
-}
-@keyframes vt-tab-in {
-  from {
-    opacity: 0;
-    transform: translateX(14px);
   }
 }
 
@@ -5579,6 +5561,11 @@ img.photo-fade {
   background: var(--fill);
   transition: filter 0.45s ease, opacity 0.45s ease, transform 0.45s ease;
 }
+/* 一覧の小さな写真を作っている間の空き枠（読み込み前の写真と同じ見た目） */
+.thumb-wait {
+  display: block;
+  background: var(--fill);
+}
 img.photo-fade:not([data-loaded]) {
   filter: blur(14px) saturate(0.8);
   opacity: 0.55;
@@ -5746,14 +5733,15 @@ img.photo-fade:not([data-loaded]) {
 }
 
 /* 下から出るシートの後ろで、画面が少し小さく角丸になって奥へ下がる */
-html:has(.sheet-backdrop, .confirm-backdrop) {
+/* :has は body の直下だけを見る（子孫まで見ると、画面のどこが変わっても全体の見た目を計算し直して重くなる。シートと確認は body 直下に出る） */
+html:has(> body > .sheet-backdrop, > body > .confirm-backdrop) {
   background: #000;
 }
 .app {
   transform-origin: 50% var(--sheet-origin-y, 40vh);
   transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), border-radius 0.4s ease, filter 0.4s ease;
 }
-body:has(> .sheet-backdrop, .confirm-backdrop:not(.is-closing)) .app {
+body:has(> .sheet-backdrop, > .confirm-backdrop:not(.is-closing)) .app {
   transform: scale(0.93);
   border-radius: 18px;
   overflow: clip;
