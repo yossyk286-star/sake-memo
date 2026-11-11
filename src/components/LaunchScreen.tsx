@@ -28,7 +28,7 @@ function art() {
       <path class="ln-d" pathLength="1" d="${TOKKURI}" stroke-width="25.3" style="fill:var(--ln-tint);${INK};${draw}"/>
       <path class="ln-d" pathLength="1" d="M-62,140 C-30,152 30,152 62,140" fill="none" stroke-width="15.2" stroke-opacity=".45" style="${INK};${anim(a("draw", 300, 450, IO))}"/>
     </g></g>`;
-  const stream = `<path class="ln-d" pathLength="1" d="M362,252 V292" stroke-width="16" stroke-opacity=".6" style="${INK};${anim(a("draw", 870, 140, "linear"), a("fade-out", 1150, 160))}"/>`;
+  const stream = `<path class="ln-d" pathLength="1" d="M300,172 C332,178 356,212 360,264" fill="none" stroke-width="14" stroke-opacity=".6" style="${INK};${anim(a("draw", 880, 200, "linear"), a("fade-out", 1180, 160))}"/>`;
   const rings = [0, 1, 2]
     .map(
       (i) =>

@@ -2452,8 +2452,8 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 @keyframes ln-pour {
   0% { transform: none; }
-  30% { transform: translate(-2px, -142px) rotate(105deg); }
-  72% { transform: translate(-2px, -142px) rotate(112deg); }
+  30% { transform: translate(-68px, -227px) rotate(105deg); }
+  72% { transform: translate(-68px, -227px) rotate(110deg); }
   100% { transform: none; }
 }
 @keyframes ln-rise-in {
