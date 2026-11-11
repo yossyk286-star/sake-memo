@@ -4,7 +4,7 @@ import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { APP, WORDS } from "@/lib/appeal";
-import { tr } from "@/lib/i18n";
+import { getLang, tr } from "@/lib/i18n";
 import { lastMonthRecap, markRecapSeen, recapSeen } from "@/lib/recap";
 import { cardImage, shareImage } from "@/lib/shareImage";
 import type { TastingRecord } from "@/lib/types";
@@ -41,7 +41,11 @@ export default function MonthRecap({ records, titleOf }: { records: TastingRecor
     return (
       <button type="button" className="recap-band" aria-expanded={false} onClick={() => setOpen(true)}>
         <span className="recap-eyebrow">{tr("先月のふりかえり")}</span>
-        <strong>{tr("{0}月 {1}", recap.monthNumber, `${stats[0].value}・${stats[1].label} ${stats[1].value}`)}</strong>
+        <strong>
+          {getLang() === "en"
+            ? `${new Date(2000, recap.monthNumber - 1, 1).toLocaleDateString("en-US", { month: "long" })} · ${recap.count} ${recap.count === 1 ? "drink" : "drinks"} · ${recap.newPlaces.length} new ${recap.newPlaces.length === 1 ? "origin" : "origins"}`
+            : tr("{0}月 {1}", recap.monthNumber, `${stats[0].value}・${stats[1].label} ${stats[1].value}`)}
+        </strong>
       </button>
     );
 

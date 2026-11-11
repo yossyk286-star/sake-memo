@@ -1,6 +1,8 @@
 "use client";
 
-import BackChevron from "@/components/BackChevron";
+import EmptyState from "@/components/EmptyState";
+
+import BackLink from "@/components/BackLink";
 import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -90,22 +92,18 @@ function CompareBody() {
   return (
     <>
       <header className="sub-header">
-        <Link href={aId ? `/record?id=${aId}` : "/"} className="back">
-          <BackChevron />
-        </Link>
+        <BackLink fallback={aId ? `/record?id=${aId}` : "/"} />
         <h1>{tr("くらべる")}</h1>
       </header>
       <main className="content" style={{ paddingTop: 16 }}>
         {records && !a && (
-          <p className="empty">
-            {tr("くらべる記録が選ばれていません。")}
-            <br />
+          <EmptyState title={tr("くらべる記録が選ばれていません")} actions={[{ href: "/", label: tr("記録から選ぶ") }]}>
             {tr("記録を開いて「ほかの記録とくらべる」から選べます。")}
-          </p>
+          </EmptyState>
         )}
         {a && !b && (
           <>
-            <p style={{ margin: 0, fontSize: 14 }}>{tr("「{0}」と比べる記録を選んでください。", drinkTitle(a))}</p>
+            <p style={{ margin: 0, padding: "0 4px", fontSize: 14 }}>{tr("「{0}」と比べる記録を選んでください。", drinkTitle(a))}</p>
             <Picker
               records={records ?? []}
               exclude={a.id}

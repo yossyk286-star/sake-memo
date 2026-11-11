@@ -1,6 +1,6 @@
 "use client";
 
-import BackChevron from "@/components/BackChevron";
+import BackLink from "@/components/BackLink";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SingleChips } from "@/components/ChipGroup";
@@ -16,9 +16,11 @@ import type { Bottle, Kind, TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import { tr, trJoin, trv } from "@/lib/i18n";
 import { askConfirm } from "@/components/ConfirmSheet";
+import { useFeatures } from "@/lib/features";
+import { BOTTLE_SIZES, daysSinceDate, drinkWithin, openedOf, remaining } from "@/lib/bottleLife";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
-  return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, abv: null, boughtAt: today(), finished: false };
+  return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, abv: null, boughtAt: today(), finished: false, size: null, openedAt: null };
 }
 
 /** 買ったお酒を登録するフォーム */
@@ -92,6 +94,16 @@ function AddBottle({ onAdded }: { onAdded: (b: Bottle) => void }) {
         </label>
         <AbvInput id="b-abv" value={draft.abv} onChange={(v) => set("abv", v)} />
       </div>
+      <fieldset className="field">
+        <legend className="label">{tr("量")}</legend>
+        <div className="chip-wrap">
+          {BOTTLE_SIZES.map((ml) => (
+            <button key={ml} type="button" className="chip" aria-pressed={draft.size === ml} onClick={() => set("size", draft.size === ml ? null : ml)}>
+              {ml === 1800 ? tr("1升（1800ml）") : ml === 720 ? tr("4合瓶（720ml）") : `${ml}ml`}
+            </button>
+          ))}
+        </div>
+      </fieldset>
       <div className="field">
         <label className="label" htmlFor="b-price">
           {tr("買った値段（円）")}
@@ -137,6 +149,13 @@ function BottleCard({
   const mine = records.filter((r) => r.bottleId === b.id);
   const avg = mine.length ? mine.reduce((a, r) => a + r.overall, 0) / mine.length : 0;
   const best = bestServeNote(mine);
+  const f = useFeatures();
+  // 残りメーター（45）と、開けてからの日数・飲み頃（46）
+  const left = remaining(b, mine, f.pour);
+  const opened = openedOf(b, mine);
+  const days = opened ? daysSinceDate(opened) : null;
+  const within = drinkWithin(b);
+  const late = days !== null && within !== null && days >= within;
   return (
     <article className="card" style={{ gap: 6, opacity: b.finished ? 0.7 : 1 }}>
       <div className="card-top">
@@ -165,6 +184,28 @@ function BottleCard({
             </span>
           ))}
       </p>
+      {!b.finished && f.meter && (
+        <div className="meter-row" aria-label={tr("残り約{0}%", Math.round(left.ratio * 100))}>
+          <span className="bottle-meter" aria-hidden="true">
+            <i style={{ width: `${left.ratio * 100}%`, background: left.ratio < 0.25 ? "var(--danger)" : kindColor(b.kind) }} />
+          </span>
+          <span className="muted">{left.cups > 0 ? tr("残り約{0}%・あと{1}杯くらい", Math.round(left.ratio * 100), left.cups) : tr("そろそろ空きそう")}</span>
+        </div>
+      )}
+      {!b.finished && (
+        <p className={late ? "open-days is-late" : "open-days muted"}>
+          {days === null ? (
+            <button type="button" className="text-btn" onClick={() => onChange({ ...b, openedAt: today() })}>
+              {tr("今日開けた")}
+            </button>
+          ) : (
+            <>
+              {days === 0 ? tr("今日開けた") : tr("開けて{0}日", days)}
+              {within !== null && (late ? tr("・そろそろ飲みきりたい頃です") : tr("・{0}日くらいで飲みきると香りが残ります", within))}
+            </>
+          )}
+        </p>
+      )}
       <p style={{ margin: 0, fontSize: 14 }}>
         {mine.length > 0 ? (
           <>
@@ -252,9 +293,7 @@ export default function BottlesPage() {
   return (
     <>
       <header className="sub-header">
-        <Link href="/taste" className="back">
-          <BackChevron />
-        </Link>
+        <BackLink fallback="/taste" />
         <h1>{tr("家のお酒")}</h1>
       </header>
       <p className="lead">{tr("買ったお酒を登録しておくと、飲むたびにすぐ記録できて、開けてからの味の変化も追えます。")}</p>

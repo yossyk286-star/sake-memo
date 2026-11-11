@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
-import { tr } from "@/lib/i18n";
+import { useEffect, useId, useRef, useState } from "react";
+import { tr, trv } from "@/lib/i18n";
 
 /**
  * 合言葉の欄。はじめての人には何のことか分からないので、ふだんは1行の案内だけにして、
@@ -13,6 +13,7 @@ export default function PasscodeField({
   need,
   free,
   forceOpen = false,
+  error = "",
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -22,12 +23,24 @@ export default function PasscodeField({
   free: string[];
   /** 合言葉が要る操作をしたとき、呼び出し側から開く */
   forceOpen?: boolean;
+  /** 合言葉の間違い・入れ忘れ。入力欄のすぐ下に出して、欄を赤くしてそこまで動かす */
+  error?: string;
 }) {
   const id = useId();
   const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (forceOpen) setOpen(true);
   }, [forceOpen]);
+  useEffect(() => {
+    if (!error) return;
+    // 下に浮かぶタブの裏に隠れないよう、欄を画面のまん中へ
+    const t = window.setTimeout(() => {
+      inputRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+      inputRef.current?.focus({ preventScroll: true });
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [error]);
 
   return (
     <div className="pass-note">
@@ -51,9 +64,17 @@ export default function PasscodeField({
             autoComplete="off"
             autoCapitalize="off"
             spellCheck={false}
+            ref={inputRef}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${id}-err` : undefined}
             value={value}
             onChange={(e) => onChange(e.target.value)}
           />
+          {error && (
+            <p id={`${id}-err`} className="error pass-error" role="alert">
+              {trv(error)}
+            </p>
+          )}
           <strong>{tr("合言葉がなくても使えます")}</strong>
           <ul>
             {free.map((f) => (

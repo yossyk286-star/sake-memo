@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import RecordCard, { RecordPreview } from "./RecordCard";
-import { deleteRecord } from "@/lib/db";
+import { deleteWithUndo } from "@/lib/db";
+import { loadFeatures, reducedMotion } from "@/lib/features";
 import type { TastingRecord } from "@/lib/types";
 import { tr } from "@/lib/i18n";
 import { askConfirm } from "@/components/ConfirmSheet";
@@ -18,15 +19,22 @@ export default function SwipeRecord({
   record,
   onDeleted,
   showDate,
+  index,
+  nth,
 }: {
   record: TastingRecord;
   onDeleted: (id: string) => void;
   showDate?: boolean;
+  /** 一覧の何番目か（順にふわっと出すときの遅れ） */
+  index?: number;
+  /** 同じ名前のお酒の何回目か */
+  nth?: number;
 }) {
   const router = useRouter();
   const [dx, setDx] = useState(0);
   const [dragging, setDragging] = useState(false);
   const drag = useRef<Drag | null>(null);
+  const wrap = useRef<HTMLDivElement>(null);
   // スライドした直後のタップで詳細を開かないようにする
   const swiped = useRef(false);
 
@@ -41,7 +49,19 @@ export default function SwipeRecord({
       action: tr("削除"),
     });
     if (!ok) return setDx(0);
-    await deleteRecord(record.id);
+    await deleteWithUndo(record);
+    // 消した行が縮んで、下の行が詰まってくる（27）
+    const el = wrap.current;
+    if (el && loadFeatures().rowCollapse && !reducedMotion()) {
+      el.style.height = `${el.offsetHeight}px`;
+      el.style.overflow = "hidden";
+      requestAnimationFrame(() => {
+        el.style.transition = "height 0.28s ease, opacity 0.2s ease";
+        el.style.height = "0px";
+        el.style.opacity = "0";
+      });
+      await new Promise((r) => setTimeout(r, 290));
+    }
     onDeleted(record.id);
   }
 
@@ -106,7 +126,7 @@ export default function SwipeRecord({
   }
 
   return (
-    <div className="swipe">
+    <div className="swipe" ref={wrap} style={index !== undefined ? ({ "--n": Math.min(index, 12) } as React.CSSProperties) : undefined}>
       {dx > 0 && (
         <button type="button" className="swipe-action swipe-edit" style={{ width: Math.max(dx, ACTION_W) }} onClick={edit}>
           {tr("編集")}
@@ -128,7 +148,7 @@ export default function SwipeRecord({
         // リンクを掴んで引っぱる動き（ブラウザ標準のドラッグ）を止めて、スライドとして扱う
         onDragStart={(e) => e.preventDefault()}
       >
-        <RecordCard record={record} showDate={showDate} />
+        <RecordCard record={record} showDate={showDate} nth={nth} />
       </div>
     </div>
   );

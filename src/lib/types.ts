@@ -57,6 +57,10 @@ export interface TastingRecord {
   /** この記録について AI に聞いたこと */
   qa?: QA[];
   memo: string;
+  /** ♥ また飲みたい。後から増やした項目なので古い記録にはない */
+  again?: boolean;
+  /** 飲んだ場所（位置を使ってよいときだけ）。近くの前に行ったお店を出すのに使う */
+  geo?: { lat: number; lng: number };
   /** 自分で撮った写真（お酒、ラベル、お店など）。何枚でも */
   photos: Blob[];
   /** 1枚だけだった頃の写真。読むときは photosOf() を使う */
@@ -85,6 +89,10 @@ export interface Bottle {
   abv?: number | null;
   /** 買った日 YYYY-MM-DD */
   boughtAt: string;
+  /** 開けた日 YYYY-MM-DD（開けてからの日数と飲み頃の目安に使う）。後から増やした項目 */
+  openedAt?: string | null;
+  /** 瓶の量（ml）。残りメーターに使う。後から増やした項目 */
+  size?: number | null;
   /** 飲みきったら true */
   finished: boolean;
   /** 残りわずかのしるし。後から増やした項目なので古い瓶にはない */

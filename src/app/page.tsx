@@ -6,7 +6,7 @@ import GenreSortBar from "@/components/GenreSortBar";
 import SearchField from "@/components/SearchField";
 import Hint from "@/components/Hint";
 import SwipeRecord from "@/components/SwipeRecord";
-import { listRecords } from "@/lib/db";
+import { listRecords, RECORDS_EVENT } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
@@ -16,8 +16,13 @@ import BackupNudge from "@/components/BackupNudge";
 import MonthRecap from "@/components/MonthRecap";
 import { drinkTitle } from "@/components/RecordCard";
 import NumText from "@/components/NumText";
+import MomentCard from "@/components/MomentCard";
+import ShopCapsule from "@/components/ShopCapsule";
+import RecordCalendar from "@/components/RecordCalendar";
+import { reducedMotion, useFeatures } from "@/lib/features";
 
 const WEEKDAYS = "日月火水木金土";
+const VIEW_KEY = "sake-memo:list-view";
 
 /** 「2026-10-25」→「10月25日（日）」。今年以外は年も出す */
 function dateHead(date: string) {
@@ -44,18 +49,69 @@ export default function RecordsPage() {
   const [genre, setGenre] = useState<Genre | null>(null);
   const [sort, setSort] = useState<SortKey>("default");
   const [goodOnly, setGoodOnly] = useState(false);
+  const [againOnly, setAgainOnly] = useState(false);
+  const [view, setView] = useState<"list" | "cal">("list");
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(VIEW_KEY) === "cal") setView("cal");
+    } catch {}
+  }, []);
+  function pickView(v: "list" | "cal") {
+    setView(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {}
+  }
 
   // 閉じている月の中身は、画面が出て落ち着いてから作る（タブを移った瞬間に全部の記録を作ると、かくっと止まる）
   const [allMonths, setAllMonths] = useState(false);
 
   useEffect(() => {
-    listRecords().then(setRecords);
+    const load = () => listRecords().then(setRecords);
+    load();
+    // 消したあと「元に戻す」を押したら読み直す
+    window.addEventListener(RECORDS_EVENT, load);
+    return () => window.removeEventListener(RECORDS_EVENT, load);
   }, []);
   useEffect(() => {
     if (!records || allMonths) return;
     const t = window.setTimeout(() => startTransition(() => setAllMonths(true)), 450);
     return () => window.clearTimeout(t);
   }, [records, allMonths]);
+  const features = useFeatures();
+  // 一覧を順に浮かせるのは、詳細から戻ってきたとき（行へ縮んで帰る動き）以外（24）
+  const [stagger, setStagger] = useState(false);
+  useEffect(() => setStagger(!document.documentElement.dataset.vt), []);
+  // 下へスクロールしたら「記録する」を丸く縮める（26）。上へ戻すと元に戻す
+  const [mini, setMini] = useState(false);
+  // 検索欄が画面の上へ消えたら、右下の「記録する」の左に虫めがねを浮かせる（19）
+  const [searchGone, setSearchGone] = useState(false);
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const d = y - last;
+      if (y < 40) setMini(false);
+      else if (d > 8) setMini(true);
+      else if (d < -8) setMini(false);
+      else return;
+      last = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  useEffect(() => {
+    const bar = document.querySelector(".filter-bar");
+    if (!bar) return;
+    const io = new IntersectionObserver(([e]) => setSearchGone(!e.isIntersecting && e.boundingClientRect.top < 0));
+    io.observe(bar);
+    return () => io.disconnect();
+  }, [records]);
+  function jumpToSearch() {
+    window.scrollTo({ top: 0, behavior: reducedMotion() ? "auto" : "smooth" });
+    // スクロールが終わってから入力欄を開く（iPhone はすぐにキーボードを出せる）
+    document.getElementById("r-search")?.focus({ preventScroll: true });
+  }
 
   // ジャンル・★4以上・名前などで絞り込み、日付ごとにまとめる（記録は新しい順に並んでいる）
   // 甘口・辛口などで並び替えたときは、日付で区切らず1つにまとめる
@@ -65,6 +121,7 @@ export default function RecordsPage() {
       (r) =>
         (!genre || genreOf(r) === genre) &&
         (!goodOnly || r.overall >= 4) &&
+        (!againOnly || !!r.again) &&
         (!q ||
           [
             r.name,
@@ -91,9 +148,23 @@ export default function RecordsPage() {
       else out.push({ date: r.date, records: [r] });
     }
     return out;
-  }, [records, query, genre, goodOnly, sort]);
+  }, [records, query, genre, goodOnly, againOnly, sort]);
 
-  const filtering = !!query.trim() || !!genre || goodOnly;
+  const filtering = !!query.trim() || !!genre || goodOnly || againOnly;
+  // 同じ名前のお酒の何回目か（古い順に数える）（43）
+  const nthOf = useMemo(() => {
+    const seen = new Map<string, number>();
+    const out = new Map<string, number>();
+    for (const r of [...(records ?? [])].reverse()) {
+      const k = r.name.trim().normalize("NFKC").toLowerCase();
+      if (!k) continue;
+      const n = (seen.get(k) ?? 0) + 1;
+      seen.set(k, n);
+      out.set(r.id, n);
+    }
+    return out;
+  }, [records]);
+  const hasAgain = features.favorites && !!records?.some((r) => r.again);
 
   // 日付順のときは月ごとにまとめ、いちばん新しい月だけ開いておく（絞り込み・並べ替え中は全部見せる）
   const months = useMemo(() => {
@@ -114,8 +185,8 @@ export default function RecordsPage() {
     [records],
   );
 
-  const renderDay = (day: (typeof days)[number]) => (
-          <section key={day.date} className="day">
+  const renderDay = (day: (typeof days)[number], di: number) => (
+          <section key={day.date} className="day" style={{ "--d": Math.min(di, 8) } as React.CSSProperties}>
             {day.date && (
               <h2 className="date-head">
                 {dateHead(day.date)}
@@ -124,9 +195,11 @@ export default function RecordsPage() {
               </h2>
             )}
             <div className="list-group">
-              {day.records.map((r) => (
+              {day.records.map((r, i) => (
                 <SwipeRecord
                   key={r.id}
+                  index={i}
+                  nth={nthOf.get(r.id)}
                   record={r}
                   showDate={!day.date}
                   onDeleted={(id) =>
@@ -140,6 +213,7 @@ export default function RecordsPage() {
 
   return (
     <>
+      {features.shopCapsule && records && <ShopCapsule records={records} />}
       <header className="page-header">
         <h1>{tr("さけメモ")}</h1>
         <Link href="/settings" className="icon-btn" data-tour="settings" aria-label={tr("設定")}>
@@ -160,9 +234,23 @@ export default function RecordsPage() {
       </header>
 
       {records && records.length > 0 && (
-        <p className="lead">
-          {tr("これまでの記録 {0}件", records.length)}
-        </p>
+        <div className="lead lead-row">
+          <span>{tr("これまでの記録 {0}件", records.length)}</span>
+          {/* 一覧とカレンダーを切り替える（49） */}
+          <div className="view-switch" role="group" aria-label={tr("見せ方")}>
+            <button type="button" aria-pressed={view === "list"} aria-label={tr("一覧")} onClick={() => pickView("list")}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+              </svg>
+            </button>
+            <button type="button" aria-pressed={view === "cal"} aria-label={tr("カレンダー")} onClick={() => pickView("cal")}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                <path d="M3.5 10h17M8 3v4M16 3v4" />
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
       {records && records.length > 0 && (
         <Hint id="home-swipe" className="lead">
@@ -170,7 +258,8 @@ export default function RecordsPage() {
         </Hint>
       )}
 
-      <main className="content" style={{ paddingBottom: 96 }}>
+      <main className={stagger ? "content stagger" : "content"} style={{ paddingBottom: 96 }}>
+        {records && records.length > 0 && <MomentCard />}
         {records && <MonthRecap records={records} titleOf={drinkTitle} />}
         {records && <BackupNudge count={records.length} />}
         {records && records.length > 0 && (
@@ -190,14 +279,21 @@ export default function RecordsPage() {
               sorts={["sweet", "dry", "rating", "abvLow", "abvHigh"]}
               defaultLabel={tr("日付順")}
               extra={
-                <button
-                  type="button"
-                  className="chip"
-                  aria-pressed={goodOnly}
-                  onClick={() => setGoodOnly(!goodOnly)}
-                >
-                  {tr("★4以上")}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className="chip"
+                    aria-pressed={goodOnly}
+                    onClick={() => setGoodOnly(!goodOnly)}
+                  >
+                    {tr("★4以上")}
+                  </button>
+                  {hasAgain && (
+                    <button type="button" className="chip" aria-pressed={againOnly} onClick={() => setAgainOnly(!againOnly)}>
+                      {tr("♥ また飲みたい")}
+                    </button>
+                  )}
+                </>
               }
             />
           </div>
@@ -216,7 +312,9 @@ export default function RecordsPage() {
         {records && records.length > 0 && filtering && days.length === 0 && (
           <p className="empty">{tr("当てはまる記録がありません。")}</p>
         )}
-        {foldMonths
+        {view === "cal" && records && records.length > 0 && !filtering && sort === "default" ? (
+          <RecordCalendar records={records} renderDay={renderDay} />
+        ) : foldMonths
           ? months.map((m, i) => (
               <details
                 key={m.month}
@@ -234,7 +332,15 @@ export default function RecordsPage() {
           : days.map(renderDay)}
       </main>
 
-      <Link href="/new" className="fab" data-tour="fab">
+      {searchGone && (
+        <button type="button" className="float-search" aria-label={tr("記録を検索")} onClick={jumpToSearch}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <circle cx="10.5" cy="10.5" r="6.5" />
+            <path d="M15.5 15.5 20 20" />
+          </svg>
+        </button>
+      )}
+      <Link href="/new" className="fab" data-tour="fab" data-mini={mini && features.fabShrink ? "" : undefined} aria-label={tr("記録する")}>
         <svg
           width="20"
           height="20"
@@ -247,7 +353,7 @@ export default function RecordsPage() {
         >
           <path d="M12 5v14M5 12h14" />
         </svg>
-        {tr("記録する")}
+        <span className="fab-label">{tr("記録する")}</span>
       </Link>
     </>
   );

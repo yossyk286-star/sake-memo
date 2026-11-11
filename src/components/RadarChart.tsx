@@ -1,4 +1,8 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { tr, trv } from "@/lib/i18n";
+import { reducedMotion, useFeatures } from "@/lib/features";
 /** 比べる2つの色（1つ目はアプリの色、2つ目はテーマ色ごとに見分けやすい色）。ダークモードでも見えるよう CSS の変数を使う */
 export const SERIES_COLORS = ["var(--accent)", "var(--compare)"];
 
@@ -59,19 +63,9 @@ export default function RadarChart({
         const [x, y] = point(i, n, MAX);
         return <line key={i} x1={CENTER} y1={CENTER} x2={x} y2={y} stroke="var(--line)" />;
       })}
-      {series.map((s, si) => {
-        const c = colors[si % colors.length];
-        const ps = s.values.map((v, i) => point(i, n, v ?? 0));
-        return (
-          <g key={si}>
-            <polygon points={toPoints(ps)} fill={c} fillOpacity={0.18} stroke={c} strokeWidth={2} strokeLinejoin="round" />
-            {/* 角ごとに点を打つ（未入力の角も内側の輪の上に）。重なっても見分けられるよう背景色のふちを付ける */}
-            {ps.map(([x, y], i) => (
-              <circle key={i} cx={x} cy={y} r={4.5} fill={c} stroke="var(--surface)" strokeWidth={2} />
-            ))}
-          </g>
-        );
-      })}
+      {series.map((s, si) => (
+        <Shape key={si} index={si} color={colors[si % colors.length]} target={s.values.map((v, i) => point(i, n, v ?? 0))} />
+      ))}
       {axes.map((a, i) => {
         // 軸名はいちばん外の角から外向きに少し離し、角の向きに合わせて寄せる（点と重ならないように）
         const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
@@ -97,5 +91,49 @@ export default function RadarChart({
         );
       })}
     </svg>
+  );
+}
+
+type Pt = readonly [number, number];
+
+/**
+ * 1つの記録の形。出てくるときは中心から広がる（CSS）。
+ * 中身が変わったとき（くらべる相手を変えたなど）は、前の形から新しい形へなめらかに変わる
+ */
+function Shape({ index, color: c, target }: { index: number; color: string; target: Pt[] }) {
+  const { radarMorph } = useFeatures();
+  const [ps, setPs] = useState(target);
+  const shown = useRef(target);
+  const key = toPoints(target);
+  useEffect(() => {
+    const from = shown.current;
+    if (!radarMorph || reducedMotion() || from.length !== target.length) {
+      shown.current = target;
+      setPs(target);
+      return;
+    }
+    const start = performance.now();
+    let raf = 0;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / 420);
+      const e = 1 - Math.pow(1 - t, 3);
+      const next = target.map(([x, y], i) => [from[i][0] + (x - from[i][0]) * e, from[i][1] + (y - from[i][1]) * e] as const);
+      shown.current = next;
+      setPs(next);
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+    // 形が変わったときだけ動かす
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, radarMorph]);
+  return (
+    <g className="radar-shape" style={{ animationDelay: `${index * 0.12}s` }}>
+      <polygon points={toPoints(ps)} fill={c} fillOpacity={0.18} stroke={c} strokeWidth={2} strokeLinejoin="round" />
+      {/* 角ごとに点を打つ（未入力の角も内側の輪の上に）。重なっても見分けられるよう背景色のふちを付ける */}
+      {ps.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r={4.5} fill={c} stroke="var(--surface)" strokeWidth={2} />
+      ))}
+    </g>
   );
 }

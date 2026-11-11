@@ -22,7 +22,7 @@ export default function Toaster() {
       clearTimeout(clear);
       setOut(false);
       setT(next);
-      const ms = next.action ? SHOW_MS + 1300 : SHOW_MS;
+      const ms = next.ms ?? (next.action ? SHOW_MS + 1300 : SHOW_MS);
       hide = setTimeout(() => setOut(true), ms);
       clear = setTimeout(() => setT((cur) => (cur?.id === next.id ? null : cur)), ms + OUT_MS);
     };
@@ -41,11 +41,23 @@ export default function Toaster() {
             {ICON[t.tone]}
           </span>
           <span className="toast-msg">{trv(t.message)}</span>
-          {t.action && (
-            <Link href={t.action.href} className="toast-action" onClick={() => setOut(true)}>
-              {trv(t.action.label)}
-            </Link>
-          )}
+          {t.action &&
+            ("href" in t.action ? (
+              <Link href={t.action.href} className="toast-action" onClick={() => setOut(true)}>
+                {trv(t.action.label)}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="toast-action"
+                onClick={() => {
+                  setOut(true);
+                  (t.action as { onClick: () => void }).onClick();
+                }}
+              >
+                {trv(t.action.label)}
+              </button>
+            ))}
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import BackChevron from "@/components/BackChevron";
+import BackLink from "@/components/BackLink";
 import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -218,9 +218,7 @@ function MatchBody() {
   return (
     <>
       <header className="sub-header">
-        <Link href={card ? "/" : "/taste"} className="back">
-          <BackChevron />
-        </Link>
+        <BackLink fallback={card ? "/" : "/taste"} />
         <h1>{card ? tr("好みくらべ") : tr("好みを送る")}</h1>
       </header>
       <main className="content" style={{ paddingTop: 16, paddingBottom: 110 }}>

@@ -7,7 +7,8 @@ import { loadPrefs, savePrefs } from "./prefs";
 import type { Bottle, TastingRecord } from "./types";
 
 /** メニューで見て「次に試したい」と印を付けたお酒 */
-export type WishDrink = ScannedDrink & { id: string; savedAt: number };
+/** shop：☆を付けたときの今日のお店（お店ごとにまとめて出す） */
+export type WishDrink = ScannedDrink & { id: string; savedAt: number; shop?: string };
 
 // 保存処理はこのファイルに集約する。将来 DB 同期に移すときはここだけ差し替える。
 
@@ -191,4 +192,24 @@ function isEntry<T>(x: T): x is T {
 /** 埋め込まれた画像（data:image/…;base64,…）だけ */
 function isImageData(u: unknown): u is string {
   return typeof u === "string" && /^data:image\/(jpeg|png|webp|gif|heic|heif);base64,/.test(u);
+}
+
+/** 記録が外から変わった（消したあと「元に戻す」など）。一覧はこれで読み直す */
+export const RECORDS_EVENT = "sake-memo:records";
+
+/** 記録を消して、5秒だけ「元に戻す」を出す（50）。消す前の確認は呼ぶ側で済ませる */
+export async function deleteWithUndo(record: TastingRecord) {
+  await deleteRecord(record.id);
+  const { toast } = await import("./toast");
+  toast("削除しました", {
+    ms: 5000,
+    action: {
+      label: "元に戻す",
+      onClick: async () => {
+        await putRecord(record);
+        window.dispatchEvent(new Event(RECORDS_EVENT));
+        toast("元に戻しました");
+      },
+    },
+  });
 }

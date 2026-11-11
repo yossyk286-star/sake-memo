@@ -1,7 +1,7 @@
 import { SERVES_BY_KIND, STYLES_BY_KIND, TERMS } from "./glossary";
 import type { MyPrefs } from "./prefs";
 import type { Kind, TastingRecord } from "./types";
-import { tr } from "./i18n";
+import { getLang, tr } from "./i18n";
 
 export type NextIdea = { title: string; reason: string; description?: string };
 
@@ -35,7 +35,8 @@ export function nextIdeas(records: TastingRecord[], prefs: MyPrefs, limit = 4): 
     const untried = STYLES_BY_KIND[kind].filter((s) => !tried.has(s));
     for (const style of untried.slice(0, 2)) {
       ideas.push({
-        title: tr("{0}の{1}", kind, style),
+        // 英語は「Red wine」の順にする（「Wine Red」にならないように）
+        title: getLang() === "en" ? `${tr(style)} ${tr(kind).toLowerCase()}` : tr("{0}の{1}", kind, style),
         reason: kinds.has(kind) ? tr("{0}の評価が高めで、{1}はまだ記録がありません", kind, style) : tr("好きな{0}で、まだ記録がありません", kind),
         description: describe(kind, style),
       });

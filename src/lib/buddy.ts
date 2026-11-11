@@ -1,6 +1,8 @@
 import { placeOf } from "./origins";
 import type { TastingRecord } from "./types";
 import { tr } from "./i18n";
+import { alcoholGrams } from "./dayTotal";
+import { loadFeatures } from "./features";
 
 /**
  * 相棒（ちっちゃい徳利）が言うひとこと。記録を保存したとき・アプリを開いたときなど。
@@ -153,8 +155,11 @@ export function buddyLine(
   const others = all.filter((x) => x.id !== r.id);
   const isToday = r.date === localDate(now);
   const sameDay = all.filter((x) => x.date === r.date).length;
+  // 飲みすぎの目安は設定の「1日の純アルコール量」（38）。超えたら心配、1.5倍でもっと心配
+  const grams = all.filter((x) => x.date === r.date).reduce((g, x) => g + alcoholGrams(x), 0);
+  const limit = loadFeatures().limit;
 
-  if (isToday && sameDay >= 6)
+  if (isToday && sameDay >= 2 && grams >= limit * 1.5)
     return {
       mood: "worried",
       text: pick([
@@ -164,7 +169,7 @@ export function buddyLine(
         tr("ちょっと待って、{0}杯目だよ。帰り道、気をつけてね", sameDay),
       ]),
     };
-  if (isToday && sameDay >= 4)
+  if (isToday && sameDay >= 2 && grams >= limit)
     return {
       mood: "worried",
       text: pick([

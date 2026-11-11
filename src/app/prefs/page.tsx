@@ -1,7 +1,6 @@
 "use client";
 
-import BackChevron from "@/components/BackChevron";
-import Link from "next/link";
+import BackLink from "@/components/BackLink";
 import { useEffect, useState } from "react";
 import { MultiChips } from "@/components/ChipGroup";
 import { ALL_SERVES, FLAVORS, KINDS, STYLES_BY_KIND } from "@/lib/glossary";
@@ -119,9 +118,7 @@ export default function PrefsPage() {
   return (
     <>
       <header className="sub-header">
-        <Link href="/taste" className="back">
-          <BackChevron />
-        </Link>
+        <BackLink fallback="/taste" />
         <h1>{tr("わたしの好み")}</h1>
       </header>
 

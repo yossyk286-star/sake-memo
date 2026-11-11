@@ -1,7 +1,8 @@
 "use client";
 
-import BackChevron from "@/components/BackChevron";
-import Link from "next/link";
+import EmptyState from "@/components/EmptyState";
+
+import BackLink from "@/components/BackLink";
 import { Suspense, useState } from "react";
 import MenuScan, { PickedDrink } from "@/components/MenuScan";
 import RecordForm from "@/components/RecordForm";
@@ -18,12 +19,16 @@ function EditBody() {
   return (
     <>
       <header className="sub-header">
-        <Link href={record ? `/record?id=${record.id}` : "/"} className="back">
-          <BackChevron />
-        </Link>
+        <BackLink fallback={record ? `/record?id=${record.id}` : "/"} />
         <h1>{tr("記録を編集")}</h1>
       </header>
-      {record === null && <p className="empty">{tr("記録が見つかりませんでした。")}</p>}
+      {record === null && (
+        <main className="content" style={{ paddingTop: 16 }}>
+          <EmptyState title={tr("記録が見つかりませんでした")} mood="sad" actions={[{ href: "/", label: tr("記録の一覧へ") }]}>
+            {tr("消した記録か、別の端末で作った記録かもしれません。")}
+          </EmptyState>
+        </main>
+      )}
       {record && (
         <>
           {picked && <PickedDrink drink={picked} />}

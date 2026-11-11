@@ -325,10 +325,11 @@
   font-size: 12px;
 }
 
+/* 調べた結果がたくさん並ぶので、濃い塗りではなくうすいテーマ色の札にする（主役は右下の「調べる」） */
 .actMain {
   border: none;
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 700;
 }
 

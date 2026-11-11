@@ -1,7 +1,6 @@
 "use client";
 
-import BackChevron from "@/components/BackChevron";
-import Link from "next/link";
+import BackLink from "@/components/BackLink";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import RecordCard, { drinkTitle, Stars, yen } from "@/components/RecordCard";
@@ -30,9 +29,7 @@ function ShopBody() {
   return (
     <>
       <header className="sub-header">
-        <Link href="/shops" className="back">
-          <BackChevron />
-        </Link>
+        <BackLink fallback="/shops" />
         <h1>{trv(name)}</h1>
       </header>
 
@@ -41,11 +38,11 @@ function ShopBody() {
         {shop && (
           <>
             <section className="highlight">
-              <p style={{ margin: 0, fontSize: 13, opacity: 0.85 }}>{tr("このお店でいちばんおいしかったお酒")}</p>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--accent)", fontWeight: 600 }}>{tr("このお店でいちばんおいしかったお酒")}</p>
               <p className="highlight-main">{drinkTitle(shop.best)}</p>
-              <Stars n={shop.best.overall} className="on-accent" />
+              <Stars n={shop.best.overall} />
             </section>
-            <p className="muted" style={{ margin: 0 }}>
+            <p className="muted" style={{ margin: 0, padding: "0 4px" }}>
               {tr("{0}杯の記録{1}", shop.records.length, priceNote(shop.records))}
             </p>
             {shopMap && (
