@@ -5206,7 +5206,8 @@ details > summary::-webkit-details-marker {
   background: var(--surface);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
   transform: translateX(calc(100% * var(--i)));
-  transition: transform 0.32s cubic-bezier(0.3, 0.9, 0.3, 1.08);
+  /* 行き過ぎて戻る動きは端で灰色の枠からはみ出すので付けない */
+  transition: transform 0.28s cubic-bezier(0.3, 0.9, 0.3, 1);
 }
 .mode-switch:not(:has(> :is([aria-pressed="true"], [aria-current="page"])))::before {
   opacity: 0;
