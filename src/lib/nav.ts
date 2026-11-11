@@ -21,11 +21,17 @@ function save(s: string[]) {
   } catch {}
 }
 
-/** 画面を移るたびに呼ぶ。1つ前の画面と同じなら「戻った」として積まない */
+// ブラウザの「戻る」（iPhone の左端からのスワイプなど）で移ったとき true
+let popped = false;
+if (typeof window !== "undefined") window.addEventListener("popstate", () => (popped = true));
+
+/** 画面を移るたびに呼ぶ。ブラウザの戻るで1つ前の画面へ戻ったときは、積まずに外す */
 export function trackNav(url: string) {
   const s = load();
+  const back = popped;
+  popped = false;
   if (s[s.length - 1] === url) return;
-  if (s[s.length - 2] === url) s.pop();
+  if (back && s[s.length - 2] === url) s.pop();
   else s.push(url);
   save(s);
   try {

@@ -6624,3 +6624,8 @@ html[data-fx~="barGrow"] .bar-fill {
   padding: 0;
   font-size: 13px;
 }
+
+/* 4つ並ぶ切り替え（明るさ：自動・ライト・ダーク・時間で） */
+.mode-switch:has(> :nth-child(4)) {
+  grid-template-columns: repeat(4, 1fr);
+}
