@@ -6645,10 +6645,10 @@ html[data-fx~="barGrow"] .bar-fill {
   filter: drop-shadow(0 0 6px rgba(150, 180, 230, 0.75));
 }
 
-/* 調べるの「飲み物から｜料理から」：見出しとタブはそのまま、下の中身だけ押した向きから入れ替わる */
-:root[data-swap="next"] .page-enter:not([data-leaving]) > :not(.page-header, .scan-tabs) {
+/* 調べるの「飲み物から｜料理から」：見出し・タブ・今日のお店はそのまま、下の中身だけ押した向きから入れ替わる */
+:root[data-swap="next"] .page-enter:not([data-leaving]) > :not(.page-header, .scan-tabs, .shop-bar) {
   animation: swap-from-right 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
 }
-:root[data-swap="prev"] .page-enter:not([data-leaving]) > :not(.page-header, .scan-tabs) {
+:root[data-swap="prev"] .page-enter:not([data-leaving]) > :not(.page-header, .scan-tabs, .shop-bar) {
   animation: swap-from-left 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
 }
