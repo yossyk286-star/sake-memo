@@ -1,5 +1,12 @@
 /** 見た目の設定（明るさとテーマ色）。この端末の中だけに保存する */
-export type Appearance = "auto" | "light" | "dark";
+/** time は夜（18時〜6時）だけ暗くする */
+export type Appearance = "auto" | "light" | "dark" | "time";
+
+/** 「時間で」のときの夜（18時〜朝6時） */
+export function isNight(d = new Date()) {
+  const h = d.getHours();
+  return h >= 18 || h < 6;
+}
 
 export const ACCENTS = [
   { id: "indigo", label: "藍", light: "#3d4fa8", dark: "#8c9cf0", bgDark: "#11131c" },
@@ -41,12 +48,13 @@ export function saveTheme(theme: Theme) {
 export function applyTheme(theme: Theme) {
   const root = document.documentElement;
   if (theme.appearance === "auto") delete root.dataset.theme;
+  else if (theme.appearance === "time") root.dataset.theme = isNight() ? "dark" : "light";
   else root.dataset.theme = theme.appearance;
   root.dataset.accent = theme.accent;
   if (theme.text === "large") root.dataset.text = "large";
   else delete root.dataset.text;
   const dark =
-    theme.appearance === "dark" ||
+    root.dataset.theme === "dark" ||
     (theme.appearance === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
   document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
     m.setAttribute("content", dark ? (ACCENTS.find((a) => a.id === theme.accent) ?? ACCENTS[0]).bgDark : BG_LIGHT);
@@ -57,4 +65,4 @@ export function applyTheme(theme: Theme) {
  * 画面が出る前に読む小さなスクリプト。React より先に色を決めて、白く光ったり色が切り替わって見えたりしないようにする。
  * layout.tsx の <head> に埋め込む
  */
-export const THEME_BOOT = `(function(){try{var t=JSON.parse(localStorage.getItem(${JSON.stringify(KEY)})||"{}");var r=document.documentElement;if(t.appearance==="light"||t.appearance==="dark")r.dataset.theme=t.appearance;r.dataset.accent=t.accent||"indigo";if(t.text==="large")r.dataset.text="large";}catch(e){}})();`;
+export const THEME_BOOT = `(function(){try{var t=JSON.parse(localStorage.getItem(${JSON.stringify(KEY)})||"{}");var r=document.documentElement;if(t.appearance==="light"||t.appearance==="dark")r.dataset.theme=t.appearance;if(t.appearance==="time"){var h=new Date().getHours();r.dataset.theme=h>=18||h<6?"dark":"light";}r.dataset.accent=t.accent||"indigo";if(t.text==="large")r.dataset.text="large";}catch(e){}})();`;

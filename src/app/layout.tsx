@@ -13,7 +13,9 @@ import InstallHint from "@/components/InstallHint";
 import Milestones from "@/components/Milestones";
 import ThemeSync from "@/components/ThemeSync";
 import PressFx from "@/components/PressFx";
+import NavTracker from "@/components/NavTracker";
 import { THEME_BOOT } from "@/lib/theme";
+import { FEATURES_BOOT } from "@/lib/featuresBoot";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -92,7 +94,7 @@ export default function RootLayout({
     // data-theme / data-accent は THEME_BOOT が描画前に付けるので、React の食い違い警告を出さない
     <html lang="ja" className={numFont.variable} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT + LAUNCH_BOOT }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT + FEATURES_BOOT + LAUNCH_BOOT }} />
       </head>
       <body>
         <LaunchScreen />
@@ -111,6 +113,7 @@ export default function RootLayout({
         <ServiceWorker />
         <ThemeSync />
         <PressFx />
+        <NavTracker />
       </body>
     </html>
   );

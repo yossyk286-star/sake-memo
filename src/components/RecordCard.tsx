@@ -7,14 +7,34 @@ import { markIfLoaded, markLoaded, photosOf, useThumbURL } from "@/lib/photo";
 import type { Kind, TastingRecord } from "@/lib/types";
 import { getLang, tr, trJoin } from "@/lib/i18n";
 import { isPlainClick, nameForTransition, transitionTo } from "@/lib/viewTransition";
+import { loadFeatures, useFeatures, type Features } from "@/lib/features";
 
-/** 文の中で使う総合評価。「★4」「★3.5」のように数字で出す */
-export function stars(n: number) {
-  return `★${n}`;
+/** 点数の見せ方（設定の「★5・10点・100点」）に直した数字。中は ★0.5〜5 のまま */
+function scaled(n: number, scale: Features["scale"]) {
+  return scale === "ten" ? Math.round(n * 2) : Math.round(n * 20);
 }
 
-/** 総合評価の★5つ。0.5 なら半分だけ塗る。空きも同じ★を薄く出す */
+/** 文の中で使う総合評価。「★4」「★3.5」、10点・100点の設定なら「8点」「80点」 */
+export function stars(n: number) {
+  const { scale } = loadFeatures();
+  return scale === "star5" ? `★${n}` : tr("{0}点", scaled(n, scale));
+}
+
+/** 総合評価の★5つ。0.5 なら半分だけ塗る。空きも同じ★を薄く出す。10点・100点の設定なら数字で出す */
 export function Stars({ n, color, className = "", label }: { n: number; color?: string; className?: string; label?: string }) {
+  const { scale } = useFeatures();
+  if (scale !== "star5")
+    return (
+      <span
+        className={`score ${className}`.trim()}
+        role="img"
+        aria-label={label ?? tr("{0}点", scaled(n, scale))}
+        style={color ? ({ "--star": color } as CSSProperties) : undefined}
+      >
+        {scaled(n, scale)}
+        <small>{scale === "ten" ? "/10" : "/100"}</small>
+      </span>
+    );
   return (
     <span
       className={`stars ${className}`.trim()}
@@ -91,7 +111,8 @@ export function RecordPreview({ record }: { record: TastingRecord }) {
 }
 
 /** 記録の一覧の1行。2行に詰めて、画面にたくさん並ぶようにする。showDate=false は日付で区切った一覧用 */
-export default function RecordCard({ record: r, showDate = true }: { record: TastingRecord; showDate?: boolean }) {
+export default function RecordCard({ record: r, showDate = true, nth }: { record: TastingRecord; showDate?: boolean; nth?: number }) {
+  const { favorites, repeatTag } = useFeatures();
   // 種類は左のマークでわかるので、タイプから書く（店や値段まで見えるように）
   const sub = [
     r.style && trJoin([r.style]),
@@ -116,7 +137,16 @@ export default function RecordCard({ record: r, showDate = true }: { record: Tas
       <Thumb record={r} />
       <div className="record-row-body">
         <div className="record-row-top">
-          <h2>{drinkTitle(r)}</h2>
+          <h2>
+            {favorites && r.again && (
+              <span className="row-heart" aria-label={tr("また飲みたい")}>
+                ♥
+              </span>
+            )}
+            {drinkTitle(r)}
+            {/* 同じお酒の2回目以降（43） */}
+            {repeatTag && nth && nth >= 2 ? <span className="repeat-tag">{tr("{0}回目", nth)}</span> : null}
+          </h2>
           <Stars n={r.overall} />
         </div>
         <p className="muted">{sub.join(tr("・"))}</p>

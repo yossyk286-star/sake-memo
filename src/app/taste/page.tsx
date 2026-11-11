@@ -14,6 +14,8 @@ import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import TitleCard from "@/components/TitleCard";
 import { ordered, ReorderList, type Section } from "@/components/Reorder";
+import TasteQuiz from "@/components/TasteQuiz";
+import { useFeatures } from "@/lib/features";
 import { APP } from "@/lib/appeal";
 import { tr, trv } from "@/lib/i18n";
 
@@ -157,7 +159,10 @@ export default function TastePage() {
 
   // 長い説明が続くと味マップが遠くなるので、最初は1件だけ出す
   const [showAllIdeas, setShowAllIdeas] = useState(false);
-  const ideas = useMemo(() => (records ? nextIdeas(records, loadPrefs()) : []), [records]);
+  const [prefsVer, setPrefsVer] = useState(0);
+  // prefsVer：好み診断に答えたら読み直す
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const ideas = useMemo(() => (records ? nextIdeas(records, loadPrefs()) : []), [records, prefsVer]);
 
   const count = records?.length ?? 0;
   const summary = useMemo(() => (records && count >= MIN_RECORDS ? summarize(records) : null), [records, count]);
@@ -168,7 +173,7 @@ export default function TastePage() {
       label: "いまの傾向",
       node: (
         <section className="highlight">
-          <span style={{ fontSize: 12, opacity: 0.85 }}>{tr("いまの傾向")}</span>
+          <span style={{ fontSize: 12 }}>{tr("いまの傾向")}</span>
           {summary.bestCombo ? (
             <p className="highlight-main">{tr("{0} の評価が高めです", summary.bestCombo.label)}</p>
           ) : (
@@ -278,6 +283,8 @@ export default function TastePage() {
     },
   ] as (Section | false | null | undefined)[]).filter((s): s is Section => !!s);
 
+  const features = useFeatures();
+  const [quiz, setQuiz] = useState(false);
   const sections = ordered(view === "taste" ? tasteSections : titleSections, order[view]);
 
   return (
@@ -285,7 +292,7 @@ export default function TastePage() {
       <header className="page-header">
         <h1>{tr("好み")}</h1>
         {records && sections.length > 1 && (
-          <button type="button" className="text-btn" onClick={() => setEditing((v) => !v)} aria-pressed={editing} data-tour="taste-sort">
+          <button type="button" className="header-pill" onClick={() => setEditing((v) => !v)} aria-pressed={editing} data-tour="taste-sort">
             {editing ? tr("完了") : tr("並べ替え")}
           </button>
         )}
@@ -302,7 +309,11 @@ export default function TastePage() {
         {view === "taste" && records && !summary && (
           <EmptyState
             title={count === 0 ? tr("好みはこれから見えてくるよ") : tr("あと{0}杯で好みがわかるよ", MIN_RECORDS - count)}
-            actions={[{ href: "/new", label: count === 0 ? tr("1杯目を記録する") : tr("記録する") }]}
+            actions={[
+              { href: "/new", label: count === 0 ? tr("1杯目を記録する") : tr("記録する") },
+              // 記録が少ないうちは8問で好みを決められる（44）
+              ...(features.tasteQuiz ? [{ onClick: () => setQuiz(true), label: tr("8問で好みを決める") }] : []),
+            ]}
           >
             {tr("記録が{0}件たまると、あなたの好みの傾向を出すよ（いま {1}件）。", MIN_RECORDS, count)}
           </EmptyState>
@@ -327,6 +338,16 @@ export default function TastePage() {
           )
         )}
       </main>
+      {quiz && (
+        <TasteQuiz
+          onClose={() => setQuiz(false)}
+          onDone={() => {
+            setQuiz(false);
+            // 答えた好みで「次の一杯に」を出し直す
+            setPrefsVer((v) => v + 1);
+          }}
+        />
+      )}
     </>
   );
 }

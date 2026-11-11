@@ -1,6 +1,6 @@
 "use client";
 
-import BackChevron from "@/components/BackChevron";
+import BackLink from "@/components/BackLink";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { drinkTitle, Stars } from "@/components/RecordCard";
@@ -23,9 +23,7 @@ export default function ShopsPage() {
   return (
     <>
       <header className="sub-header">
-        <Link href="/taste" className="back">
-          <BackChevron />
-        </Link>
+        <BackLink fallback="/taste" />
         <h1>{tr("お店")}</h1>
       </header>
 

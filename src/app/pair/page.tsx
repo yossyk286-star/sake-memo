@@ -358,6 +358,8 @@ export default function PairPage() {
       </p>
 
       <main className="content" style={{ paddingBottom: 110 }}>
+        {/* 「お酒から」の画面と同じ、うすい色の枠に撮る・料理を入れるをまとめる */}
+        <section className="pair-box" aria-label={tr("料理を入れるか、メニューを撮る")}>
         {!savedPasscode && (
           <PasscodeField
             value={passcode}
@@ -365,6 +367,7 @@ export default function PairPage() {
             need={tr("メニューを撮る・めずらしい料理を調べるには「合言葉」が要ります。")}
             free={[tr("よくある料理に合うお酒（下の欄に料理の名前を入れる）"), tr("記録・辞典・味マップ・スタンプ帳")]}
             forceOpen={error.includes("合言葉")}
+          error={error.includes("合言葉") ? error : ""}
           />
         )}
         <form
@@ -433,6 +436,7 @@ export default function PairPage() {
             <input type="file" accept="image/*" multiple onChange={onPhoto} disabled={reading} className="visually-hidden" />
           </label>
         </div>
+        </section>
         {reading && <Skeleton label={tr("メニューを読み取っています…")} chips />}
         {menu && !reading && (
           <section ref={menuRef} className="pair-mine pair-menu" aria-live="polite">
@@ -501,7 +505,7 @@ export default function PairPage() {
             )}
           </section>
         )}
-        {error && (
+        {error && !(error.includes("合言葉") && !savedPasscode) && (
           <p className="error" role="alert">
             {trv(error)}
           </p>

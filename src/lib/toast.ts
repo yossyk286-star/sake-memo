@@ -8,14 +8,16 @@ export type Toast = {
   message: string;
   tone: ToastTone;
   /** ついでの1ボタン（「見る」など） */
-  action?: { label: string; href: string };
+  action?: { label: string; href: string } | { label: string; onClick: () => void };
+  /** 出しておく長さ（ミリ秒）。「元に戻す」は長め */
+  ms?: number;
 };
 
 export const TOAST_EVENT = "app-toast";
 let seq = 0;
 
-export function toast(message: string, opts: { tone?: ToastTone; action?: Toast["action"] } = {}) {
+export function toast(message: string, opts: { tone?: ToastTone; action?: Toast["action"]; ms?: number } = {}) {
   if (typeof window === "undefined") return;
-  const detail: Toast = { id: ++seq, message, tone: opts.tone ?? "ok", action: opts.action };
+  const detail: Toast = { id: ++seq, message, tone: opts.tone ?? "ok", action: opts.action, ms: opts.ms };
   window.dispatchEvent(new CustomEvent<Toast>(TOAST_EVENT, { detail }));
 }

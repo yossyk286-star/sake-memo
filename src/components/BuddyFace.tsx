@@ -7,6 +7,8 @@ export default function BuddyFace({ mood = "normal", size = 56 }: { mood?: Buddy
   return (
     <svg className="buddy-face" width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
       <ellipse cx="32" cy="60.5" rx="15" ry="2.2" fill="var(--fill-strong)" />
+      {/* ときどき首をかしげる（影は動かさない） */}
+      <g className="buddy-head">
       <path d={body} fill="var(--buddy-body)" />
       {/* 首の藍の帯と、胴のすそのライン */}
       <g fill="var(--accent)">
@@ -23,7 +25,7 @@ export default function BuddyFace({ mood = "normal", size = 56 }: { mood?: Buddy
       <g stroke="var(--buddy-ink)" strokeWidth="2" strokeLinecap="round" fill="none">
         {mood === "happy" && (
           <>
-            <path d="M22.5 41.5q2.5-3.2 5 0M36.5 41.5q2.5-3.2 5 0" />
+            <path className="buddy-eyes" d="M22.5 41.5q2.5-3.2 5 0M36.5 41.5q2.5-3.2 5 0" />
             <path d="M28.5 45.5q3.5 4.5 7 0z" fill="var(--buddy-ink)" strokeLinejoin="round" />
           </>
         )}
@@ -43,7 +45,7 @@ export default function BuddyFace({ mood = "normal", size = 56 }: { mood?: Buddy
         )}
       </g>
       {mood !== "happy" && (
-        <g fill="var(--buddy-ink)">
+        <g className="buddy-eyes" fill="var(--buddy-ink)">
           <circle cx="25" cy={mood === "sad" ? 41.5 : 40.5} r={mood === "wow" ? 2.6 : 2.2} />
           <circle cx="39" cy={mood === "sad" ? 41.5 : 40.5} r={mood === "wow" ? 2.6 : 2.2} />
           {mood === "wow" && (
@@ -64,6 +66,7 @@ export default function BuddyFace({ mood = "normal", size = 56 }: { mood?: Buddy
           <path d="M55 12l.9 2.2 2.2.9-2.2.9-.9 2.2-.9-2.2-2.2-.9 2.2-.9z" />
         </g>
       )}
+      </g>
     </svg>
   );
 }

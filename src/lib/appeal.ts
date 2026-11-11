@@ -118,3 +118,87 @@ export function favToWish([name, kind, style, origin, taste]: Fav, from: string)
     serveNotes: [],
   };
 }
+
+/** ホームの上に出す「いまの時間」のカード（さけは夜、まめは朝）。from〜to 時（to が24を超えると翌日） */
+export const MOMENT = {
+  from: 17,
+  to: 27,
+  title: "こんばんは。今夜の1杯、残しておこう",
+  shoot: "メニューを撮る",
+};
+
+/**
+ * 記録が少ないうちの好み診断（44）。答えは「わたしの好み」に入って、おすすめに使われる。
+ * multi は複数選べる。value は MyPrefs に入れる値
+ */
+export type QuizQ =
+  | { key: "kinds" | "avoidKinds" | "serves" | "likes"; q: string; multi: true; options: { label: string; value: string }[] }
+  | { key: "sweetness" | "body" | "aroma" | "budget"; q: string; multi?: false; options: { label: string; value: number | null }[] };
+
+export const TASTE_QUIZ: QuizQ[] = [
+  {
+    key: "kinds",
+    q: "よく飲む・飲んでみたいお酒は？",
+    multi: true,
+    options: ["日本酒", "ワイン", "ビール", "ウイスキー", "焼酎", "その他"].map((v) => ({ label: v === "その他" ? "カクテル・梅酒など" : v, value: v })),
+  },
+  {
+    key: "sweetness",
+    q: "甘口と辛口、どっちが好き？",
+    options: [
+      { label: "辛口", value: 1 },
+      { label: "やや辛口", value: 2 },
+      { label: "どちらでも", value: null },
+      { label: "やや甘口", value: 4 },
+      { label: "甘口", value: 5 },
+    ],
+  },
+  {
+    key: "body",
+    q: "軽いのと濃いの、どっちが好き？",
+    options: [
+      { label: "軽くすっきり", value: 1 },
+      { label: "やや軽め", value: 2 },
+      { label: "どちらでも", value: null },
+      { label: "ややしっかり", value: 4 },
+      { label: "濃くどっしり", value: 5 },
+    ],
+  },
+  {
+    key: "aroma",
+    q: "香りは？",
+    options: [
+      { label: "控えめが好き", value: 2 },
+      { label: "どちらでも", value: null },
+      { label: "華やかなのが好き", value: 5 },
+    ],
+  },
+  {
+    key: "likes",
+    q: "好きな味は？",
+    multi: true,
+    options: ["フルーティー", "華やか", "米の旨み", "柑橘", "ベリー", "辛口", "バニラ・樽", "スモーキー", "ホップ"].map((v) => ({ label: v, value: v })),
+  },
+  {
+    key: "serves",
+    q: "好きな飲み方は？",
+    multi: true,
+    options: ["冷酒", "熱燗", "よく冷やして", "ロック", "ハイボール", "ソーダ割り", "お湯割り"].map((v) => ({ label: v, value: v })),
+  },
+  {
+    key: "avoidKinds",
+    q: "苦手なお酒は？（なければそのまま次へ）",
+    multi: true,
+    options: ["日本酒", "ワイン", "ビール", "ウイスキー", "焼酎"].map((v) => ({ label: v, value: v })),
+  },
+  {
+    key: "budget",
+    q: "お店で1杯いくらくらいまで？",
+    options: [
+      { label: "〜600円", value: 600 },
+      { label: "〜1,000円", value: 1000 },
+      { label: "〜1,500円", value: 1500 },
+      { label: "気にしない", value: null },
+    ],
+  },
+];
