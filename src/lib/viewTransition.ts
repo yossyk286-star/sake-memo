@@ -24,9 +24,9 @@ function clearNames() {
 
 /**
  * go() で画面を移り、ready() が true になった（次の画面が描けた）ところで動かす。
- * kind は動き方（open＝一覧→詳細、back＝詳細→一覧、tab＝タブの切り替え）
+ * kind は動き方（open＝一覧→詳細、back＝詳細→一覧）。タブの切り替えには使わない（TabBar）
  */
-export function transitionTo(go: () => void, ready: () => boolean, kind: "open" | "back" | "tab") {
+export function transitionTo(go: () => void, ready: () => boolean, kind: "open" | "back") {
   const d = document as DocVT;
   if (!d.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     clearNames();
