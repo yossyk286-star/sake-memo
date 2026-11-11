@@ -13,6 +13,7 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
   const title = titleOf(records.length);
   const badges = badgesOf(records);
   const done = badges.filter((b) => b.done);
+  const plat = done.filter((b) => b.plat?.done).length;
   return (
     <section className="card title-card" aria-label={tr("称号としるし")}>
       <div className="title-now">
@@ -43,6 +44,7 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
         <summary>
           <span>
             {tr("あつめたしるし")} <span className="muted">{done.length} / {badges.length}</span>
+            {plat > 0 && <span className="muted badge-plat-count">{tr("プラチナ {0}", plat)}</span>}
           </span>
           <span className="badge-peek" aria-hidden="true">
             {done.slice(-4).map((b) => (
@@ -52,10 +54,12 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
         </summary>
         <ul className="badge-grid">
           {badges.map((b) => (
-            <li key={b.id} data-done={b.done}>
+            <li key={b.id} data-done={b.done} data-plat={b.done && b.plat?.done ? "" : undefined} title={b.done && b.plat && !b.plat.done ? tr(b.plat.how) : undefined}>
               <BadgeMedal badge={b} size={58} />
               <strong>{tr(b.label)}</strong>
-              <span className="muted">{b.done ? tr("取りました") : tr(b.how)}</span>
+              <span className="muted">
+                {!b.done ? tr(b.how) : !b.plat ? tr("取りました") : b.plat.done ? tr("プラチナ") : tr("あと{0}{1}でプラチナ", b.plat.left, tr(b.plat.unit))}
+              </span>
             </li>
           ))}
         </ul>

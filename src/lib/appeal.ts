@@ -27,7 +27,18 @@ export const TITLES = [
 ];
 
 /** icon は Medal に彫る絵の名前。「#10」のように # で始まるときは数字を彫る */
-export type Badge = { id: string; icon: string; label: string; how: string; done: boolean };
+export type Badge = {
+  id: string;
+  icon: string;
+  label: string;
+  how: string;
+  done: boolean;
+  /** 取ったあと、もっと続けるとプラチナになる。left はあと何、unit はその単位 */
+  plat?: { done: boolean; how: string; left: number; unit: string };
+};
+
+/** プラチナの目安。have が need に届いたらプラチナ */
+const platOf = (have: number, need: number, how: string, unit: string) => ({ done: have >= need, how, left: Math.max(0, need - have), unit });
 
 const OVERSEAS = new Set(REGIONS.find((r) => r.region === "海外")?.places.map((p) => p.name) ?? []);
 const KINDS: [Kind, string][] = [
@@ -47,11 +58,17 @@ export function badgesOf(records: TastingRecord[]): Badge[] {
   const shops = groupByShop(records).length;
   const perDay = new Map<string, number>();
   for (const r of records) perDay.set(r.date, (perDay.get(r.date) ?? 0) + 1);
-  const friday = records.some((r) => {
-    const [y, m, d] = r.date.split("-").map(Number);
-    return new Date(y, m - 1, d).getDay() === 5;
-  });
-  const b = (id: string, icon: string, label: string, how: string, done: boolean): Badge => ({ id, icon, label, how, done });
+  const b = (id: string, icon: string, label: string, how: string, done: boolean, plat?: Badge["plat"]): Badge => ({ id, icon, label, how, done, plat });
+  const kindCount = (k: Kind) => records.filter((r) => r.kind === k).length;
+  const homeCount = records.filter((r) => isHome(r.shop)).length;
+  const fridays = new Set(
+    records
+      .filter((r) => {
+        const [y, m, d] = r.date.split("-").map(Number);
+        return new Date(y, m - 1, d).getDay() === 5;
+      })
+      .map((r) => r.date),
+  ).size;
   return [
     b("n1", "sprout", "1杯目", "はじめて記録する", n >= 1),
     b("n10", "#10", "10杯目", "10杯記録する", n >= 10),
@@ -62,17 +79,17 @@ export function badgesOf(records: TastingRecord[]): Badge[] {
     b("p5", "map", "産地5か所", "5か所の産地を飲む", places.size >= 5),
     b("p10", "compass", "産地10か所", "10か所の産地を飲む", places.size >= 10),
     b("p20", "train", "産地20か所", "20か所の産地を飲む", places.size >= 20),
-    b("abroad", "globe", "海外3か国", "海外のお酒を3か国ぶん飲む", overseas >= 3),
-    ...KINDS.map(([k, icon]) => b(`k-${k}`, icon, k, `${k}を記録する`, kinds.has(k))),
-    b("k-all", "all", "5種類ぜんぶ", "日本酒・ワイン・ビール・ウイスキー・焼酎を記録する", KINDS.every(([k]) => kinds.has(k))),
-    b("star5", "star", "★5の1杯", "★5をつける", records.some((r) => r.overall >= 5)),
+    b("abroad", "globe", "海外3か国", "海外のお酒を3か国ぶん飲む", overseas >= 3, platOf(overseas, 10, "海外10か国", "か国")),
+    ...KINDS.map(([k, icon]) => b(`k-${k}`, icon, k, `${k}を記録する`, kinds.has(k), platOf(kindCount(k), 10, `${k}を10杯`, "杯"))),
+    b("k-all", "all", "5種類ぜんぶ", "日本酒・ワイン・ビール・ウイスキー・焼酎を記録する", KINDS.every(([k]) => kinds.has(k)), platOf(Math.min(...KINDS.map(([k]) => kindCount(k))), 5, "5種類それぞれ5杯", "杯")),
+    b("star5", "star", "★5の1杯", "★5をつける", records.some((r) => r.overall >= 5), platOf(records.filter((r) => r.overall >= 5).length, 5, "★5を5回", "回")),
     b("shop3", "lantern", "お店3軒", "3軒のお店で記録する", shops >= 3),
     b("shop10", "store", "お店10軒", "10軒のお店で記録する", shops >= 10),
-    b("home", "home", "家飲み", "家で飲んで記録する", records.some((r) => isHome(r.shop))),
-    b("photo", "camera", "写真5枚", "写真つきの記録を5つ", records.filter((r) => r.photos?.length || r.photo).length >= 5),
-    b("friday", "moon", "金曜の夜", "金曜日に記録する", friday),
-    b("three", "cups", "1日に3杯", "同じ日に3杯記録する", [...perDay.values()].some((c) => c >= 3)),
-    b("food", "food", "料理と5回", "合わせた料理を5回書く", records.filter((r) => r.pairing.trim()).length >= 5),
+    b("home", "home", "家飲み", "家で飲んで記録する", homeCount > 0, platOf(homeCount, 10, "家で10杯", "杯")),
+    b("photo", "camera", "写真5枚", "写真つきの記録を5つ", records.filter((r) => r.photos?.length || r.photo).length >= 5, platOf(records.filter((r) => r.photos?.length || r.photo).length, 20, "写真つきの記録を20", "つ")),
+    b("friday", "moon", "金曜の夜", "金曜日に記録する", fridays > 0, platOf(fridays, 5, "金曜日5回", "回")),
+    b("three", "cups", "1日に3杯", "同じ日に3杯記録する", [...perDay.values()].some((c) => c >= 3), platOf([...perDay.values()].filter((c) => c >= 3).length, 5, "3杯の日を5日", "日")),
+    b("food", "food", "料理と5回", "合わせた料理を5回書く", records.filter((r) => r.pairing.trim()).length >= 5, platOf(records.filter((r) => r.pairing.trim()).length, 20, "料理を20回", "回")),
   ];
 }
 
