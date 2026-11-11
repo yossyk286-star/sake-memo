@@ -140,9 +140,13 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
       <p className="muted" style={{ margin: 0, fontSize: 12 }}>
         {tr("数字は杯数です。マスを押すとそのお酒が出ます。")}
       </p>
-      {picked.map((r) => (
-        <RecordCard key={r.id} record={r} />
-      ))}
+      {picked.length > 0 && (
+        <div className="list-group">
+          {picked.map((r) => (
+            <RecordCard key={r.id} record={r} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
