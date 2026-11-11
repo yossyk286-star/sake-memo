@@ -34,11 +34,15 @@ function loadSeen(): string[] | null {
  */
 export function newMilestones(records: TastingRecord[]): { badges: Badge[]; title: string | null } {
   const title = titleOf(records.length).name;
-  const done = badgesOf(records).filter((b) => b.done);
-  const ids = [...done.map((b) => b.id), ...(title ? [`title:${title}`] : [])];
+  const all = badgesOf(records);
+  const done = all.filter((b) => b.done);
+  // プラチナは後から増やしたので、印を分けて覚える（前から使っている人に、もうプラチナの分をまとめて出さない）
+  const plat = all.filter((b) => b.done && b.plat?.done);
+  const ids = [...done.map((b) => b.id), ...plat.map((b) => `plat:${b.id}`), ...(title ? [`title:${title}`] : [])];
   const seen = loadSeen();
+  const platKnown = seen?.includes("plat") ?? false;
   try {
-    localStorage.setItem(SEEN_KEY, JSON.stringify([...new Set([...(seen ?? []), ...ids])]));
+    localStorage.setItem(SEEN_KEY, JSON.stringify([...new Set([...(seen ?? []), ...ids, "plat"])]));
   } catch {
     // 覚えられない端末では、開くたびに出てしまうので何も出さない
     return { badges: [], title: null };
@@ -46,7 +50,7 @@ export function newMilestones(records: TastingRecord[]): { badges: Badge[]; titl
   if (!seen) return { badges: [], title: null };
   const had = new Set(seen);
   return {
-    badges: done.filter((b) => !had.has(b.id)),
+    badges: [...done.filter((b) => !had.has(b.id)), ...(platKnown ? plat.filter((b) => had.has(b.id) && !had.has(`plat:${b.id}`)) : [])],
     title: title && !had.has(`title:${title}`) ? title : null,
   };
 }

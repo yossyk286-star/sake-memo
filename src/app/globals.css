@@ -5136,6 +5136,7 @@ details > summary::-webkit-details-marker {
 }
 /* 移る途中は、ふだんのふわっと出る動きを止めて二重に動かないようにする */
 :root[data-vt] .page-enter,
+:root[data-swap] .page-enter,
 .page-enter[data-entered] {
   animation: none;
 }
@@ -6628,4 +6629,18 @@ html[data-fx~="barGrow"] .bar-fill {
 /* 4つ並ぶ切り替え（明るさ：自動・ライト・ダーク・時間で） */
 .mode-switch:has(> :nth-child(4)) {
   grid-template-columns: repeat(4, 1fr);
+}
+
+/* しるしのプラチナ（取ったあと続けると変わる） */
+.badge-plat-count {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.badge-grid li[data-plat] strong {
+  color: color-mix(in srgb, var(--text) 65%, #7d8a9c);
+}
+/* プラチナは白く冷たい光をまとわせて、まだの灰色と見分けやすく */
+.badge-grid li[data-plat] svg {
+  filter: drop-shadow(0 0 6px rgba(150, 180, 230, 0.75));
 }

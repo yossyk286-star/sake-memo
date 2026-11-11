@@ -37,7 +37,7 @@ export default function Milestones() {
 
   if (!party) return null;
   const next = titleOf(party.count).next;
-  const head = party.title ? tr("「{0}」になりました", party.title) : tr("「{0}」のしるし", party.badges[0].label);
+  const head = party.title ? tr("「{0}」になりました", party.title) : party.badges[0].plat?.done ? tr("「{0}」がプラチナに", party.badges[0].label) : tr("「{0}」のしるし", party.badges[0].label);
   const nextLine = next ? tr("次の「{0}」まで あと{1}{2}", next.name, next.left, WORDS.cup) : "";
 
   async function share() {

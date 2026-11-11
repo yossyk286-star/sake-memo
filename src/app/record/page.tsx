@@ -80,26 +80,33 @@ function DetailBody() {
       alive = false;
     };
   }, [photos, features.photoTint]);
-  // 写真は少しゆっくりスクロールして奥行きを出す（21）。上に引っぱると少し大きくなる
+  // 写真は少しゆっくりスクロールして奥行きを出す（21）。上に引っぱると少し大きくなる。
+  // 上のバーの下に写真の端だけ帯のように残らないよう、隠れていくにつれて薄くする
   const photoRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     // 枠（photo-wrap）は動かさず、中の写真の列だけずらす。はみ出た分は枠で切る
-    const el = photoRef.current?.querySelector<HTMLElement>(".photo-row");
-    if (!el || !features.parallax || reducedMotion()) return;
+    const wrap = photoRef.current;
+    const el = wrap?.querySelector<HTMLElement>(".photo-row");
+    if (!wrap || !el) return;
+    const move = features.parallax && !reducedMotion();
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const y = window.scrollY;
-        if (y > 400) return;
+        const h = wrap.offsetHeight || 1;
+        wrap.style.opacity = y > 0 ? String(Math.max(0, 1 - y / (h * 0.7))) : "";
+        if (!move || y > h) return;
         el.style.transform = y < 0 ? `scale(${1 + -y / 300})` : `translateY(${y * 0.4}px)`;
       });
     };
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(raf);
       el.style.transform = "";
+      wrap.style.opacity = "";
     };
   }, [features.parallax, photos.length]);
   const [photoError, setPhotoError] = useState("");
