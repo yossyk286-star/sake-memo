@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SingleChips } from "@/components/ChipGroup";
 import { kindColor, Stars, stars, yen } from "@/components/RecordCard";
 import { announceBuddy, pick } from "@/lib/buddy";
-import { deleteBottle, listBottles, listRecords, putBottle } from "@/lib/db";
+import { deleteBottle, listBottles, listRecords, peekBottles, peekRecords, putBottle } from "@/lib/db";
 import { KINDS, STYLES_BY_KIND } from "@/lib/glossary";
 import AbvInput from "@/components/AbvInput";
 import { abvText } from "@/lib/abv";
@@ -259,8 +259,8 @@ function BottleCard({
 
 /** 家で飲むために買ったお酒。1本を何回かに分けて記録し、味の変化も追える */
 export default function BottlesPage() {
-  const [bottles, setBottles] = useState<Bottle[] | null>(null);
-  const [records, setRecords] = useState<TastingRecord[]>([]);
+  const [bottles, setBottles] = useState<Bottle[] | null>(peekBottles);
+  const [records, setRecords] = useState<TastingRecord[]>(() => peekRecords() ?? []);
 
   useEffect(() => {
     listBottles().then(setBottles);

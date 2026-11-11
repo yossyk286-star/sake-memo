@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LAST_SCAN_EVENT, loadLastScan } from "@/lib/lastScan";
 import { tr, trv } from "@/lib/i18n";
+import { holdPageFade } from "@/lib/pageSwap";
 
 const TABS = [
   {
@@ -123,10 +124,14 @@ export default function TabBar() {
   const keep = others.find((t) => isActive(t.href))?.href ?? "/";
   const scanActive = isActive(scan.href);
   /**
-   * タブはそのまま移る（次の画面は .page-enter でふわっと出る）。
+   * タブはそのまま移る。前に開いた画面は覚えた内容ですぐ描けるので、ふわっと出直す動きも止めてパッと替える
+   * （薄い所から出てくると読み込み中に見えた）。
    * 画面をつなぐ動き（View Transitions）は、次の画面が描けるまで前の画面を止めて待つので、タブではかくっとして見えた
    */
-  const go = () => setMini(false);
+  const go = (href: string) => {
+    setMini(false);
+    if (!isActive(href)) holdPageFade("tab");
+  };
 
   return (
     <nav className="tabbar" aria-label={tr("メイン")} data-mini={mini ? "" : undefined}>
@@ -139,7 +144,7 @@ export default function TabBar() {
               className={t.href === keep ? "tab tab-keep" : "tab"}
               data-tour={`tab-${t.href.slice(1) || "home"}`}
               aria-current={isActive(t.href) ? "page" : undefined}
-              onClick={go}
+              onClick={() => go(t.href)}
             >
               <svg
                 width="24"
@@ -160,7 +165,7 @@ export default function TabBar() {
           ))}
         </div>
         {/* 「調べる」はお店で片手で押しやすいよう、帯の外の大きな丸ボタンにする */}
-        <Link href={scan.href} className="tab-scan" data-tour="tab-scan" aria-label={trv(scan.label)} aria-current={scanActive ? "page" : undefined} onClick={go}>
+        <Link href={scan.href} className="tab-scan" data-tour="tab-scan" aria-label={trv(scan.label)} aria-current={scanActive ? "page" : undefined} onClick={() => go(scan.href)}>
           <span className="tab-scan-btn">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               {scanActive ? scan.solid : scan.icon}

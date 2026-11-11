@@ -1,5 +1,6 @@
 "use client";
 
+import { clientReady } from "@/lib/pageSwap";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,9 +17,10 @@ import { tr } from "@/lib/i18n";
 /** お店でメニューやラベルを撮ったり名前で調べたりして、注文を決めるために確認するだけの画面。記録はあとからでもできる */
 export default function ScanPage() {
   const router = useRouter();
-  const [drinks, setDrinks] = useState<ScannedDrink[] | null>(null);
+  // 2回目からは今日の一覧ですぐ描く（最初はサーバーの絵と合わせるため、読んでから）
+  const [drinks, setDrinks] = useState<ScannedDrink[] | null>(() => (clientReady ? (loadLastScan()?.drinks ?? []) : null));
   // 今日のお店のメニューの数（調べるたびに増えるので、一覧が変わった合図で数え直す）
-  const [counts, setCounts] = useState({ drinks: 0, dishes: 0 });
+  const [counts, setCounts] = useState(() => (clientReady ? { drinks: loadLastScan()?.drinks.length ?? 0, dishes: loadTodayMenu().length } : { drinks: 0, dishes: 0 }));
   // 「新しいお店」で一覧を作り直すための番号
   const [shop, setShop] = useState(0);
 

@@ -28,11 +28,31 @@ export function photosOf(r: Pick<TastingRecord, "photo"> & { photos?: Blob[] }):
   return r.photos ?? (r.photo ? [r.photo] : []);
 }
 
-/** 写真を表示するための URL。画面を離れたら片付ける */
-export function usePhotoURLs(photos: Blob[]) {
-  const urls = useMemo(() => photos.map((p) => URL.createObjectURL(p)), [photos]);
-  useEffect(() => () => urls.forEach((u) => URL.revokeObjectURL(u)), [urls]);
-  return urls;
+/**
+ * 写真を表示するための URL。同じ写真には同じ URL を使い回す（詳細を開き直すたびに大きな写真を
+ * 読み直して、ふわっと出る動きをくり返さないため）。古いものから片付ける
+ */
+const PHOTO_URL_MAX = 40;
+const photoURLs = new Map<Blob | string, string>();
+function photoURL(blob: Blob, key: Blob | string) {
+  const hit = photoURLs.get(key);
+  if (hit) {
+    photoURLs.delete(key);
+    photoURLs.set(key, hit);
+    return hit;
+  }
+  const url = URL.createObjectURL(blob);
+  photoURLs.set(key, url);
+  if (photoURLs.size > PHOTO_URL_MAX) {
+    const [oldKey, oldUrl] = photoURLs.entries().next().value!;
+    photoURLs.delete(oldKey);
+    URL.revokeObjectURL(oldUrl);
+  }
+  return url;
+}
+/** cacheKey は記録ごと・写真が変わるごとに変わる文字（id と更新時刻）。読み直して別の Blob になっても同じ URL を返す */
+export function usePhotoURLs(photos: Blob[], cacheKey?: string) {
+  return useMemo(() => photos.map((p, i) => photoURL(p, cacheKey ? `${cacheKey}:${i}` : p)), [photos, cacheKey]);
 }
 
 /** 選んだファイルをまとめて縮小する */

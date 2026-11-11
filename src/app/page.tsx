@@ -1,12 +1,13 @@
 "use client";
 
+import { clientReady } from "@/lib/pageSwap";
 import Link from "next/link";
 import { startTransition, useEffect, useMemo, useState } from "react";
 import GenreSortBar from "@/components/GenreSortBar";
 import SearchField from "@/components/SearchField";
 import Hint from "@/components/Hint";
 import SwipeRecord from "@/components/SwipeRecord";
-import { listRecords, RECORDS_EVENT } from "@/lib/db";
+import { listRecords, peekRecords, RECORDS_EVENT } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
@@ -43,17 +44,26 @@ function monthHead(month: string) {
   return y === new Date().getFullYear() ? tr("{0}月", m) : tr("{0}年{1}月", y, m);
 }
 
+function readView() {
+  try {
+    return localStorage.getItem(VIEW_KEY);
+  } catch {
+    return null;
+  }
+}
+
 export default function RecordsPage() {
-  const [records, setRecords] = useState<TastingRecord[] | null>(null);
+  // 前に開いたときに読んだ一覧があれば、それですぐ描く（読み直しは下で）
+  const [records, setRecords] = useState<TastingRecord[] | null>(peekRecords);
   const [query, setQuery] = useState("");
   const [genre, setGenre] = useState<Genre | null>(null);
   const [sort, setSort] = useState<SortKey>("default");
   const [goodOnly, setGoodOnly] = useState(false);
   const [againOnly, setAgainOnly] = useState(false);
-  const [view, setView] = useState<"list" | "cal">("list");
+  const [view, setView] = useState<"list" | "cal">(() => (clientReady && readView() === "cal" ? "cal" : "list"));
   useEffect(() => {
     try {
-      if (localStorage.getItem(VIEW_KEY) === "cal") setView("cal");
+      if (readView() === "cal") setView("cal");
     } catch {}
   }, []);
   function pickView(v: "list" | "cal") {
@@ -81,7 +91,9 @@ export default function RecordsPage() {
   const features = useFeatures();
   // 一覧を順に浮かせるのは、詳細から戻ってきたとき（行へ縮んで帰る動き）以外（24）
   const [stagger, setStagger] = useState(false);
-  useEffect(() => setStagger(!document.documentElement.dataset.vt), []);
+  // タブで戻ってきたとき（覚えた一覧ですぐ描けたとき）は浮かせない。毎回だと読み込み中に見える
+  const [fresh] = useState(() => !peekRecords());
+  useEffect(() => setStagger(fresh && !document.documentElement.dataset.vt), [fresh]);
   // 下へスクロールしたら「記録する」を丸く縮める（26）。上へ戻すと元に戻す
   const [mini, setMini] = useState(false);
   // 検索欄が画面の上へ消えたら、右下の「記録する」の左に虫めがねを浮かせる（19）

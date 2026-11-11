@@ -5574,9 +5574,10 @@ article.reveal-item {
 /* ===== 動きとモダンなかたち その2（写真がぼかしから・AI 待ちの光・丸いガラスの戻る・最近探したもの・シートの後ろが奥へ） ===== */
 
 /* 写真：読み込めるまではぼかして薄く、読み込めたらくっきり */
+/* ぼかし（filter: blur）を大きな写真で動かすとスマホでは描き直しが重く、かくっとするので、薄い所から濃くするだけにする */
 img.photo-fade {
   background: var(--fill);
-  transition: filter 0.45s ease, opacity 0.45s ease, transform 0.45s ease;
+  transition: opacity 0.3s ease;
 }
 /* 一覧の小さな写真を作っている間の空き枠（読み込み前の写真と同じ見た目） */
 .thumb-wait {
@@ -5584,9 +5585,7 @@ img.photo-fade {
   background: var(--fill);
 }
 img.photo-fade:not([data-loaded]) {
-  filter: blur(14px) saturate(0.8);
-  opacity: 0.55;
-  transform: scale(1.03);
+  opacity: 0;
 }
 
 /* AI が考えている間、カードのふちをテーマ色の細い光がひと回りする（動きを減らす設定では止まった色のふちだけ） */

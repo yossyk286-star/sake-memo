@@ -7,8 +7,8 @@ import { useState } from "react";
 import Lightbox from "./Lightbox";
 
 /** 写真を横に並べる。onRemove があれば1枚ずつ外せる */
-export function PhotoRow({ photos, onRemove }: { photos: Blob[]; onRemove?: (i: number) => void }) {
-  const urls = usePhotoURLs(photos);
+export function PhotoRow({ photos, onRemove, cacheKey }: { photos: Blob[]; onRemove?: (i: number) => void; cacheKey?: string }) {
+  const urls = usePhotoURLs(photos, cacheKey);
   // 押した写真を全画面で見る（12）
   const [big, setBig] = useState<number | null>(null);
   if (urls.length === 0) return null;

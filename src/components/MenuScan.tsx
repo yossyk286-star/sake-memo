@@ -5,14 +5,7 @@ import { toast } from "@/lib/toast";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { drinkToDraft, type MenuScanResult, type DishIdeas, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
 import { placeOf } from "@/lib/origins";
-import {
-  deleteWish,
-  listRecords,
-  listWishes,
-  putBottle,
-  putWish,
-  type WishDrink,
-} from "@/lib/db";
+import { deleteWish, listRecords, listWishes, peekRecords, peekWishes, putBottle, putWish, type WishDrink } from "@/lib/db";
 import { loadLastScan, saveLastScan, today } from "@/lib/lastScan";
 import { loadPasscode, PASSCODE_KEY } from "@/lib/passcode";
 import { shrinkForReading } from "@/lib/photo";
@@ -190,8 +183,8 @@ export default function MenuScan({
   const [textOpen, setTextOpen] = useState(false);
   // AI を使わずに出したとき、どこから出したか（調べ直すボタン用）
   const [localHit, setLocalHit] = useState<{ name: string; how: string; query: string } | null>(null);
-  const [records, setRecords] = useState<TastingRecord[]>([]);
-  const [wishes, setWishes] = useState<WishDrink[]>([]);
+  const [records, setRecords] = useState<TastingRecord[]>(() => peekRecords() ?? []);
+  const [wishes, setWishes] = useState<WishDrink[]>(() => peekWishes() ?? []);
   const [prefs, setPrefs] = useState(EMPTY_PREFS);
   // 食べている料理との相性（お酒の名前ごと）
   const [dish, setDish] = useState("");

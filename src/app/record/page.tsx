@@ -7,7 +7,7 @@ import { toast } from "@/lib/toast";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { reducedMotion, useFeatures } from "@/lib/features";
-import { photoColor } from "@/lib/photoColor";
+import { knownColor, photoColor } from "@/lib/photoColor";
 import AskAI from "@/components/AskAI";
 import { PhotoAddButton, PhotoRow } from "@/components/PhotoAdd";
 import RadarChart from "@/components/RadarChart";
@@ -71,15 +71,16 @@ function DetailBody() {
   const photos = useMemo(() => (r ? photosOf(r) : []), [r]);
   const features = useFeatures();
   // ラベル写真の色を、にじみ・五角形・点数の色にする（20）
-  const [tint, setTint] = useState<string | null>(null);
+  const tintKey = r ? `${r.id}:${r.updatedAt}` : "";
+  const [tint, setTint] = useState<string | null>(() => (features.photoTint && tintKey ? (knownColor(tintKey) ?? null) : null));
   useEffect(() => {
     if (!features.photoTint || !photos[0]) return setTint(null);
     let alive = true;
-    photoColor(photos[0]).then((c) => alive && setTint(c));
+    photoColor(photos[0], tintKey).then((c) => alive && setTint(c));
     return () => {
       alive = false;
     };
-  }, [photos, features.photoTint]);
+  }, [photos, features.photoTint, tintKey]);
   // 写真は少しゆっくりスクロールして奥行きを出す（21）。上に引っぱると少し大きくなる。
   // 上のバーの下に写真の端だけ帯のように残らないよう、隠れていくにつれて薄くする
   const photoRef = useRef<HTMLDivElement>(null);
@@ -243,7 +244,7 @@ function DetailBody() {
           {/* 写真があるときは上に出して右下に小さく足すボタンを重ねる。ないときは下のボタンの列から足す */}
           {photos.length > 0 && (
             <div className="photo-wrap" ref={photoRef}>
-              <PhotoRow photos={photos} />
+              <PhotoRow photos={photos} cacheKey={tintKey} />
               <PhotoAddButton chip label={tr("＋ 写真")} onFiles={addPhotos} />
             </div>
           )}
