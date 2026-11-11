@@ -50,9 +50,11 @@ function ShopBody() {
                 {tr("Google マップで開く")}
               </a>
             )}
-            {shop.records.map((r) => (
-              <RecordCard key={r.id} record={r} />
-            ))}
+            <div className="list-group">
+              {shop.records.map((r) => (
+                <RecordCard key={r.id} record={r} />
+              ))}
+            </div>
           </>
         )}
       </main>

@@ -64,7 +64,9 @@ export function shrinkPhotos(files: FileList | null) {
 export function markLoaded(e: { currentTarget: HTMLImageElement }) {
   const img = e.currentTarget;
   // 絵を作り終えてからくっきりにする（作りながらぼかしを解くと、大きな写真で画面が一瞬止まる）
-  const ready = typeof img.decode === "function" ? img.decode().catch(() => {}) : Promise.resolve();
+  // iPhone では decode() が終わらないことがあり、写真が透明のまま出なかったので、待つのは 150ms まで
+  const decoded = typeof img.decode === "function" ? img.decode().catch(() => {}) : Promise.resolve();
+  const ready = Promise.race([decoded, new Promise((r) => setTimeout(r, 150))]);
   ready.then(() => {
     img.dataset.loaded = "";
   });

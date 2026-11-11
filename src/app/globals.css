@@ -1879,7 +1879,8 @@ button.stamp {
   border-radius: 0;
   box-shadow: none;
 }
-.list-group .swipe + .swipe .record-row::before {
+.list-group .swipe + .swipe .record-row::before,
+.list-group > .record-row + .record-row::before {
   content: "";
   position: absolute;
   top: 0;

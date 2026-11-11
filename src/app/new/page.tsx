@@ -182,14 +182,14 @@ function NewRecord() {
               : tr("続けて別の記録も作れます。")}
           </p>
           {from !== "/" && (
-            <Link href={from} className="btn-primary" style={{ display: "block", textAlign: "center", marginBottom: 8 }} onClick={() => popTo(from)}>
+            <Link href={from} className="btn-primary" style={{ marginBottom: 8 }} onClick={() => popTo(from)}>
               {fromLabel(from)}
             </Link>
           )}
           <Link
             href="/"
             className="btn-secondary"
-            style={{ display: "block", textAlign: "center" }}
+            style={{ display: "flex", justifyContent: "center" }}
           >
             {tr("記録の一覧へ")}
           </Link>
