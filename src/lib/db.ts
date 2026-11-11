@@ -67,9 +67,29 @@ export async function deleteKV(key: string) {
 }
 
 /** 新しい順（日付 → 作成時刻） */
+/**
+ * 最後に読んだ一覧を覚えておく。タブを行き来したとき、読み終わるのを待たずにすぐ描けるように
+ * （描いたあとで読み直して新しい内容に置き換える）。書いたときは覚えた一覧も合わせて直す
+ */
+let recordsMemo: TastingRecord[] | null = null;
+let wishesMemo: WishDrink[] | null = null;
+let bottlesMemo: Bottle[] | null = null;
+const byRecord = (a: TastingRecord, b: TastingRecord) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt;
+const byWish = (a: WishDrink, b: WishDrink) => b.savedAt - a.savedAt;
+const byBottle = (a: Bottle, b: Bottle) => Number(a.finished) - Number(b.finished) || b.createdAt - a.createdAt;
+function upsert<T extends { id: string }>(list: T[] | null, item: T, sort: (a: T, b: T) => number) {
+  return list ? [...list.filter((x) => x.id !== item.id), item].sort(sort) : null;
+}
+
+/** 前に読んだ記録の一覧（まだ読んでいなければ null） */
+export const peekRecords = () => recordsMemo;
+export const peekWishes = () => wishesMemo;
+export const peekBottles = () => bottlesMemo;
+
 export async function listRecords(): Promise<TastingRecord[]> {
   const all = await (await getDB()).getAll("records");
-  return all.sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+  recordsMemo = all.sort(byRecord);
+  return [...recordsMemo];
 }
 
 export async function getRecord(id: string) {
@@ -78,16 +98,19 @@ export async function getRecord(id: string) {
 
 export async function putRecord(record: TastingRecord) {
   await (await getDB()).put("records", record);
+  recordsMemo = upsert(recordsMemo, record, byRecord);
 }
 
 export async function deleteRecord(id: string) {
   await (await getDB()).delete("records", id);
+  recordsMemo = recordsMemo?.filter((r) => r.id !== id) ?? null;
 }
 
 /** 気になるお酒。新しく印を付けた順 */
 export async function listWishes(): Promise<WishDrink[]> {
   const all = await (await getDB()).getAll("wishes");
-  return all.sort((a, b) => b.savedAt - a.savedAt);
+  wishesMemo = all.sort(byWish);
+  return [...wishesMemo];
 }
 
 export async function getWish(id: string) {
@@ -96,16 +119,19 @@ export async function getWish(id: string) {
 
 export async function putWish(wish: WishDrink) {
   await (await getDB()).put("wishes", wish);
+  wishesMemo = upsert(wishesMemo, wish, byWish);
 }
 
 export async function deleteWish(id: string) {
   await (await getDB()).delete("wishes", id);
+  wishesMemo = wishesMemo?.filter((w) => w.id !== id) ?? null;
 }
 
 /** 家のお酒。飲みかけを先に、新しく買った順 */
 export async function listBottles(): Promise<Bottle[]> {
   const all = await (await getDB()).getAll("bottles");
-  return all.sort((a, b) => Number(a.finished) - Number(b.finished) || b.createdAt - a.createdAt);
+  bottlesMemo = all.sort(byBottle);
+  return [...bottlesMemo];
 }
 
 export async function getBottle(id: string) {
@@ -114,10 +140,12 @@ export async function getBottle(id: string) {
 
 export async function putBottle(bottle: Bottle) {
   await (await getDB()).put("bottles", bottle);
+  bottlesMemo = upsert(bottlesMemo, bottle, byBottle);
 }
 
 export async function deleteBottle(id: string) {
   await (await getDB()).delete("bottles", id);
+  bottlesMemo = bottlesMemo?.filter((b) => b.id !== id) ?? null;
 }
 
 // --- 書き出し / 読み込み（バックアップ用） ---
@@ -173,6 +201,7 @@ export async function importJSON(text: string): Promise<number> {
   for (const w of (Array.isArray(data.wishes) ? (data.wishes as WishDrink[]).filter(isEntry) : [])) await tx.objectStore("wishes").put(w);
   for (const b of (Array.isArray(data.bottles) ? (data.bottles as Bottle[]).filter(isEntry) : [])) await tx.objectStore("bottles").put(b);
   await tx.done;
+  recordsMemo = wishesMemo = bottlesMemo = null;
   if (data.prefs) savePrefs({ ...loadPrefs(), ...data.prefs });
   importSaved(data.lookups);
   if (Array.isArray(data.myTerms)) {

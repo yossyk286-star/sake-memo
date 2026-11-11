@@ -10,7 +10,7 @@ import ScanTabs from "@/components/ScanTabs";
 import ShopBar from "@/components/ShopBar";
 import Skeleton from "@/components/Skeleton";
 import { announceBuddy, pick } from "@/lib/buddy";
-import { listBottles, listRecords } from "@/lib/db";
+import { listBottles, listRecords, peekBottles, peekRecords } from "@/lib/db";
 import { loadLastScan, today } from "@/lib/lastScan";
 import type { PairingResult, ScannedDrink } from "@/lib/menuScan";
 import {
@@ -80,8 +80,8 @@ export default function PairPage() {
   const [dish, setDish] = useState("");
   const [passcode, setPasscode] = useState("");
   const [savedPasscode, setSavedPasscode] = useState(true);
-  const [records, setRecords] = useState<TastingRecord[]>([]);
-  const [bottles, setBottles] = useState<Bottle[]>([]);
+  const [records, setRecords] = useState<TastingRecord[]>(() => peekRecords() ?? []);
+  const [bottles, setBottles] = useState<Bottle[]>(() => peekBottles() ?? []);
   const [recent, setRecent] = useState<string[]>([]);
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);

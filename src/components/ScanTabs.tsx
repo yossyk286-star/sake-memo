@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { tr } from "@/lib/i18n";
+import { holdPageFade } from "@/lib/pageSwap";
 
 const TABS = [
   { id: "drink", href: "/scan", label: "飲み物から" },
@@ -22,18 +23,10 @@ export default function ScanTabs({ current }: { current: "drink" | "food" }) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     if (id === current) return;
-    const root = document.documentElement;
-    // いまの画面の中身は動かさない（入れ替わって出てくる側だけ動かす）
-    document.querySelectorAll<HTMLElement>(".page-enter").forEach((el) => (el.dataset.leaving = ""));
-    root.dataset.swap = id === "food" ? "next" : "prev";
+    holdPageFade(id === "food" ? "next" : "prev");
     setAt(id);
     // 丸がすべり終わるころに移る
     window.setTimeout(() => router.replace(href), 200);
-    window.setTimeout(() => {
-      // 外すと止めていた動きが始めから出てしまうので、移った先の枠は「出終わった」印を付けてから外す
-      document.querySelectorAll<HTMLElement>(".page-enter").forEach((el) => (el.dataset.entered = ""));
-      delete root.dataset.swap;
-    }, 900);
   }
 
   return (

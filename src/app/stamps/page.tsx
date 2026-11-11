@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { drinkTitle, Stars } from "@/components/RecordCard";
 import { collectStamps, diaryNote, REGIONS, travelDiary, type DiaryEntry, type Stamp } from "@/lib/origins";
-import { listRecords } from "@/lib/db";
+import { listRecords, peekRecords } from "@/lib/db";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import { getLang, tr, trJoin, trv } from "@/lib/i18n";
@@ -236,7 +236,7 @@ function takeNewStamps(names: string[]): string[] {
 
 /** 飲んだ産地がスタンプのように埋まっていく。まだの産地は次に試すヒントになる */
 export default function StampsPage() {
-  const [records, setRecords] = useState<TastingRecord[] | null>(null);
+  const [records, setRecords] = useState<TastingRecord[] | null>(peekRecords);
   const [opened, setOpened] = useState<string | null>(null);
   const toggle = (name: string) => setOpened((o) => (o === name ? null : name));
   const [mapOpen, setMapOpen] = useState(false);

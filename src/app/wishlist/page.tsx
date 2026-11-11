@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import GenreSortBar from "@/components/GenreSortBar";
-import { deleteWish, listWishes, type WishDrink } from "@/lib/db";
+import { deleteWish, listWishes, peekWishes, type WishDrink } from "@/lib/db";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import EmptyState from "@/components/EmptyState";
 import { getLang, tr, trv } from "@/lib/i18n";
@@ -11,7 +11,7 @@ import { askConfirm } from "@/components/ConfirmSheet";
 
 /** メニューで「気になる」と印を付けた、次に試したいお酒の一覧 */
 export default function WishlistPage() {
-  const [wishes, setWishes] = useState<WishDrink[] | null>(null);
+  const [wishes, setWishes] = useState<WishDrink[] | null>(peekWishes);
   const [genre, setGenre] = useState<Genre | null>(null);
   const [sort, setSort] = useState<SortKey>("default");
 

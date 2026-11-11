@@ -11,7 +11,7 @@ import RadarChart, { SERIES_COLORS } from "@/components/RadarChart";
 import { drinkTitle, Stars, yen } from "@/components/RecordCard";
 import { abvText } from "@/lib/abv";
 import { TASTE_AXES } from "@/lib/axes";
-import { listRecords } from "@/lib/db";
+import { listRecords, peekRecords } from "@/lib/db";
 import { compareImage, shareImage } from "@/lib/shareImage";
 import type { TastingRecord } from "@/lib/types";
 import { tr, trJoin, trv } from "@/lib/i18n";
@@ -79,7 +79,7 @@ function CompareBody() {
   const params = useSearchParams();
   const aId = params.get("a") ?? "";
   const bId = params.get("b") ?? "";
-  const [records, setRecords] = useState<TastingRecord[] | null>(null);
+  const [records, setRecords] = useState<TastingRecord[] | null>(peekRecords);
 
   useEffect(() => {
     listRecords().then(setRecords);

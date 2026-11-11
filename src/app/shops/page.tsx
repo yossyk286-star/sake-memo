@@ -4,7 +4,7 @@ import BackLink from "@/components/BackLink";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { drinkTitle, Stars } from "@/components/RecordCard";
-import { listRecords } from "@/lib/db";
+import { listRecords, peekRecords } from "@/lib/db";
 import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
@@ -12,7 +12,7 @@ import { tr, trv } from "@/lib/i18n";
 
 /** 行ったお店の一覧と、その店でいちばんおいしかったお酒 */
 export default function ShopsPage() {
-  const [records, setRecords] = useState<TastingRecord[] | null>(null);
+  const [records, setRecords] = useState<TastingRecord[] | null>(peekRecords);
 
   useEffect(() => {
     listRecords().then(setRecords);
