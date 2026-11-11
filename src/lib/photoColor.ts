@@ -2,7 +2,18 @@
  * 写真のいちばん目立つ色（ラベルの色）。詳細のにじみ・五角形・点数の色に使う（20）。
  * 小さく縮めて、白・黒・灰色に近い点を除いた平均を取り、文字が読める濃さに整える
  */
-export async function photoColor(photo: Blob): Promise<string | null> {
+export async function photoColor(photo: Blob, key?: string): Promise<string | null> {
+  if (key && colors.has(key)) return colors.get(key)!;
+  const c = await readColor(photo);
+  if (key) colors.set(key, c);
+  return c;
+}
+
+/** 前に取った色（記録ごと）。もう一度開いたとき、色が後から変わらないよう最初から使う */
+const colors = new Map<string, string | null>();
+export const knownColor = (key: string) => colors.get(key);
+
+async function readColor(photo: Blob): Promise<string | null> {
   try {
     const bmp = await createImageBitmap(photo, { resizeWidth: 24, resizeHeight: 24 });
     const c = document.createElement("canvas");
