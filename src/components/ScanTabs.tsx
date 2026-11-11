@@ -25,8 +25,8 @@ export default function ScanTabs({ current }: { current: "drink" | "food" }) {
     if (id === current) return;
     holdPageFade(id === "food" ? "next" : "prev");
     setAt(id);
-    // 丸がすべり終わるころに移る
-    window.setTimeout(() => router.replace(href), 200);
+    // 丸がすべり終わってから移る（途中で移ると新しい画面の丸が最後の位置へ飛んで見える。0.28s は globals.css の .mode-switch::before と合わせる）
+    window.setTimeout(() => router.replace(href), 280);
   }
 
   return (
