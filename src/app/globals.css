@@ -7067,6 +7067,13 @@ html[data-fx~="barGrow"] .bar-fill {
 .later-go {
   color: var(--muted);
 }
+.new-scan-open {
+  display: flex;
+  justify-content: center;
+  width: calc(100% - 32px);
+  margin: 16px 16px 0;
+  gap: 8px;
+}
 .new-shortcuts {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -7529,6 +7536,10 @@ html[data-selecting] .bulk-bar {
   font-size: 17px;
   font-variant-numeric: tabular-nums;
   padding: 0 4px 0 12px;
+}
+/* 入力中の × が数字にかぶらないよう、右をあける（.input[data-clearing] より強く） */
+.stepper .step-input[data-clearing] {
+  padding-right: 36px;
 }
 .stepper .step-input:focus {
   outline: none;
