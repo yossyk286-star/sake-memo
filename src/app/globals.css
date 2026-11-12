@@ -7358,7 +7358,7 @@ html[data-selecting] .bulk-bar {
 }
 .row-more {
   right: 8px;
-  color: var(--fill-strong, var(--muted));
+  color: var(--muted);
 }
 /* 選んだ行は左の帯ではなく、行ぜんたいをうすく色づける */
 .select-row {

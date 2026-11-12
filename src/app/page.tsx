@@ -343,7 +343,7 @@ export default function RecordsPage() {
         <div className="lead lead-row">
           <span>{selecting ? tr("{0}件 選択", picked.length) : tr("これまでの記録 {0}件", records.length)}</span>
           <button type="button" className="text-btn select-toggle" aria-pressed={selecting} onClick={() => (selecting ? endSelect() : setSelecting(true))}>
-            {selecting ? tr("完了") : tr("選ぶ")}
+            {selecting ? tr("完了") : tr("選択")}
           </button>
           {/* 一覧とカレンダーを切り替える（49） */}
           <div className="view-switch" role="group" aria-label={tr("見せ方")}>
