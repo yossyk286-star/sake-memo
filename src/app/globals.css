@@ -7351,3 +7351,108 @@ html[data-selecting] .tabbar {
 html[data-selecting] .bulk-bar {
   bottom: calc(env(safe-area-inset-bottom) + 12px);
 }
+
+/* 2026-11-12 手直し：⋯ と★のあいだをあける */
+.swipe .record-row {
+  padding-right: 52px;
+}
+.row-more {
+  right: 8px;
+  color: var(--fill-strong, var(--muted));
+}
+/* 選んだ行は左の帯ではなく、行ぜんたいをうすく色づける */
+.select-row {
+  background: none;
+  padding-left: 14px;
+  gap: 2px;
+}
+.select-row .record-row {
+  background: none;
+}
+.select-row.is-on {
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+/* 「もう1枚・文字で」は下に帯をしいて、下の結果と重ならないように */
+.scan-float {
+  left: 0;
+  right: 0;
+  padding: 10px max(16px, calc(50% - 280px + 16px)) 12px;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  background: linear-gradient(to bottom, transparent, var(--bg) 22%);
+}
+.scan-float > * {
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+.scan-float-space {
+  height: 84px;
+}
+
+/* くらべる：名前は総合評価の上に、下の項目は見出し＋色の印で並べる */
+.compare-overall .compare-who {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+  margin-bottom: 4px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.compare-who i {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border-radius: 50%;
+}
+.compare-who span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.compare-rows {
+  display: grid;
+  gap: 4px;
+}
+.compare-row {
+  display: grid;
+  gap: 6px;
+  padding: 10px 0;
+}
+.compare-row + .compare-row {
+  border-top: 0.5px solid var(--line);
+}
+.compare-row h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.compare-vals {
+  display: grid;
+  gap: 10px;
+}
+.compare-vals p {
+  margin: 0;
+  padding-left: 8px;
+  border-left: 3px solid;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.compare-vals p.is-empty {
+  color: var(--muted);
+}
+.compare-overall .compare-who {
+  min-height: calc(13px * 1.35 * 2);
+}
