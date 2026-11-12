@@ -117,19 +117,15 @@ function CompareBody() {
         )}
         {pair && (
           <>
-            <div className="compare-legend">
-              {pair.map((r, i) => (
-                <Link key={r.id} href={`/record?id=${r.id}`} className="compare-name">
-                  <i style={{ background: SERIES_COLORS[i] }} aria-hidden="true" />
-                  <strong>{drinkTitle(r)}</strong>
-                </Link>
-              ))}
-            </div>
             <section className="card">
               <div className="compare-overall" aria-label={tr("総合評価")} style={{ gridTemplateColumns: `repeat(${pair.length}, 1fr)` }}>
                 {pair.map((r, i) => (
                   <div key={r.id}>
-                    <span className="muted">{tr("総合評価")}</span>
+                    {/* 名前は総合評価の上に。押すとその記録へ */}
+                    <Link href={`/record?id=${r.id}`} className="compare-who">
+                      <i style={{ background: SERIES_COLORS[i] }} aria-hidden="true" />
+                      <span>{drinkTitle(r)}</span>
+                    </Link>
                     <strong style={{ color: SERIES_COLORS[i] }}>{r.overall.toFixed(1)}</strong>
                     <Stars n={r.overall} color={SERIES_COLORS[i]} />
                   </div>
@@ -146,22 +142,25 @@ function CompareBody() {
               )}
             </section>
             <section className="card">
-              <table className="compare-table">
-                <tbody>
-                  {ROWS.map(([label, get]) => {
-                    const vals = pair.map(get);
-                    if (vals.every((v) => !v)) return null;
-                    return (
-                      <tr key={label}>
-                        <th>{trv(label)}</th>
+              {/* 項目ごとに見出しを置き、その下に色の印つきで横に並べる */}
+              <div className="compare-rows">
+                {ROWS.map(([label, get]) => {
+                  const vals = pair.map(get);
+                  if (vals.every((v) => !v)) return null;
+                  return (
+                    <div key={label} className="compare-row">
+                      <h3>{trv(label)}</h3>
+                      <div className="compare-vals" style={{ gridTemplateColumns: `repeat(${pair.length}, minmax(0, 1fr))` }}>
                         {vals.map((v, i) => (
-                          <td key={i}>{v || "—"}</td>
+                          <p key={i} style={{ borderColor: SERIES_COLORS[i] }} className={v ? undefined : "is-empty"}>
+                            {v || "—"}
+                          </p>
                         ))}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </section>
             <button
               type="button"
