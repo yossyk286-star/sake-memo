@@ -280,6 +280,15 @@ export default function StampsPage() {
       <header className="sub-header">
         <BackLink fallback="/taste" />
         <h1>{tr("産地スタンプ帳")}</h1>
+        {records && (
+          <button type="button" className="header-pill map-pill" style={{ gridColumn: 3, justifySelf: "end" }} aria-label={tr("日本地図で見る")} onClick={() => setMapOpen(true)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z" />
+              <path d="M9 4v13.5M15 6.5V20" />
+            </svg>
+            <span>{tr("地図")}</span>
+          </button>
+        )}
       </header>
 
       <p className="lead">
@@ -355,15 +364,6 @@ export default function StampsPage() {
         )}
       </main>
 
-      {records && (
-        <button type="button" className="map-fab" aria-label={tr("日本地図で見る")} onClick={() => setMapOpen(true)}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
-            <path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z" />
-            <path d="M9 4v13.5M15 6.5V20" />
-          </svg>
-          <span>{tr("地図")}</span>
-        </button>
-      )}
       {mapOpen && <JapanMapSheet stamps={stamps} onClose={() => setMapOpen(false)} />}
     </>
   );

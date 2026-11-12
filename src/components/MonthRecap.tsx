@@ -8,11 +8,13 @@ import { getLang, tr } from "@/lib/i18n";
 import { lastMonthRecap, markRecapSeen, recapSeen } from "@/lib/recap";
 import { cardImage, shareImage } from "@/lib/shareImage";
 import type { TastingRecord } from "@/lib/types";
+import { clientReady } from "@/lib/pageSwap";
 
 /** 月が変わったら記録の一覧の上に出す「先月のふりかえり」。閉じるまで出しておく */
 export default function MonthRecap({ records, titleOf }: { records: TastingRecord[]; titleOf: (r: TastingRecord) => string }) {
   const recap = useMemo(() => lastMonthRecap(records), [records]);
-  const [show, setShow] = useState(false);
+  // 2回目からは最初の描画で出しておき、一覧に戻ったとき後から帯が出て下がらないようにする
+  const [show, setShow] = useState(() => clientReady && !!recap && !recapSeen(recap.month));
   // 一覧を押し下げないよう、はじめは1行の帯にしておき、押したら開く
   const [open, setOpen] = useState(false);
   useEffect(() => {

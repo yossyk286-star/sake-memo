@@ -2052,5 +2052,18 @@
 "選択": "Select",
 "円": "yen",
 "相手に向ける": "Turn to them",
-"どれも同じ": "all same"
+"どれも同じ": "all same",
+"今夜のカウンター": "Tonight's counter",
+"今日のカウンター": "Today's counter",
+"{0}軒目": "Stop {0}",
+"{0}〜": "from {0}",
+"お店（名前なし）": "Place (no name)",
+"記録なし ×{0}": "Not logged ×{0}",
+"＋1{0}（記録なしで数える）": "+1 (count without logging)",
+"1{0}へらす": "Remove 1",
+"記録なしで数えた1{0}をへらします": "Remove one drink you counted without logging",
+"1日の目安は純アルコール約20g": "Daily guideline: about 20 g of pure alcohol",
+"1日の目安はカフェイン400mgまで": "Daily guideline: up to 400 mg of caffeine",
+"カフェイン約{0}mg": "about {0} mg caffeine",
+"記録を探す": "Search records"
 }

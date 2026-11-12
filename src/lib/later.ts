@@ -16,8 +16,14 @@ const KEY = "later";
 /** 箱の中身が変わった合図（ホームの件数を合わせる） */
 export const LATER_EVENT = "sake-memo:later";
 
+let laterCount = 0;
+/** 前に読んだ件数。一覧に戻ったとき、読み終わるのを待たずに「あとで書く」の帯を出しておく */
+export const peekLaterCount = () => laterCount;
+
 export async function loadLater(): Promise<LaterItem[]> {
-  return ((await getKV<LaterItem[]>(KEY)) ?? []).sort((a, b) => b.at - a.at);
+  const list = ((await getKV<LaterItem[]>(KEY)) ?? []).sort((a, b) => b.at - a.at);
+  laterCount = list.length;
+  return list;
 }
 
 async function save(list: LaterItem[]) {

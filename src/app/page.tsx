@@ -3,6 +3,7 @@
 import LineIcon from "@/components/LineIcon";
 import { clientReady } from "@/lib/pageSwap";
 import Link from "next/link";
+import { today } from "@/lib/lastScan";
 import { startTransition, useEffect, useMemo, useState } from "react";
 import GenreSortBar from "@/components/GenreSortBar";
 import SearchField from "@/components/SearchField";
@@ -14,7 +15,7 @@ import { askConfirm } from "@/components/ConfirmSheet";
 import { shareRecords } from "@/lib/recordShare";
 import { toast } from "@/lib/toast";
 import { cleanTag, tagsUsed } from "@/lib/quickPick";
-import { LATER_EVENT, loadLater } from "@/lib/later";
+import { LATER_EVENT, loadLater, peekLaterCount } from "@/lib/later";
 import YearRecapCard from "@/components/YearRecapCard";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
@@ -80,7 +81,7 @@ export default function RecordsPage() {
   const [tagging, setTagging] = useState(false);
   const [bulkTag, setBulkTag] = useState("");
   // あとで書く箱の数（41）
-  const [later, setLater] = useState(0);
+  const [later, setLater] = useState(peekLaterCount);
   useEffect(() => {
     const count = () => loadLater().then((l) => setLater(l.length));
     count();
@@ -275,7 +276,12 @@ export default function RecordsPage() {
               <h2 className="date-head">
                 {dateHead(day.date)}
                 {/* 絞り込み中は一部の記録だけになるので、その日の合計は出さない */}
-                {!filtering && <span className="date-total"><NumText text={dayTotal(day.records)} /></span>}
+                {!filtering && (day.date === today() ? (
+                  /* 今日の合計は押すとカウンターへ */
+                  <Link href="/tonight" className="date-total date-total-link"><NumText text={dayTotal(day.records)} /> ›</Link>
+                ) : (
+                  <span className="date-total"><NumText text={dayTotal(day.records)} /></span>
+                ))}
               </h2>
             )}
             <div className="list-group">
@@ -519,11 +525,12 @@ export default function RecordsPage() {
         </div>
       )}
       {searchGone && !selecting && (
-        <button type="button" className="float-search" aria-label={tr("記録を検索")} onClick={jumpToSearch}>
+        <button type="button" className="float-search" onClick={jumpToSearch}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <circle cx="10.5" cy="10.5" r="6.5" />
             <path d="M15.5 15.5 20 20" />
           </svg>
+          {tr("記録を探す")}
         </button>
       )}
       {!selecting && <Link href="/new" className="fab" data-tour="fab" data-mini={mini && features.fabShrink ? "" : undefined} aria-label={tr("記録する")}>
