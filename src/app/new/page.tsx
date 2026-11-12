@@ -5,6 +5,7 @@ import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { removeTally } from "@/lib/tally";
 import MenuScan, { PickedDrink } from "@/components/MenuScan";
 import RecordForm from "@/components/RecordForm";
 import DraftNote from "@/components/DraftNote";
@@ -82,6 +83,8 @@ function NewRecord() {
   // 記録の一覧で見つからなかった名前（62）は ?name=、あとで書く箱から（41）は ?later=id
   const nameParam = params.get("name");
   const laterParam = params.get("later");
+  // カウンターで数えた1杯を「記録にする」で来たときは ?tally=id（保存したら数えた分は記録に置きかえる）
+  const tallyParam = params.get("tally");
   const [extra, setExtra] = useState<Partial<RecordDraft> | null>(nameParam ? { name: nameParam } : null);
   const [laterId, setLaterId] = useState<string | null>(null);
   useEffect(() => {
@@ -311,6 +314,11 @@ function NewRecord() {
             if (wishId) {
               deleteWish(wishId);
               setWishId(null);
+            }
+            if (tallyParam) {
+              removeTally(tallyParam);
+              router.replace("/tonight");
+              return;
             }
             setCarry({ shop: r.shop, date: r.date });
             setResumed(null);

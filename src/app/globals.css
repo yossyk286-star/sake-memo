@@ -7798,3 +7798,131 @@ html:not([data-hand="left"]):has(.tabbar[data-mini]) .fab {
   border: none;
   cursor: pointer;
 }
+
+/* ===== カウンター：同じものをまとめる・よく飲むものボタン（2026-11-13） ===== */
+.tally-items {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tally-items > li + li {
+  border-top: 0.5px solid var(--line);
+}
+.tally-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+}
+.tally-item-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.tally-x {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tally-item-price {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.tally-step {
+  flex-shrink: 0;
+  display: inline-flex;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+.tally-step button {
+  width: 40px;
+  height: 36px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tally-step button + button {
+  border-left: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.tally-step button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.tally-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 0 0 12px;
+  font-size: 13px;
+}
+.tally-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+.tally-price .input {
+  width: 84px;
+  height: 36px;
+  padding: 0 10px;
+  font-size: 15px;
+  text-align: right;
+}
+.tally-quick {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--line);
+}
+.tally-quick-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tally-quick .chip {
+  min-height: 38px;
+  font-weight: 600;
+}
+.tally-add {
+  border-style: dashed;
+  color: var(--muted);
+}
+.tally-new {
+  margin-top: 10px;
+  flex-wrap: nowrap;
+}
+.tally-new .btn-secondary {
+  flex-shrink: 0;
+}
+.tally-more .text-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+}
+.tally-more {
+  padding-bottom: 4px;
+}

@@ -6,30 +6,51 @@ import BackLink from "@/components/BackLink";
 import { drinkTitle, yen } from "@/components/RecordCard";
 import { askConfirm } from "@/components/ConfirmSheet";
 import { listRecords, peekRecords } from "@/lib/db";
-import { DAY_AMOUNT } from "@/lib/dayTotal";
+import { DAY_AMOUNT, guessLike, QUICK_DRINKS } from "@/lib/dayTotal";
 import { today } from "@/lib/lastScan";
 import { loadShopToday } from "@/lib/shopToday";
-import { addTally, removeLastTally, todayTallies, type Tally } from "@/lib/tally";
+import {
+  addCustomDrink,
+  addTally,
+  loadCustomDrinks,
+  loadPrices,
+  removeLastTally,
+  savePrice,
+  todayTallies,
+  usageOf,
+  type Tally,
+} from "@/lib/tally";
 import { APP, WORDS } from "@/lib/appeal";
 import { tr, trv } from "@/lib/i18n";
 import type { TastingRecord } from "@/lib/types";
 
 type Stop = { shop: string; from: number; records: TastingRecord[]; tallies: Tally[] };
+/** お店の中で、同じ飲み物をまとめた1行（記録＋おかわり、または「生ビール ×3」） */
+type Item = { name: string; records: TastingRecord[]; tallies: Tally[] };
 
 const hhmm = (t: number) => {
   const d = new Date(t);
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
-/** 今夜のカウンター：1軒目・2軒目…ごとに何杯・いくら・どれだけ飲んだか。記録しない1杯も＋1で数えられる */
+/** 今夜のカウンター：1軒目・2軒目…ごとに何杯・いくら・どれだけ飲んだか。銘柄のない生ビールなども押すだけで数える */
 export default function TonightPage() {
   const [records, setRecords] = useState<TastingRecord[] | null>(peekRecords);
   const [tallies, setTallies] = useState<Tally[]>([]);
   const [shopNow, setShopNow] = useState("");
+  const [prices, setPrices] = useState<Record<string, Record<string, number>>>({});
+  const [custom, setCustom] = useState<{ name: string; like: Partial<TastingRecord> }[]>([]);
+  const [usage, setUsage] = useState<Map<string, number>>(new Map());
+  const [opened, setOpened] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState("");
   useEffect(() => {
     listRecords().then(setRecords);
     setTallies(todayTallies());
     setShopNow(loadShopToday());
+    setPrices(loadPrices());
+    setCustom(loadCustomDrinks());
+    setUsage(usageOf());
   }, []);
 
   const mine = useMemo(() => (records ?? []).filter((r) => r.date === today()), [records]);
@@ -54,29 +75,59 @@ export default function TonightPage() {
     ? stops
     : [...stops, { shop: current, from: Date.now(), records: [], tallies: [] }];
 
-  const amountOf = (s: Pick<Stop, "records" | "tallies">) =>
-    s.records.reduce((n, r) => n + DAY_AMOUNT.of(r), 0) + s.tallies.reduce((n, t) => n + DAY_AMOUNT.of(t.like ?? {}), 0);
-  const cups = (s: Pick<Stop, "records" | "tallies">) => s.records.length + s.tallies.length;
-  const priceOf = (s: Pick<Stop, "records">) => s.records.reduce((n, r) => n + (r.price ?? 0), 0);
+  const itemsOf = (s: Stop): Item[] => {
+    const map = new Map<string, Item>();
+    const get = (name: string) => map.get(name) ?? map.set(name, { name, records: [], tallies: [] }).get(name)!;
+    for (const r of s.records) get(drinkTitle(r)).records.push(r);
+    for (const t of s.tallies) get(t.name ?? "").tallies.push(t);
+    return [...map.values()];
+  };
+  // 1杯の値段：記録した値段 ＞ このお店で覚えた値段
+  const unitPrice = (shop: string, it: Item) => it.records.find((r) => r.price != null)?.price ?? prices[shop]?.[it.name] ?? 0;
+  const priceOf = (shop: string, it: Item) => it.records.reduce((n, r) => n + (r.price ?? 0), 0) + it.tallies.length * unitPrice(shop, it);
+  const amountOfItem = (it: Item) =>
+    it.records.reduce((n, r) => n + DAY_AMOUNT.of(r), 0) + it.tallies.reduce((n, t) => n + DAY_AMOUNT.of(t.like ?? {}), 0);
+  const sum = (s: Stop, f: (it: Item) => number) => itemsOf(s).reduce((n, it) => n + f(it), 0);
+  const cups = (s: Stop) => s.records.length + s.tallies.length;
 
-  const all = { records: mine, tallies };
-  const total = DAY_AMOUNT.round(amountOf(all));
-  const spent = priceOf(all);
+  const totalCups = stops.reduce((n, s) => n + cups(s), 0);
+  const total = DAY_AMOUNT.round(stops.reduce((n, s) => n + sum(s, amountOfItem), 0));
+  const spent = stops.reduce((n, s) => n + sum(s, (it) => priceOf(s.shop, it)), 0);
   // 目安を真ん中に置いたメーター。2倍で満タン
   const fill = Math.min(100, (total / (DAY_AMOUNT.guide * 2)) * 100);
   const over = total > DAY_AMOUNT.guide;
 
-  const plusOne = () => {
-    // 量の計算は、そのお店（なければ今日）で最後に記録した1杯と同じとみなす
-    const last = [...mine].reverse().find((r) => r.shop.trim() === current) ?? mine.at(-1);
-    setTallies(addTally(current, last ? DAY_AMOUNT.like(last) : undefined));
+  // よく飲むもの：決まったもの＋自分で足したもの、よく押した順
+  const quick = useMemo(() => {
+    const all = [...QUICK_DRINKS, ...custom.filter((c) => !QUICK_DRINKS.some((q) => q.name === c.name))];
+    return all.map((d, i) => ({ ...d, i })).sort((a, b) => (usage.get(b.name) ?? 0) - (usage.get(a.name) ?? 0) || a.i - b.i);
+  }, [custom, usage]);
+
+  const plus = (it: Item) => {
+    const rec = it.records[0];
+    const like = rec ? DAY_AMOUNT.like(rec) : (it.tallies[0]?.like ?? quick.find((q) => q.name === it.name)?.like);
+    setTallies(addTally(current, { name: it.name || undefined, recId: rec?.id, like }));
   };
-  const minusOne = async () => {
+  const plusQuick = (name: string, like: Partial<TastingRecord>) => {
+    setTallies(addTally(current, { name, like }));
+    setUsage(usageOf());
+  };
+  const minus = async (it: Item) => {
     const ok = await askConfirm({
-      message: tr("記録なしで数えた1{0}をへらします", WORDS.cup),
+      message: tr("「{0}」を1{1}へらします", it.name ? trv(it.name) : tr("名前なし"), WORDS.cup),
       action: tr("1{0}へらす", WORDS.cup),
     });
-    if (ok) setTallies(removeLastTally(current));
+    if (ok) setTallies(removeLastTally(current, it.name || undefined));
+  };
+  const addNew = () => {
+    const name = newName.trim();
+    if (!name) return;
+    const like = guessLike(name);
+    addCustomDrink(name, like);
+    setCustom(loadCustomDrinks());
+    plusQuick(name, like);
+    setNewName("");
+    setAdding(false);
   };
 
   return (
@@ -88,7 +139,7 @@ export default function TonightPage() {
       <main className="content">
         <section className="card tally-hero">
           <p className="tally-big">
-            <strong>{cups(all)}</strong>
+            <strong>{totalCups}</strong>
             {tr(WORDS.cup)}
           </p>
           <p className="tally-sub">
@@ -103,8 +154,9 @@ export default function TonightPage() {
 
         {shown.map((s, i) => {
           const now = s.shop === current;
-          const amount = DAY_AMOUNT.round(amountOf(s));
-          const price = priceOf(s);
+          const items = itemsOf(s);
+          const price = sum(s, (it) => priceOf(s.shop, it));
+          const amount = DAY_AMOUNT.round(sum(s, amountOfItem));
           return (
             <section key={s.shop || "-"} className="card tally-stop" data-now={now || undefined}>
               <div className="tally-stop-head">
@@ -119,24 +171,105 @@ export default function TonightPage() {
                   {[price > 0 ? yen(price) : "", cups(s) > 0 ? DAY_AMOUNT.text(amount) : ""].filter(Boolean).join(tr("・"))}
                 </span>
               </p>
-              {cups(s) > 0 && (
-                <ul className="tally-drinks">
-                  {s.records.map((r) => (
-                    <li key={r.id}>
-                      <Link href={`/record?id=${r.id}`}>{drinkTitle(r)}</Link>
-                    </li>
-                  ))}
-                  {s.tallies.length > 0 && <li className="muted">{tr("記録なし ×{0}", s.tallies.length)}</li>}
+              {items.length > 0 && (
+                <ul className="tally-items">
+                  {items.map((it) => {
+                    const key = `${s.shop}\n${it.name}`;
+                    const n = it.records.length + it.tallies.length;
+                    const p = priceOf(s.shop, it);
+                    const open = opened === key;
+                    return (
+                      <li key={it.name || "-"}>
+                        <div className="tally-item">
+                          <button type="button" className="tally-item-name" aria-expanded={open} onClick={() => setOpened(open ? null : key)}>
+                            <span>{it.name ? trv(it.name) : tr("名前なし")}</span>
+                            {n > 1 && <span className="tally-x">×{n}</span>}
+                          </button>
+                          {p > 0 && <span className="tally-item-price">{yen(p)}</span>}
+                          {now && (
+                            <span className="tally-step">
+                              <button type="button" aria-label={tr("1{0}へらす", WORDS.cup)} disabled={!it.tallies.length} onClick={() => minus(it)}>
+                                −
+                              </button>
+                              <button type="button" aria-label={it.records.length ? tr("おかわり") : tr("1{0}ふやす", WORDS.cup)} onClick={() => plus(it)}>
+                                ＋
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                        {open && (
+                          <div className="tally-more">
+                            {!it.records.some((r) => r.price != null) && it.name && (
+                              <label className="tally-price">
+                                {tr("1{0}", WORDS.cup)}
+                                <input
+                                  className="input"
+                                  inputMode="numeric"
+                                  placeholder={tr("例：600")}
+                                  defaultValue={prices[s.shop]?.[it.name] ?? ""}
+                                  onChange={(e) => {
+                                    const digits = e.target.value.normalize("NFKC").replace(/\D/g, "");
+                                    savePrice(s.shop, it.name, digits ? Number(digits) : null);
+                                    setPrices(loadPrices());
+                                  }}
+                                />
+                                {tr("円（このお店で覚えます）")}
+                              </label>
+                            )}
+                            {it.records.length > 0 ? (
+                              <Link href={`/record?id=${it.records[0].id}`} className="text-btn">
+                                {tr("記録を見る")}
+                              </Link>
+                            ) : (
+                              it.tallies.length > 0 && (
+                                <Link
+                                  href={`/new?name=${encodeURIComponent(it.name)}&tally=${it.tallies.at(-1)!.id}`}
+                                  className="text-btn"
+                                >
+                                  {tr("★や感想を書いて記録にする")}
+                                </Link>
+                              )
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
               {now && (
-                <div className="tally-btns">
-                  <button type="button" className="tally-minus" aria-label={tr("1{0}へらす", WORDS.cup)} disabled={!s.tallies.length} onClick={minusOne}>
-                    −
-                  </button>
-                  <button type="button" className="btn-primary tally-plus" onClick={plusOne}>
-                    {tr("＋1{0}（記録なしで数える）", WORDS.cup)}
-                  </button>
+                <div className="tally-quick">
+                  <p className="tally-quick-label">{tr("押すと1{0}ふえます", WORDS.cup)}</p>
+                  <div className="chip-wrap">
+                    {quick.map((q) => (
+                      <button key={q.name} type="button" className="chip" onClick={() => plusQuick(q.name, q.like)}>
+                        ＋ {trv(q.name)}
+                      </button>
+                    ))}
+                    <button type="button" className="chip tally-add" aria-expanded={adding} onClick={() => setAdding(!adding)}>
+                      {tr("＋ ほかの飲み物")}
+                    </button>
+                  </div>
+                  {adding && (
+                    <form
+                      className="row tally-new"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        addNew();
+                      }}
+                    >
+                      <input
+                        className="input"
+                        autoFocus
+                        placeholder={APP.id === "sake-memo" ? tr("例：梅酒ロック") : tr("例：ほうじ茶ラテ")}
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                      />
+                      <button type="submit" className="btn-secondary" disabled={!newName.trim()}>
+                        {tr("足す")}
+                      </button>
+                    </form>
+                  )}
                 </div>
               )}
             </section>
@@ -144,7 +277,7 @@ export default function TonightPage() {
         })}
 
         <Link href="/new" className="btn-secondary">
-          {tr("記録する")}
+          {APP.id === "sake-memo" ? tr("銘柄を記録する") : tr("豆を記録する")}
         </Link>
       </main>
     </>
