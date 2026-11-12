@@ -7421,38 +7421,170 @@ html[data-selecting] .bulk-bar {
   overflow-wrap: anywhere;
 }
 .compare-rows {
-  display: grid;
-  gap: 4px;
+  margin: 0;
 }
+/* 左に項目名、右に値を縦に並べる（狭い列で変に折り返さない） */
 .compare-row {
   display: grid;
-  gap: 6px;
-  padding: 10px 0;
+  grid-template-columns: 4.6em minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  align-items: start;
 }
 .compare-row + .compare-row {
   border-top: 0.5px solid var(--line);
 }
-.compare-row h3 {
-  margin: 0;
-  font-size: 13px;
+.compare-row dt {
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted);
+  line-height: 1.5;
+  padding-top: 2px;
 }
-.compare-vals {
-  display: grid;
-  gap: 10px;
-}
-.compare-vals p {
+.compare-row dd {
   margin: 0;
-  padding-left: 8px;
-  border-left: 3px solid;
+  display: grid;
+  gap: 6px;
+}
+.compare-val {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   font-size: 15px;
-  line-height: 1.45;
+  line-height: 1.5;
   overflow-wrap: anywhere;
 }
-.compare-vals p.is-empty {
+.compare-val small {
+  margin-left: auto;
+  padding-top: 3px;
+  flex-shrink: 0;
+  font-size: 11px;
   color: var(--muted);
+}
+.compare-val.is-empty {
+  color: var(--muted);
+}
+.compare-dots {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+.compare-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+.compare-dots i + i {
+  margin-left: -3px;
 }
 .compare-overall .compare-who {
   min-height: calc(13px * 1.35 * 2);
+}
+
+/* ===== 入力画面を見やすく（2026-11-12） ===== */
+/* ？は丸のまま、見出しの文字から少し離す */
+.label .help {
+  margin-left: 6px;
+}
+/* 値段は − [ 800 円 ] ＋ をひとかたまりに */
+.stepper {
+  display: flex;
+  align-items: center;
+  height: 46px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.stepper:focus-within {
+  border-color: var(--accent);
+}
+.step-btn {
+  width: 52px;
+  height: 100%;
+  flex-shrink: 0;
+  border: none;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.step-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.stepper .step-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: right;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  padding: 0 4px 0 12px;
+}
+.stepper .step-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.step-unit {
+  padding-right: 14px;
+  color: var(--muted);
+  font-size: 15px;
+}
+/* 度数は入力欄の横によくある度数を並べる */
+.inline-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.inline-pick > .input {
+  width: 96px;
+  flex: 0 0 auto;
+}
+.inline-pick .quick-chips,
+.date-line .date-chips {
+  margin-top: 0;
+}
+/* 日付も入力欄の横に今日・きのう・おととい */
+.date-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.date-line > .input {
+  width: auto;
+  flex: 0 1 168px;
+  min-width: 140px;
+}
+/* 見せる画面の「相手に向ける」は小さく右よせ */
+.show-flip {
+  align-self: flex-end;
+  margin-left: auto;
+  width: auto;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+/* 「別のお酒にする」は小さな文字ボタンに */
+.picked-change {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 2px;
+  cursor: pointer;
+  white-space: nowrap;
 }
