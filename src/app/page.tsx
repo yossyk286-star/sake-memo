@@ -1,5 +1,6 @@
 "use client";
 
+import LineIcon from "@/components/LineIcon";
 import { clientReady } from "@/lib/pageSwap";
 import Link from "next/link";
 import { startTransition, useEffect, useMemo, useState } from "react";
@@ -197,6 +198,15 @@ export default function RecordsPage() {
   function toggle(id: string) {
     setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
   }
+  // 選んでいる間はタブを隠し、その場所に操作ボタンを出す（57）
+  useEffect(() => {
+    const el = document.documentElement;
+    if (selecting) el.dataset.selecting = "";
+    else delete el.dataset.selecting;
+    return () => {
+      delete el.dataset.selecting;
+    };
+  }, [selecting]);
   function endSelect() {
     setSelecting(false);
     setPicked([]);
@@ -360,7 +370,7 @@ export default function RecordsPage() {
       <main className={stagger ? "content stagger" : "content"} style={{ paddingBottom: 96 }}>
         {later > 0 && (
           <Link href="/later" className="later-banner">
-            <span aria-hidden="true">📷</span>
+            <LineIcon name="camera" size={20} />
             <strong>{tr("あとで書く")}</strong>
             <span className="later-count">{tr("{0}件", later)}</span>
             <span aria-hidden="true" className="later-go">›</span>
@@ -490,23 +500,19 @@ export default function RecordsPage() {
               className={picked.length < 2 ? "is-off" : undefined}
               onClick={(e) => picked.length < 2 && e.preventDefault()}
             >
-              <b aria-hidden="true">⬠</b>
+              <LineIcon name="compare" size={22} />
               {tr("くらべる")}
             </Link>
             <button type="button" disabled={!picked.length} onClick={() => shareRecords(pickedRecords).catch(() => toast("共有できませんでした", { tone: "warn" }))}>
-              <b aria-hidden="true">↑</b>
+              <LineIcon name="share" size={22} />
               {tr("画像で送る")}
             </button>
             <button type="button" disabled={!picked.length} aria-pressed={tagging} onClick={() => setTagging(!tagging)}>
-              <b aria-hidden="true">#</b>
+              <LineIcon name="tag" size={22} />
               {tr("タグ")}
             </button>
             <button type="button" className="is-danger" disabled={!picked.length} onClick={bulkDelete}>
-              <b aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
-                </svg>
-              </b>
+              <LineIcon name="trash" size={22} />
               {tr("削除")}
             </button>
           </div>

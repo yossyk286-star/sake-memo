@@ -1,5 +1,6 @@
 "use client";
 
+import LineIcon from "@/components/LineIcon";
 import BackLink from "@/components/BackLink";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -71,7 +72,8 @@ export default function LaterPage() {
           {tr("お店では写真だけ撮っておいて、帰ってからまとめて記録できます。撮った日とお店の名前はそのまま入ります。")}
         </p>
         <label className="btn-secondary" style={{ cursor: "pointer" }}>
-          {tr("📷 撮って入れる")}
+          <LineIcon name="camera" />
+          {tr("撮って入れる")}
           <input type="file" accept="image/*" capture="environment" className="visually-hidden" onChange={(e) => add(e.target.files)} />
         </label>
         {items?.length === 0 && <p className="empty">{tr("いまは何も入っていません。")}</p>}

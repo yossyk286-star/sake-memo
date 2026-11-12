@@ -1,5 +1,6 @@
 "use client";
 
+import LineIcon from "@/components/LineIcon";
 import { loadShopToday, SHOP_TODAY_EVENT } from "@/lib/shopToday";
 import Link from "next/link";
 import { TERMS } from "@/lib/glossary";
@@ -957,7 +958,8 @@ export default function MenuScan({
       {status === "done" && shootGone && (
         <div className="scan-float">
           <label className="btn-primary">
-            {tr("📷 もう1枚")}
+            <LineIcon name="camera" />
+            {tr("もう1枚")}
             <input type="file" accept="image/*" capture="environment" onChange={onPhoto} className="visually-hidden" />
           </label>
           <button

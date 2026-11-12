@@ -7321,3 +7321,33 @@ html[data-fx~="barGrow"] .bar-fill {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
   cursor: pointer;
 }
+
+/* 絵文字のかわりの線のアイコン（タブと同じ線） */
+.line-icon {
+  flex-shrink: 0;
+  vertical-align: -4px;
+}
+.btn-primary > .line-icon,
+.btn-secondary > .line-icon,
+.text-btn > .line-icon {
+  margin-right: 6px;
+}
+.later-banner > .line-icon {
+  color: #c26a00;
+}
+:root[data-theme="dark"] .later-banner > .line-icon {
+  color: #ffb340;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .later-banner > .line-icon {
+    color: #ffb340;
+  }
+}
+
+/* 選んでいる間はタブを隠し、操作ボタンをタブの場所に出す（57） */
+html[data-selecting] .tabbar {
+  display: none;
+}
+html[data-selecting] .bulk-bar {
+  bottom: calc(env(safe-area-inset-bottom) + 12px);
+}

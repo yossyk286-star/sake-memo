@@ -1,5 +1,6 @@
 "use client";
 
+import LineIcon from "@/components/LineIcon";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { loadShopToday } from "@/lib/shopToday";
 import { useRouter } from "next/navigation";
@@ -822,7 +823,8 @@ export default function RecordForm({
           {!initial && !draft.shop.trim() && (
             nearby === null ? (
               <button type="button" className="text-btn near-btn" onClick={findNearby}>
-                {tr("📍 近くの前に行ったお店")}
+                <LineIcon name="pin" />
+                {tr("近くの前に行ったお店")}
               </button>
             ) : nearby.length > 0 ? (
               <div className="chip-wrap" role="group" aria-label={tr("近くの前に行ったお店")}>

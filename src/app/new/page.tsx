@@ -1,5 +1,6 @@
 "use client";
 
+import LineIcon from "@/components/LineIcon";
 import BackChevron from "@/components/BackChevron";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -229,11 +230,13 @@ function NewRecord() {
       {!picked && saveCount === 0 && !laterId && (
         <div className="new-shortcuts">
           <label className="btn-secondary" style={{ cursor: "pointer" }}>
-            {tr("📷 撮って、あとで書く")}
+            <LineIcon name="camera" />
+            {tr("撮って、あとで書く")}
             <input type="file" accept="image/*" capture="environment" className="visually-hidden" onChange={(e) => toLater(e.target.files)} />
           </label>
           <Link href="/flight" className="btn-secondary">
-            {tr("🍶 飲み比べセット")}
+            <LineIcon name="flight" />
+            {tr("飲み比べセット")}
           </Link>
         </div>
       )}
