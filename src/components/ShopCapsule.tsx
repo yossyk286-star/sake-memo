@@ -9,11 +9,13 @@ import { yen } from "./RecordCard";
 import { APP, WORDS } from "@/lib/appeal";
 import type { TastingRecord } from "@/lib/types";
 import { todayTallies } from "@/lib/tally";
+import { clientReady } from "@/lib/pageSwap";
 
 /** 今日のお店を入れている間、いちばん上に「店・今夜N杯・金額」の黒いカプセルを出す（23）。押すと今夜のカウンターへ */
 export default function ShopCapsule({ records }: { records: TastingRecord[] }) {
-  const [shop, setShop] = useState("");
-  const [counted, setCounted] = useState(0);
+  // 2回目からは最初の描画で出しておく（後から出ると一覧が下にずれる）
+  const [shop, setShop] = useState(() => (clientReady ? loadShopToday() : ""));
+  const [counted, setCounted] = useState(() => (clientReady ? todayTallies().filter((t) => t.shop === loadShopToday()).length : 0));
   useEffect(() => setShop(loadShopToday()), []);
   useEffect(() => setCounted(todayTallies().filter((t) => t.shop === shop).length), [shop]);
   if (!shop) return null;

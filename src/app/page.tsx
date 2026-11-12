@@ -15,7 +15,7 @@ import { askConfirm } from "@/components/ConfirmSheet";
 import { shareRecords } from "@/lib/recordShare";
 import { toast } from "@/lib/toast";
 import { cleanTag, tagsUsed } from "@/lib/quickPick";
-import { LATER_EVENT, loadLater } from "@/lib/later";
+import { LATER_EVENT, loadLater, peekLaterCount } from "@/lib/later";
 import YearRecapCard from "@/components/YearRecapCard";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
@@ -81,7 +81,7 @@ export default function RecordsPage() {
   const [tagging, setTagging] = useState(false);
   const [bulkTag, setBulkTag] = useState("");
   // あとで書く箱の数（41）
-  const [later, setLater] = useState(0);
+  const [later, setLater] = useState(peekLaterCount);
   useEffect(() => {
     const count = () => loadLater().then((l) => setLater(l.length));
     count();
@@ -525,11 +525,12 @@ export default function RecordsPage() {
         </div>
       )}
       {searchGone && !selecting && (
-        <button type="button" className="float-search" aria-label={tr("記録を検索")} onClick={jumpToSearch}>
+        <button type="button" className="float-search" onClick={jumpToSearch}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <circle cx="10.5" cy="10.5" r="6.5" />
             <path d="M15.5 15.5 20 20" />
           </svg>
+          {tr("記録を探す")}
         </button>
       )}
       {!selecting && <Link href="/new" className="fab" data-tour="fab" data-mini={mini && features.fabShrink ? "" : undefined} aria-label={tr("記録する")}>

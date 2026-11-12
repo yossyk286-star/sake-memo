@@ -15,13 +15,18 @@ function Tracker() {
   const router = useRouter();
   useEffect(() => {
     markClientReady();
+    // 開いて落ち着いたら、画面を移るたびのふわっと出る動きを止める（globals.css の data-booted）
+    const boot = window.setTimeout(() => (document.documentElement.dataset.booted = ""), 1500);
     // 落ち着いたら一覧を先に読んでおく（はじめて開くタブも、読み終わるのを待たずにすぐ描ける）
     const t = window.setTimeout(() => {
       listRecords().catch(() => {});
       listWishes().catch(() => {});
       listBottles().catch(() => {});
     }, 1200);
-    return () => window.clearTimeout(t);
+    return () => {
+      window.clearTimeout(t);
+      window.clearTimeout(boot);
+    };
   }, []);
   useEffect(() => {
     // 開いたときの画面（設定）。アプリを開いて最初の1回だけ、記録の一覧から移す

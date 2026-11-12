@@ -7736,3 +7736,65 @@ a.shop-capsule .shop-capsule-go {
   color: inherit;
   text-decoration: none;
 }
+
+/* ===== 画面切り替えをパッと（2026-11-12） ===== */
+/* 開いて落ち着いたあと（data-booted）は、画面を移るたびに中身がふわっと出直す動きを止める。じわっと読み込んでいるように見えるため */
+html[data-booted] .page-enter,
+html[data-booted] .content > *,
+html[data-booted] .hub > *,
+html[data-booted] article.reveal-item,
+html[data-booted][data-fx~="listStagger"] .stagger .day .swipe {
+  animation: none;
+}
+/* 詳細を開く・戻るときは、前の画面と重なって二重に見えないよう、カードだけつなげて背景はすぐ替える */
+:root[data-vt="open"]::view-transition-old(root),
+:root[data-vt="back"]::view-transition-old(root),
+:root[data-vt="open"]::view-transition-new(root),
+:root[data-vt="back"]::view-transition-new(root) {
+  animation: none;
+}
+
+/* ===== 下のボタンのかぶりを整理（2026-11-12） ===== */
+/* 下のタブが丸く縮んだら、「記録を探す」と「＋」はタブと同じ高さの1列に並べる（4つが上下に積み重ならないように） */
+html:not([data-hand="left"]):has(.tabbar[data-mini]) .float-search,
+html:not([data-hand="left"]):has(.tabbar[data-mini]) .fab {
+  bottom: calc(max(10px, calc(env(safe-area-inset-bottom) - 8px)) + 4px);
+}
+html:not([data-hand="left"]):has(.tabbar[data-mini]) .float-search {
+  left: calc(max(12px, 50% - 268px) + 68px);
+}
+html:not([data-hand="left"]):has(.tabbar[data-mini]) .fab {
+  right: calc(max(12px, 50% - 268px) + 68px);
+}
+/* 虫めがねが「調べる」と2つ並ばないよう、記録を探すは文字つきの札にする */
+.float-search {
+  width: auto;
+  gap: 6px;
+  padding: 0 16px 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ===== 字下げ・はみ出しのそろえ（2026-11-12） ===== */
+/* 「次の一杯に」の中身が見出しより右に寄っていたのをそろえる */
+.tips .next-list {
+  padding-left: 0;
+}
+.next-more {
+  padding-left: 0;
+}
+/* 飲み比べの日付が「11/12/202」と切れないよう、入らなければ下の行へ */
+.flight-date {
+  flex: 1 0 160px;
+}
+/* スタンプ帳の地図は、浮かぶ丸ボタンをやめて上のバーの右に */
+.map-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  cursor: pointer;
+}
