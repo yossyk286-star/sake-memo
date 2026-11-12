@@ -120,6 +120,13 @@
   color: var(--accent);
 }
 
+/* 飲み方・AI に聞く：アイコンつきの行をうすいテーマ色の箱にまとめる（上の「合う料理を探す」と同じ色みで、ひと続きに見せる） */
+.more {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  overflow: hidden;
+}
+
 .methods {
   font-size: 13px;
   line-height: 1.7;
@@ -127,31 +134,91 @@
 
 .methods summary {
   cursor: pointer;
-  font-weight: 700;
-  color: var(--accent-dark);
   list-style: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  min-height: 40px;
-  border-top: 0.5px solid var(--line);
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 12px;
+  -webkit-tap-highlight-color: transparent;
+}
+.methods summary:active {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+/* 2行目の上に、アイコンの右から細い線 */
+.methods + .methods > summary {
+  background-image: linear-gradient(var(--line), var(--line));
+  background-size: calc(100% - 54px) 0.5px;
+  background-position: 54px 0;
+  background-repeat: no-repeat;
 }
 .methods summary::-webkit-details-marker {
   display: none;
 }
 .methods summary::after {
-  content: "›";
-  font-size: 17px;
-  line-height: 1;
-  color: var(--muted);
+  content: "";
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg);
   transition: transform 0.2s ease;
 }
 .methods[open] summary::after {
-  transform: rotate(90deg);
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.moreIcon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow);
+}
+
+/* ダークでは白いタイルがないので、箱より少し明るいテーマ色にする */
+@media (prefers-color-scheme: dark) {
+  :global(html:not([data-theme="light"])) .moreIcon {
+    background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+    box-shadow: none;
+  }
+}
+:global(html[data-theme="dark"]) .moreIcon {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  box-shadow: none;
+}
+
+.moreText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.moreTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.moreSub {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .methods dl {
-  margin: 6px 0 0;
+  margin: 0;
+  padding: 0 14px 12px 54px;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 4px 10px;
@@ -163,6 +230,10 @@
 
 .methods dd {
   margin: 0;
+}
+
+.askBody {
+  padding: 0 12px 12px;
 }
 
 .match {
