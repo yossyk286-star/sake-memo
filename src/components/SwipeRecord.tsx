@@ -7,7 +7,10 @@ import { deleteWithUndo } from "@/lib/db";
 import { loadFeatures, reducedMotion } from "@/lib/features";
 import type { TastingRecord } from "@/lib/types";
 import { tr } from "@/lib/i18n";
-import { askConfirm } from "@/components/ConfirmSheet";
+import { askChoice, askConfirm } from "@/components/ConfirmSheet";
+import { putRecord } from "@/lib/db";
+import { shareRecords } from "@/lib/recordShare";
+import { toast } from "@/lib/toast";
 
 /** 横にずらしたときに出すボタンの幅 */
 const ACTION_W = 88;
@@ -21,6 +24,7 @@ export default function SwipeRecord({
   showDate,
   index,
   nth,
+  onChanged,
 }: {
   record: TastingRecord;
   onDeleted: (id: string) => void;
@@ -29,6 +33,8 @@ export default function SwipeRecord({
   index?: number;
   /** 同じ名前のお酒の何回目か */
   nth?: number;
+  /** ♥ を付け外ししたとき（一覧の表示を変える） */
+  onChanged?: (r: TastingRecord) => void;
 }) {
   const router = useRouter();
   const [dx, setDx] = useState(0);
@@ -37,6 +43,40 @@ export default function SwipeRecord({
   const wrap = useRef<HTMLDivElement>(null);
   // スライドした直後のタップで詳細を開かないようにする
   const swiped = useRef(false);
+
+  // 長押しで ⋯ と同じメニューを出す（53）
+  const press = useRef<number | null>(null);
+  const pressed = useRef(false);
+  function cancelPress() {
+    if (press.current) window.clearTimeout(press.current);
+    press.current = null;
+  }
+
+  /** 詳細を開かずにできる操作（53）。削除は今までどおり確認してから */
+  async function menu() {
+    const { favorites } = loadFeatures();
+    const items = [
+      { label: tr("編集"), run: edit },
+      { label: tr("ほかの記録とくらべる"), run: () => router.push(`/compare?a=${record.id}`) },
+      ...(favorites
+        ? [
+            {
+              label: record.again ? tr("♥ また飲みたいを外す") : tr("♥ また飲みたい"),
+              run: async () => {
+                const next = { ...record, again: !record.again };
+                await putRecord(next);
+                onChanged?.(next);
+                if (next.again) toast("また飲みたいに入れました", { tone: "star" });
+              },
+            },
+          ]
+        : []),
+      { label: tr("画像にして送る"), run: () => shareRecords([record]).catch(() => toast("共有できませんでした", { tone: "warn" })) },
+      { label: tr("削除"), danger: true, run: remove },
+    ];
+    const n = await askChoice(<RecordPreview record={record} />, items);
+    if (n >= 0) items[n].run();
+  }
 
   function edit() {
     router.push(`/edit?id=${record.id}`);
@@ -68,6 +108,15 @@ export default function SwipeRecord({
   function onPointerDown(e: React.PointerEvent) {
     drag.current = { x: e.clientX, y: e.clientY, base: dx, axis: null };
     swiped.current = false;
+    pressed.current = false;
+    cancelPress();
+    if (dx === 0)
+      press.current = window.setTimeout(() => {
+        press.current = null;
+        pressed.current = true;
+        drag.current = null;
+        menu();
+      }, 500);
   }
 
   function onPointerMove(e: React.PointerEvent) {
@@ -75,6 +124,7 @@ export default function SwipeRecord({
     if (!d) return;
     const mx = e.clientX - d.x;
     const my = e.clientY - d.y;
+    if (Math.abs(mx) > 8 || Math.abs(my) > 8) cancelPress();
     // 縦のスクロールと見分けるため、最初に大きく動いた向きで決める
     if (!d.axis) {
       if (Math.abs(mx) > 8 && Math.abs(mx) > Math.abs(my)) {
@@ -92,6 +142,7 @@ export default function SwipeRecord({
   }
 
   function onPointerUp() {
+    cancelPress();
     const d = drag.current;
     drag.current = null;
     if (d?.axis !== "x") return;
@@ -112,8 +163,9 @@ export default function SwipeRecord({
   }
 
   function onClickCapture(e: React.MouseEvent) {
-    // ずらしている途中やボタンが出ているときのタップは、元に戻すだけ
-    if (swiped.current) {
+    // ずらしている途中やボタンが出ているときのタップは、元に戻すだけ。長押しでメニューを出したあとも開かない
+    if (swiped.current || pressed.current) {
+      pressed.current = false;
       // スライドを離したときに出るクリックは無視する
       e.preventDefault();
       e.stopPropagation();
@@ -149,6 +201,23 @@ export default function SwipeRecord({
         onDragStart={(e) => e.preventDefault()}
       >
         <RecordCard record={record} showDate={showDate} nth={nth} />
+        <button
+          type="button"
+          className="row-more"
+          aria-label={tr("{0}の操作", record.name || tr("この記録"))}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            menu();
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <circle cx="5" cy="12" r="1.8" />
+            <circle cx="12" cy="12" r="1.8" />
+            <circle cx="19" cy="12" r="1.8" />
+          </svg>
+        </button>
       </div>
     </div>
   );

@@ -64,7 +64,7 @@ function Picker({
             <strong>{drinkTitle(r)}</strong>
             <Stars n={r.overall} className="is-sm" />
           </div>
-          <span className="muted" style={{ fontSize: 12 }}>
+          <span className="muted" style={{ fontSize: 13 }}>
             {[r.kind, r.style, r.shop, r.date].filter(Boolean).join("・")}
           </span>
         </button>
@@ -79,6 +79,9 @@ function CompareBody() {
   const params = useSearchParams();
   const aId = params.get("a") ?? "";
   const bId = params.get("b") ?? "";
+  // 一覧で何杯か選んだときや飲み比べセットは ?ids=a,b,c（4つまで）
+  const idsText = params.get("ids") ?? "";
+  const ids = useMemo(() => idsText.split(",").filter(Boolean).slice(0, 4), [idsText]);
   const [records, setRecords] = useState<TastingRecord[] | null>(peekRecords);
 
   useEffect(() => {
@@ -87,7 +90,8 @@ function CompareBody() {
 
   const a = useMemo(() => records?.find((r) => r.id === aId), [records, aId]);
   const b = useMemo(() => records?.find((r) => r.id === bId), [records, bId]);
-  const pair = a && b ? [a, b] : null;
+  const many = useMemo(() => ids.map((id) => records?.find((r) => r.id === id)).filter((r): r is TastingRecord => !!r), [records, ids]);
+  const pair = many.length >= 2 ? many : a && b ? [a, b] : null;
 
   return (
     <>
@@ -96,14 +100,14 @@ function CompareBody() {
         <h1>{tr("くらべる")}</h1>
       </header>
       <main className="content" style={{ paddingTop: 16 }}>
-        {records && !a && (
+        {records && !a && !pair && (
           <EmptyState title={tr("くらべる記録が選ばれていません")} actions={[{ href: "/", label: tr("記録から選ぶ") }]}>
             {tr("記録を開いて「ほかの記録とくらべる」から選べます。")}
           </EmptyState>
         )}
         {a && !b && (
           <>
-            <p style={{ margin: 0, padding: "0 4px", fontSize: 14 }}>{tr("「{0}」と比べる記録を選んでください。", drinkTitle(a))}</p>
+            <p style={{ margin: 0, padding: "0 4px", fontSize: 15 }}>{tr("「{0}」と比べる記録を選んでください。", drinkTitle(a))}</p>
             <Picker
               records={records ?? []}
               exclude={a.id}
@@ -122,7 +126,7 @@ function CompareBody() {
               ))}
             </div>
             <section className="card">
-              <div className="compare-overall" aria-label={tr("総合評価")}>
+              <div className="compare-overall" aria-label={tr("総合評価")} style={{ gridTemplateColumns: `repeat(${pair.length}, 1fr)` }}>
                 {pair.map((r, i) => (
                   <div key={r.id}>
                     <span className="muted">{tr("総合評価")}</span>
@@ -136,7 +140,7 @@ function CompareBody() {
                 series={pair.map((r) => ({ label: drinkTitle(r), values: TASTE_AXES.map(([, get]) => get(r) ?? null) }))}
               />
               {pair.some((r) => TASTE_AXES.some(([, get]) => !get(r))) && (
-                <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+                <p className="muted" style={{ margin: 0, fontSize: 13 }}>
                   {tr("入れていない項目は中心にしています。記録を編集すると足せます。")}
                 </p>
               )}
@@ -145,13 +149,14 @@ function CompareBody() {
               <table className="compare-table">
                 <tbody>
                   {ROWS.map(([label, get]) => {
-                    const [x, y] = pair.map(get);
-                    if (!x && !y) return null;
+                    const vals = pair.map(get);
+                    if (vals.every((v) => !v)) return null;
                     return (
                       <tr key={label}>
                         <th>{trv(label)}</th>
-                        <td>{x || "—"}</td>
-                        <td>{y || "—"}</td>
+                        {vals.map((v, i) => (
+                          <td key={i}>{v || "—"}</td>
+                        ))}
                       </tr>
                     );
                   })}
@@ -176,9 +181,11 @@ function CompareBody() {
             >
               {tr("画像にして送る")}
             </button>
-            <button type="button" className="btn-secondary" onClick={() => router.replace(`/compare?a=${aId}`)}>
-              {tr("比べる相手を変える")}
-            </button>
+            {!ids.length && (
+              <button type="button" className="btn-secondary" onClick={() => router.replace(`/compare?a=${aId}`)}>
+                {tr("比べる相手を変える")}
+              </button>
+            )}
           </>
         )}
       </main>

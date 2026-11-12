@@ -18,7 +18,9 @@ import { abvText } from "@/lib/abv";
 import { hasServeNote, serveNoteText } from "@/lib/serveNote";
 import { photosOf, shrinkPhotos } from "@/lib/photo";
 import { mapsUrl } from "@/lib/shops";
-import { recordImage, shareImage } from "@/lib/shareImage";
+import { volumeName } from "@/lib/quickPick";
+import { shareImage } from "@/lib/shareImage";
+import { recordBlob } from "@/lib/recordShare";
 import { useRecordFromQuery } from "@/lib/useRecord";
 import type { QA } from "@/lib/types";
 import { tr, trJoin, trv } from "@/lib/i18n";
@@ -129,18 +131,7 @@ function DetailBody() {
 
   async function share() {
     if (!r) return;
-    const blob = await recordImage({
-      title: drinkTitle(r),
-      overall: r.overall,
-      tags: [r.kind, r.style, r.serve, r.origin].filter((t): t is string => !!t),
-      axes: TASTE_AXES.map(([label]) => label),
-      values: TASTE_AXES.map(([, get]) => get(r)),
-      flavors: r.flavors,
-      memo: r.memo,
-      footer: trJoin([r.shop, r.date.replaceAll("-", "/")]),
-      photo: photos[0] ?? null,
-    });
-    await shareImage(blob, drinkTitle(r)).catch(() => toast("共有できませんでした", { tone: "warn" }));
+    await shareImage(await recordBlob(r), drinkTitle(r)).catch(() => toast("共有できませんでした", { tone: "warn" }));
   }
 
   async function toggleAgain() {
@@ -199,6 +190,7 @@ function DetailBody() {
         ["飲み方メモ", hasServeNote(r.serveNote) ? serveNoteText(r.serveNote) : ""],
         ["合わせた料理", r.pairing],
         ["値段", r.price ? yen(r.price) : ""],
+        ["量", r.ml ? volumeName(r.kind, r.ml) : ""],
       ]
     : [];
   const shopMap = r ? mapsUrl(r.shop) : null;
@@ -256,13 +248,25 @@ function DetailBody() {
           <div className="card detail-hero">
             <div className="detail-hero-top">
               <div className="detail-hero-name">
-                {r.kind && (
-                  <span className="tag kind-tag">
-                    {trJoin([r.kind, r.style])}
-                  </span>
-                )}
+                {r.kind &&
+                  (r.style ? (
+                    // タイプを押すと辞典のその言葉へ（20）
+                    <Link href={`/glossary?q=${encodeURIComponent(r.style)}`} className="tag kind-tag tag-link">
+                      {trJoin([r.kind, r.style])}
+                    </Link>
+                  ) : (
+                    <span className="tag kind-tag">{trJoin([r.kind, r.style])}</span>
+                  ))}
+                {/* 読みにくい銘柄の読み（42） */}
+                {r.reading && r.name && <p className="name-reading">{r.reading}</p>}
                 <h2 className={drinkTitle(r).length > 18 ? "is-long" : undefined}>{drinkTitle(r)}</h2>
-                {r.name && r.maker && <p className="muted">{trv(r.maker)}</p>}
+                {r.name && r.maker && (
+                  // 蔵元を押すと、その蔵で飲んだ記録のページへ（34）
+                  <Link href={`/maker?name=${encodeURIComponent(r.maker)}`} className="maker-link">
+                    {trv(r.maker)}
+                    <span aria-hidden="true">›</span>
+                  </Link>
+                )}
               </div>
               <div className="detail-score" aria-label={features.scale === "star5" ? tr("総合 5段階中{0}", r.overall) : tr("総合 {0}", stars(r.overall))}>
                 <span className="detail-score-label">{tr("総合")}</span>
@@ -332,6 +336,29 @@ function DetailBody() {
 
           <DetailSection title={tr("飲んだとき")} rows={servedRows} />
           <DetailSection title={tr("お酒のこと")} rows={drinkRows} />
+
+          {r.specs && r.specs.length > 0 && (
+            <>
+              <h2 className="section-title">{tr("スペック")}</h2>
+              <ul className="card spec-grid">
+                {r.specs.map((s) => (
+                  <li key={s.label}>
+                    <span>{trv(s.label)}</span>
+                    <b>{s.value}</b>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {r.tags && r.tags.length > 0 && (
+            <div className="tags" aria-label={tr("タグ")}>
+              {r.tags.map((t) => (
+                <Link key={t} href={`/?tag=${encodeURIComponent(t)}`} className="tag tag-plain">
+                  #{t}
+                </Link>
+              ))}
+            </div>
+          )}
 
           {r.memo.trim() && (
             <>

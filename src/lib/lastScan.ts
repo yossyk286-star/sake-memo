@@ -38,6 +38,51 @@ function store(scan: LastScan) {
 /** recorded はラベルや名前で1本足したときに、すでに記録した分を引き継ぐのに使う */
 export function saveLastScan(drinks: ScannedDrink[], recorded: string[] = []) {
   store({ date: today(), drinks, recorded });
+  saveShopMenu(drinks);
+}
+
+// --- お店ごとのメニュー（1）。今日のお店の名前を入れて読み取ったら、そのお店に結びつけて残す ---
+
+const SHOP_MENUS = "sake-memo:shop-menus";
+/** 残しておくお店の数（古いものから消す） */
+const MAX_SHOPS = 30;
+export type ShopMenu = { date: string; drinks: ScannedDrink[] };
+
+function loadShopMenus(): Record<string, ShopMenu> {
+  try {
+    return JSON.parse(localStorage.getItem(SHOP_MENUS) ?? "{}") ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/** 今日のお店の名前（shopToday.ts と同じ所を読む。お互いを読み込み合わないようここで直接読む） */
+function shopTodayName(): string {
+  try {
+    const v = JSON.parse(localStorage.getItem("sake-memo:shop-today") ?? "null") as { date: string; name: string } | null;
+    return v?.date === today() ? v.name : "";
+  } catch {
+    return "";
+  }
+}
+
+function saveShopMenu(drinks: ScannedDrink[]) {
+  const shop = shopTodayName();
+  if (!shop || drinks.length === 0) return;
+  const all = loadShopMenus();
+  all[shop] = { date: today(), drinks };
+  const keep = Object.entries(all)
+    .sort((a, b) => b[1].date.localeCompare(a[1].date))
+    .slice(0, MAX_SHOPS);
+  try {
+    localStorage.setItem(SHOP_MENUS, JSON.stringify(Object.fromEntries(keep)));
+  } catch {}
+}
+
+/** 前の日にこのお店で読み取ったメニュー。今日のものや、無ければ null */
+export function loadShopMenu(shop: string): ShopMenu | null {
+  const m = shop.trim() ? loadShopMenus()[shop.trim()] : undefined;
+  return m && m.date !== today() && m.drinks.length > 0 ? m : null;
 }
 
 export function markRecorded(name: string) {

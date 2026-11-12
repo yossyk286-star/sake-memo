@@ -6,6 +6,7 @@ import { askConfirm } from "@/components/ConfirmSheet";
 import { listRecords } from "@/lib/db";
 import { isHome } from "@/lib/shops";
 import { loadShopToday, saveShopToday } from "@/lib/shopToday";
+import { loadLastScan, saveLastScan } from "@/lib/lastScan";
 
 /**
  * 今日のお店。名前を入れておくと、記録するときの店名に先に入る（毎回打たなくてよい）。
@@ -39,6 +40,9 @@ export default function ShopBar({ drinks, dishes, onReset }: { drinks: number; d
         onSubmit={(e) => {
           e.preventDefault();
           saveShopToday(text);
+          // 先にメニューを読み取ってから名前を入れたときも、そのお店のメニューとして残す（1）
+          const scan = loadLastScan();
+          if (scan?.drinks.length) saveLastScan(scan.drinks, scan.recorded);
           setName(text.trim());
           setEditing(false);
         }}

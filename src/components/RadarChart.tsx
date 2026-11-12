@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { tr, trv } from "@/lib/i18n";
 import { reducedMotion, useFeatures } from "@/lib/features";
 /** 比べる2つの色（1つ目はアプリの色、2つ目はテーマ色ごとに見分けやすい色）。ダークモードでも見えるよう CSS の変数を使う */
-export const SERIES_COLORS = ["var(--accent)", "var(--compare)"];
+export const SERIES_COLORS = ["var(--accent)", "var(--compare)", "var(--compare-3)", "var(--compare-4)"];
 
 export type RadarSeries = { label: string; values: (number | null)[] };
 

@@ -34,7 +34,7 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
   if (all.length === 0) {
     return (
       <section className="card">
-        <h2 style={{ fontSize: 14 }}>{tr("味マップ")}</h2>
+        <h2 style={{ fontSize: 15 }}>{tr("味マップ")}</h2>
         <p className="muted" style={{ margin: 0, fontSize: 13 }}>
           {tr("記録で「甘さ」と「コク」を付けると、どんな味のお酒が好きかを地図で見られます。")}
         </p>
@@ -58,7 +58,7 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
 
   return (
     <section className="card" style={{ gap: 10 }}>
-      <h2 style={{ fontSize: 14 }}>{tr("味マップ")}</h2>
+      <h2 style={{ fontSize: 15 }}>{tr("味マップ")}</h2>
       {genres.length > 1 && (
         <div className="scroll-row" role="group" aria-label={tr("味マップをジャンルで絞り込み")}>
           <button
@@ -90,7 +90,7 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
         </div>
       )}
       {center && (
-        <p style={{ margin: 0, fontSize: 14 }}>
+        <p style={{ margin: 0, fontSize: 15 }}>
           {genre ? tr("{0}で", genre) : ""}{tr("高く評価したお酒は")}<strong>{tr("{0}・{1}", SWEET_WORDS[center.sweet], BODY_WORDS[center.body])}</strong>{tr("のあたりに集まっています。")}
         </p>
       )}
@@ -137,7 +137,7 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
         ))}
         <span>★5</span>
       </div>
-      <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+      <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {tr("数字は杯数です。マスを押すとそのお酒が出ます。")}
       </p>
       {picked.length > 0 && (

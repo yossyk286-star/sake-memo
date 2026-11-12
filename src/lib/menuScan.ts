@@ -12,7 +12,7 @@ function styleOf(kind: Kind | null, style: string) {
 /** 読み取ったお酒を記録フォームの値に変換する */
 export function drinkToDraft(
   d: ScannedDrink,
-): Pick<RecordDraft, "name" | "maker" | "origin" | "kind" | "style" | "serve" | "menuNote" | "abv"> {
+): Pick<RecordDraft, "name" | "maker" | "origin" | "kind" | "style" | "serve" | "menuNote" | "abv" | "reading"> {
   return {
     name: d.name,
     maker: d.maker,
@@ -23,5 +23,7 @@ export function drinkToDraft(
     menuNote: d.menuNote,
     // 前の版で調べた結果には度数がない
     abv: d.abv ?? null,
+    // 前の版で調べた結果には読みがない
+    reading: d.reading || undefined,
   };
 }

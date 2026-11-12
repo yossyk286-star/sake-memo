@@ -1,6 +1,9 @@
 "use client";
 
-import { loadShopToday } from "@/lib/shopToday";
+import LineIcon from "@/components/LineIcon";
+import { loadShopToday, SHOP_TODAY_EVENT } from "@/lib/shopToday";
+import Link from "next/link";
+import { TERMS } from "@/lib/glossary";
 import { toast } from "@/lib/toast";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -21,7 +24,7 @@ import {
   putWish,
   type WishDrink,
 } from "@/lib/db";
-import { loadLastScan, saveLastScan, today } from "@/lib/lastScan";
+import { loadLastScan, loadShopMenu, saveLastScan, today, type ShopMenu } from "@/lib/lastScan";
 import { loadPasscode, PASSCODE_KEY } from "@/lib/passcode";
 import { shrinkForReading } from "@/lib/photo";
 import {
@@ -121,7 +124,10 @@ export function PickedDrink({
   return (
     <section className="tips" style={{ margin: "16px 16px 0" }}>
       <div className="card-top">
-        <h2>{trv(drink.name)}</h2>
+        <h2>
+          {getLang() === "ja" && drink.reading && <small className="name-reading">{drink.reading}</small>}
+          {trv(drink.name)}
+        </h2>
         {onChange && (
           <button
             type="button"
@@ -186,7 +192,10 @@ export default function MenuScan({
   initialDrinks = [],
   onScanned,
   extra,
+  initialQuery = "",
 }: {
+  /** 辞典・蔵元のページなどから「調べる」で来たときの名前。名前の欄に入れて開いておく（調べるのは押してから） */
+  initialQuery?: string;
   onPick: (drink: ScannedDrink) => void;
   /** 記録に保存済みの写真。あればそれを読み取るボタンも出す */
   savedPhoto?: Blob | null;
@@ -218,9 +227,9 @@ export default function MenuScan({
   const [phase, setPhase] = useState(0);
   const [fresh, setFresh] = useState<string[]>([]);
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   // 名前で調べる欄は「文字で」を押したときだけ出す（まめメモと同じ）
-  const [textOpen, setTextOpen] = useState(false);
+  const [textOpen, setTextOpen] = useState(!!initialQuery);
   // AI を使わずに出したとき、どこから出したか（調べ直すボタン用）
   const [localHit, setLocalHit] = useState<{
     name: string;
@@ -266,6 +275,42 @@ export default function MenuScan({
     setFoodMenu(menu);
     setDishRanks(loadDishRanks(menu));
   }, []);
+
+  // 今日のお店で前に読み取ったメニュー（1）。名前が変わったら読み直す
+  const [prevMenu, setPrevMenu] = useState<(ShopMenu & { shop: string }) | null>(null);
+  useEffect(() => {
+    const load = () => {
+      const shop = loadShopToday();
+      const m = loadShopMenu(shop);
+      setPrevMenu(m ? { ...m, shop } : null);
+    };
+    load();
+    window.addEventListener(SHOP_TODAY_EVENT, load);
+    return () => window.removeEventListener(SHOP_TODAY_EVENT, load);
+  }, []);
+  // 読み取り中の写真（48）と、待つ間の豆知識（31）
+  const [shot, setShot] = useState<string | null>(null);
+  const [tip, setTip] = useState<(typeof TERMS)[number] | null>(null);
+  useEffect(() => {
+    if (status !== "reading") return;
+    const pool = TERMS.filter((t) => t.description.length <= 90);
+    setTip(pool[Math.floor(Math.random() * pool.length)] ?? null);
+  }, [status]);
+  useEffect(() => {
+    if (status === "reading" || !shot) return;
+    URL.revokeObjectURL(shot);
+    setShot(null);
+  }, [status, shot]);
+  // 結果を下まで見ているときは「もう1枚・文字で」を下に浮かべる（55）
+  const shootRef = useRef<HTMLDivElement>(null);
+  const [shootGone, setShootGone] = useState(false);
+  useEffect(() => {
+    const el = shootRef.current;
+    if (!el) return setShootGone(false);
+    const io = new IntersectionObserver(([e]) => setShootGone(!e.isIntersecting && e.boundingClientRect.top < 0));
+    io.observe(el);
+    return () => io.disconnect();
+  }, [status]);
 
   // 調べた結果を一覧から外す（今日の一覧からだけ。前に調べた情報は残るので、また調べても AI は使わない）
   const [undo, setUndo] = useState<{
@@ -505,6 +550,7 @@ export default function MenuScan({
     }
     setStatus("reading");
     setPhase(0);
+    setShot(URL.createObjectURL(photo));
     let image: string;
     try {
       // 小さい字も読めるよう、長辺1600pxまでにして送る（Haiku なので料金はほぼ変わらない）
@@ -795,7 +841,7 @@ export default function MenuScan({
       />
       {/* 読み取り中は、押したボタンの段が「いま何をしているか」の帯に変わる */}
       {status !== "reading" && (
-        <div className={status === "done" ? styles.shootRow : styles.shootCol}>
+        <div ref={shootRef} className={status === "done" ? styles.shootRow : styles.shootCol}>
           <label
             data-tour="scan-shoot"
             className={`btn-primary ${styles.shoot}`}
@@ -879,6 +925,54 @@ export default function MenuScan({
           }
           at={searching ? Math.max(1, phase) : phase}
         />
+      )}
+      {status === "reading" && shot && !searching && (
+        // 読んでいる写真の上を、光の線がゆっくり往復する（48）
+        <div className="scan-shot" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={shot} alt="" />
+          <i className="scan-line" />
+        </div>
+      )}
+      {status === "reading" && tip && (
+        // 待っている間の豆知識（31）。押すと辞典へ
+        <Link href={`/glossary?q=${encodeURIComponent(tip.term)}`} className="scan-tip">
+          <span className="scan-tip-head">{tr("待っている間にひとこと")}</span>
+          <strong>{trv(tip.term)}</strong>
+          <span>{trv(tip.description)}</span>
+        </Link>
+      )}
+      {status === "idle" && drinks.length === 0 && prevMenu && (
+        <button
+          type="button"
+          className="btn-secondary prev-menu"
+          onClick={() => {
+            replaceDrinks(prevMenu.drinks);
+            setStatus("done");
+            setPrevMenu(null);
+          }}
+        >
+          {tr("{0}の前回のメニューを使う（{1}・{2}種）", prevMenu.shop, prevMenu.date.slice(5).replace("-", "/"), prevMenu.drinks.length)}
+        </button>
+      )}
+      {status === "done" && shootGone && (
+        <div className="scan-float">
+          <label className="btn-primary">
+            <LineIcon name="camera" />
+            {tr("もう1枚")}
+            <input type="file" accept="image/*" capture="environment" onChange={onPhoto} className="visually-hidden" />
+          </label>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              setTextOpen(true);
+              shootRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+            }}
+          >
+            {tr("文字で")}
+          </button>
+        </div>
       )}
 
       {savedPhoto && status !== "reading" && (
@@ -1203,7 +1297,11 @@ export default function MenuScan({
                 onClick={() => setOpenCard(open ? null : b.name)}
               >
                 <span className={styles.cardTop}>
-                  <span className={styles.name}>{trv(b.name)}</span>
+                  <span className={styles.name}>
+                    {/* 読みにくい銘柄に読みがな（42） */}
+                    {getLang() === "ja" && b.reading && <small className="name-reading">{b.reading}</small>}
+                    {trv(b.name)}
+                  </span>
                   {open && b.abv != null && (
                     <span className={styles.abv}>
                       {abvText(b.abv, b.abvStated)}

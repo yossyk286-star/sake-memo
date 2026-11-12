@@ -22,11 +22,12 @@ const USUAL_ABV: Record<Kind, number> = {
 };
 
 /** 1杯の純アルコール量（g）の目安。量 × 度数 × 0.8（アルコールの重さ） */
-export function alcoholGrams(r: Pick<TastingRecord, "kind" | "abv">) {
+export function alcoholGrams(r: Pick<TastingRecord, "kind" | "abv" | "ml">) {
   const kind = r.kind ?? "その他";
   const abv = r.abv ?? USUAL_ABV[kind];
   // カクテル・リキュールなど度数が高めの「その他」は小さめのグラス
-  const ml = kind === "その他" && abv >= 10 ? 120 : CUP_ML[kind];
+  // 飲んだ量を選んでいればその量（32）
+  const ml = r.ml ?? (kind === "その他" && abv >= 10 ? 120 : CUP_ML[kind]);
   return (ml * abv * 0.8) / 100;
 }
 
