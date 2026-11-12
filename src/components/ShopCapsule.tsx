@@ -8,19 +8,22 @@ import { tr, trv } from "@/lib/i18n";
 import { yen } from "./RecordCard";
 import { APP, WORDS } from "@/lib/appeal";
 import type { TastingRecord } from "@/lib/types";
+import { todayTallies } from "@/lib/tally";
 
-/** 今日のお店を入れている間、いちばん上に「店・今夜N杯・金額」の黒いカプセルを出す（23）。押すと調べる画面へ */
+/** 今日のお店を入れている間、いちばん上に「店・今夜N杯・金額」の黒いカプセルを出す（23）。押すと今夜のカウンターへ */
 export default function ShopCapsule({ records }: { records: TastingRecord[] }) {
   const [shop, setShop] = useState("");
+  const [counted, setCounted] = useState(0);
   useEffect(() => setShop(loadShopToday()), []);
+  useEffect(() => setCounted(todayTallies().filter((t) => t.shop === shop).length), [shop]);
   if (!shop) return null;
   const mine = records.filter((r) => r.date === today() && r.shop === shop);
   const total = mine.reduce((s, r) => s + (r.price ?? 0), 0);
-  const parts = [trv(shop), APP.id === "sake-memo" ? tr("今夜{0}{1}", mine.length, WORDS.cup) : tr("今日{0}{1}", mine.length, WORDS.cup)];
+  const parts = [trv(shop), APP.id === "sake-memo" ? tr("今夜{0}{1}", mine.length + counted, WORDS.cup) : tr("今日{0}{1}", mine.length + counted, WORDS.cup)];
   if (total > 0) parts.push(yen(total));
   return (
     <div className="shop-capsule-wrap">
-      <Link href="/scan" className="shop-capsule" aria-label={tr("今日のお店：{0}", parts.join(tr("・")))}>
+      <Link href="/tonight" className="shop-capsule" aria-label={tr("今日のお店：{0}", parts.join(tr("・")))}>
         <span className="shop-capsule-dot" aria-hidden="true" />
         {parts.join(" · ")}
       </Link>

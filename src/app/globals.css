@@ -7588,3 +7588,151 @@ html[data-selecting] .bulk-bar {
   cursor: pointer;
   white-space: nowrap;
 }
+
+/* ===== 今夜のカウンター（2026-11-12） ===== */
+.tally-hero {
+  text-align: center;
+  padding: 22px 20px 18px;
+}
+.tally-big {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.tally-big strong {
+  font-size: 64px;
+  line-height: 1;
+  margin-right: 4px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.tally-sub {
+  margin: 8px 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.tally-gauge {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+.tally-gauge span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+.tally-gauge[data-over] span {
+  background: #e8833a;
+}
+/* 真ん中の線が1日の目安 */
+.tally-gauge i {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--surface);
+}
+.tally-guide {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+.tally-stop[data-now] {
+  box-shadow: var(--shadow), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.tally-stop-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.tally-stop-head h2 {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.tally-nth {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tally-time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tally-count {
+  margin: 10px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.tally-count strong {
+  font-size: 30px;
+  color: var(--text, inherit);
+  font-variant-numeric: tabular-nums;
+}
+.tally-count .muted {
+  margin-left: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.tally-drinks {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+.tally-drinks a {
+  color: inherit;
+  text-decoration: none;
+}
+.tally-drinks li::before {
+  content: "・";
+  color: var(--muted);
+}
+.tally-btns {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+}
+.tally-minus {
+  width: 52px;
+  height: 48px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tally-minus:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.tally-plus {
+  flex: 1;
+}
+a.shop-capsule .shop-capsule-go {
+  opacity: 0.6;
+}
+.date-total-link {
+  color: inherit;
+  text-decoration: none;
+}

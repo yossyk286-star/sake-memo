@@ -41,3 +41,13 @@ export function dayTotal(records: TastingRecord[]) {
   parts.push(tr("純アルコール約{0}g", grams));
   return parts.join(tr("・"));
 }
+
+/** カウンター画面で使う、1杯ぶんの量の出し方と1日の目安（厚労省の「節度ある適度な飲酒」約20g） */
+export const DAY_AMOUNT = {
+  of: (r: Partial<TastingRecord>) => alcoholGrams({ kind: r.kind ?? null, abv: r.abv ?? null, ml: r.ml }),
+  round: (n: number) => Math.round(n),
+  text: (n: number) => tr("純アルコール約{0}g", n),
+  guide: 20,
+  guideText: "1日の目安は純アルコール約20g",
+  like: (r: TastingRecord): Partial<TastingRecord> => ({ kind: r.kind, abv: r.abv, ml: r.ml }),
+};
