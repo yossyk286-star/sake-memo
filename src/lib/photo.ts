@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { TastingRecord } from "./types";
 
 /** 写真を長辺 1280px の JPEG に縮小する（端末の保存容量を節約するため） */
-export async function shrinkPhoto(file: Blob, maxSide = 1280, quality = 0.82): Promise<Blob> {
+export async function shrinkPhoto(file: Blob, maxSide = 1280, quality = 0.82, maxPixels = Infinity): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+  const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height), Math.sqrt(maxPixels / (bitmap.width * bitmap.height)));
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(bitmap.width * scale);
   canvas.height = Math.round(bitmap.height * scale);
@@ -17,10 +17,12 @@ export async function shrinkPhoto(file: Blob, maxSide = 1280, quality = 0.82): P
 
 /**
  * AI に読み取らせる写真（メニュー・ラベル）用の縮小。小さい字がつぶれないよう、記録用より大きく・きれいに残す。
- * AI はこれより大きい画像を自分で縮めてしまうので、1600px より大きくしても読みやすさは変わらない
+ * いまの AI（Haiku 5.5 など）は長辺2576px・約370万画素まで縮めずに読めるので、その少し内側（360万画素）に収める。
  */
-export function shrinkForReading(file: Blob) {
-  return shrinkPhoto(file, 1600, 0.9);
+export async function shrinkForReading(file: Blob) {
+  const big = await shrinkPhoto(file, 2576, 0.9, 3_600_000);
+  // 字がびっしりのメニューは JPEG が大きくなる。送れる大きさ（base64 で4MB）を超えそうなら画質を少し下げる
+  return big.size > 2_800_000 ? shrinkPhoto(file, 2576, 0.78, 3_600_000) : big;
 }
 
 /** 記録の写真。1枚だけだった頃の記録（photo）も同じように扱う */
