@@ -10,16 +10,26 @@ export const maxDuration = 60;
 
 // 料金を抑えるため一番安いモデルを使う。変えたいときは環境変数 MENU_MODEL で上書き
 const MODEL = process.env.MENU_MODEL || "claude-haiku-5-5";
-// 端末側で長辺1600pxに縮小済みの JPEG を想定。Vercel の受け取り上限（4.5MB）に収まるよう、それより大きい画像は断る
-const MAX_IMAGE_BASE64 = 3_000_000;
+// 写真から文字を読むときだけ使うモデル。読み違いが多いときは環境変数 READ_MODEL でより強いモデル（例：claude-sonnet-5-5）にできる
+const READ_MODEL = process.env.READ_MODEL || MODEL;
+// 写真を読むときは少し考えさせる（崩し字・飾り文字・英語の筆記体を一字ずつ確かめるため。Haiku なので1回0.1円ほど増えるだけ）
+const READ_EFFORT = "medium" as const;
+// 端末側で長辺2576px・360万画素までに縮小済みの JPEG を想定。Vercel の受け取り上限（4.5MB）に収まるよう、それより大きい画像は断る
+const MAX_IMAGE_BASE64 = 4_000_000;
 
 /** 写真から文字を読むときの注意。読み間違いを減らすため、メニュー・ラベルの読み取りで共通に使う */
 const READING_RULES = `
 ## 写真の文字の読み方（大事）
 - 名前は写真に書いてある通りに、一字ずつ正確に書き写してください。似た字（例：獺と瀬、﨑と崎、髙と高）や旧字体・異体字もそのままにし、言い換えたり有名な似た名前に直したりしないでください。
-- 縦書き、手書き、筆文字、黒板、斜めや暗い写真もあります。行や列を取り違えないよう、1つの名前は同じ行（縦書きなら同じ列）から読んでください。
+- 縦書き、手書き、黒板、斜めや暗い写真、光の反射、瓶の丸みで字がゆがんだ写真もあります。行や列を取り違えないよう、1つの名前は同じ行（縦書きなら同じ列）から読んでください。
 - 名前の横の値段・量・産地・説明は名前に含めないでください。ただし「純米大吟醸」「生酛」などのタイプや、「45」のような数字が銘柄名の一部なら含めてください。
 - 一部がかすれたり隠れたりして読めないときは、推測で埋めず、読めた部分だけを使ってください。名前がほとんど読めないものは入れないでください。
+
+- ラベルやメニューのロゴには、筆文字・草書や崩し字・太い毛筆・デザインされた飾り文字・金や銀の箔押し・浮き出し文字・英字の筆記体（cursive / script）など、読みにくい書体がよくあります。字の形を一画ずつ見て読んでください。
+- ロゴの字が読みにくいときは、同じ写真の読みやすい小さい字に同じ名前がないか探して確かめてください（裏ラベルの品目・製造者の欄、蔵元名・ワイナリー名・蒸溜所名、ふりがな、ローマ字や英語の表記、首掛けや箱の文字など）。小さい字で確かめられたら、そちらの書き方を使ってください。
+- それでも崩し字が読みにくいときは、知っている実在の銘柄名と字の形を照らし合わせてもかまいません。ただし字の形がはっきり合うときだけにし、形が合わない字を有名な名前に寄せないでください。
+- 英語・フランス語・イタリア語・ドイツ語などの名前は、つづり・アクセント記号（é, è, ü, ñ など）・アポストロフィ・ハイフンもそのまま書き写してください。筆記体や細い飾り文字では rn と m、cl と d、l と I と 1、u と n、O と 0 などを取り違えやすいので、1文字ずつ確かめてください。ワインやウイスキーの年号・熟成年数（2018、12 Years Old など）・格付け（Grand Cru など）が名前の一部なら含めてください。
+- 名前は書いてある文字のまま入れてください。英字の名前はカタカナに直さず英字のまま、カタカナ・漢字の名前は英字に直さずそのままにしてください。
 - 同じものがメニューの別の場所に2回載っていても、1つにまとめてください。`;
 // 名前で調べるときの文字数の上限
 const MAX_QUERY = 60;
@@ -267,10 +277,10 @@ export async function POST(req: Request) {
     if (image.length > MAX_IMAGE_BASE64) return error(413, "写真が大きすぎます");
     try {
       const response = await client.messages.parse({
-        model: MODEL,
+        model: READ_MODEL,
         max_tokens: 1500,
         system: sys(`あなたはお酒のラベルを読む係です。写真に書いてある項目と値だけを、そのまま書き写してください。書いていないことは推測で足さないでください。${READING_RULES}`),
-        output_config: { effort: "low", format: zodOutputFormat(SpecResultSchema) },
+        output_config: { effort: READ_EFFORT, format: zodOutputFormat(SpecResultSchema) },
         messages: [
           {
             role: "user",
@@ -297,10 +307,10 @@ export async function POST(req: Request) {
     const likes = typeof body.likes === "string" ? body.likes.slice(0, 200) : "";
     try {
       const response = await client.messages.parse({
-        model: MODEL,
+        model: READ_MODEL,
         max_tokens: 6000,
         system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
-        output_config: { effort: "low", format: zodOutputFormat(FoodMenuSchema) },
+        output_config: { effort: READ_EFFORT, format: zodOutputFormat(FoodMenuSchema) },
         messages: [
           {
             role: "user",
@@ -440,12 +450,12 @@ export async function POST(req: Request) {
     if (image.length > MAX_IMAGE_BASE64) return error(413, "写真が大きすぎます");
   }
 
-  const ask = async (content: Anthropic.ContentBlockParam[]) => {
+  const ask = async (content: Anthropic.ContentBlockParam[], fromPhoto = false) => {
     const response = await client.messages.parse({
-      model: MODEL,
+      model: fromPhoto ? READ_MODEL : MODEL,
       max_tokens: 8000,
       system: sys(SYSTEM),
-      output_config: { effort: "low", format: zodOutputFormat(MenuScanResultSchema) },
+      output_config: { effort: fromPhoto ? READ_EFFORT : "low", format: zodOutputFormat(MenuScanResultSchema) },
       messages: [{ role: "user", content }],
     });
     return response.stop_reason === "refusal" ? null : response.parsed_output;
@@ -470,8 +480,8 @@ export async function POST(req: Request) {
     } else {
       result = await ask([
         { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
-        { type: "text", text: "この写真（メニューまたはラベル）のお酒を読み取って解説してください。" },
-      ]);
+        { type: "text", text: "この写真（メニューまたはラベル）のお酒を読み取って解説してください。名前はまず写真の字を一字ずつ確かめてから書いてください。" },
+      ], true);
     }
 
     if (!result) return error(422, "うまく読み取れませんでした。もう一度撮ってみてください");

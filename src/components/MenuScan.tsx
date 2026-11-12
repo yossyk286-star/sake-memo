@@ -552,7 +552,7 @@ export default function MenuScan({
     setShot(URL.createObjectURL(photo));
     let image: string;
     try {
-      // 小さい字も読めるよう、長辺1600pxまでにして送る（Haiku なので料金はほぼ変わらない）
+      // 小さい字も読めるよう、大きめ（長辺2576px・360万画素まで）にして送る（Haiku なので料金はほぼ変わらない）
       image = await blobToBase64(await shrinkForReading(photo));
     } catch {
       setError("写真を読み込めませんでした");
