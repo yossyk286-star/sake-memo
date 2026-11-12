@@ -142,25 +142,39 @@ function CompareBody() {
               )}
             </section>
             <section className="card">
-              {/* 項目ごとに見出しを置き、その下に色の印つきで横に並べる */}
-              <div className="compare-rows">
+              {/* 項目名を左に、右に色の点つきで1行ずつ縦に並べる。全部同じなら1行にまとめる */}
+              <dl className="compare-rows">
                 {ROWS.map(([label, get]) => {
                   const vals = pair.map(get);
                   if (vals.every((v) => !v)) return null;
+                  const same = vals.length > 1 && vals.every((v) => v === vals[0]);
                   return (
                     <div key={label} className="compare-row">
-                      <h3>{trv(label)}</h3>
-                      <div className="compare-vals" style={{ gridTemplateColumns: `repeat(${pair.length}, minmax(0, 1fr))` }}>
-                        {vals.map((v, i) => (
-                          <p key={i} style={{ borderColor: SERIES_COLORS[i] }} className={v ? undefined : "is-empty"}>
-                            {v || "—"}
+                      <dt>{trv(label)}</dt>
+                      <dd>
+                        {same ? (
+                          <p className="compare-val is-same">
+                            <span className="compare-dots" aria-hidden="true">
+                              {vals.map((_, i) => <i key={i} style={{ background: SERIES_COLORS[i] }} />)}
+                            </span>
+                            <span>{vals[0]}</span>
+                            <small>{tr("どれも同じ")}</small>
                           </p>
-                        ))}
-                      </div>
+                        ) : (
+                          vals.map((v, i) => (
+                            <p key={i} className={v ? "compare-val" : "compare-val is-empty"}>
+                              <span className="compare-dots" aria-hidden="true">
+                                <i style={{ background: SERIES_COLORS[i] }} />
+                              </span>
+                              <span>{v || "—"}</span>
+                            </p>
+                          ))
+                        )}
+                      </dd>
                     </div>
                   );
                 })}
-              </div>
+              </dl>
             </section>
             <button
               type="button"

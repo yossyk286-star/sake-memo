@@ -195,8 +195,8 @@ export default function ShowPage() {
                 onClick={() => setFlipped(!flipped)}
               >
                 <svg
-                  width="20"
-                  height="20"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -207,7 +207,7 @@ export default function ShowPage() {
                 >
                   <path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" />
                 </svg>
-                {flipped ? tr("向きを戻す") : tr("上下を逆にして相手に向ける")}
+                {flipped ? tr("向きを戻す") : tr("相手に向ける")}
               </button>
               {mode === "mood" ? (
                 <section className="show-card" data-flipped={flipped || undefined} aria-label={tr("今日の気分")}>
