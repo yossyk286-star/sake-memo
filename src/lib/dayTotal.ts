@@ -51,3 +51,24 @@ export const DAY_AMOUNT = {
   guideText: "1日の目安は純アルコール約20g",
   like: (r: TastingRecord): Partial<TastingRecord> => ({ kind: r.kind, abv: r.abv, ml: r.ml }),
 };
+
+/** カウンターの「よく飲むもの」ボタン。銘柄が書いていないお店でも、押すだけで1杯数える */
+export const QUICK_DRINKS: { name: string; like: Partial<TastingRecord> }[] = [
+  { name: "生ビール", like: { kind: "ビール", abv: 5, ml: 350 } },
+  { name: "ハイボール", like: { kind: "その他", abv: 7, ml: 350 } },
+  { name: "レモンサワー", like: { kind: "その他", abv: 5, ml: 350 } },
+  { name: "日本酒1合", like: { kind: "日本酒", abv: 15, ml: 180 } },
+  { name: "グラスワイン", like: { kind: "ワイン", abv: 12, ml: 120 } },
+  { name: "焼酎", like: { kind: "焼酎", abv: 25, ml: 90 } },
+];
+
+/** 自分で足した飲み物は名前から種類を当てて、量の計算に使う */
+export function guessLike(name: string): Partial<TastingRecord> {
+  if (/ビール|エール|ラガー|IPA/i.test(name)) return { kind: "ビール" };
+  if (/ワイン/.test(name)) return { kind: "ワイン" };
+  if (/日本酒|冷酒|燗|吟醸|純米/.test(name)) return { kind: "日本酒" };
+  if (/焼酎|芋|麦|泡盛/.test(name)) return { kind: "焼酎" };
+  if (/ウイスキー|ロック|ストレート/.test(name)) return { kind: "ウイスキー" };
+  if (/梅酒|果実酒/.test(name)) return { kind: "その他", abv: 12, ml: 90 };
+  return { kind: "その他" };
+}
