@@ -12,8 +12,8 @@ export const maxDuration = 60;
 const MODEL = process.env.MENU_MODEL || "claude-haiku-5-5";
 // 写真から文字を読むときだけ使うモデル。読み違いが多いときは環境変数 READ_MODEL でより強いモデル（例：claude-sonnet-5-5）にできる
 const READ_MODEL = process.env.READ_MODEL || MODEL;
-// 写真を読むときは少し考えさせる（崩し字・飾り文字・英語の筆記体を一字ずつ確かめるため。Haiku なので1回0.1円ほど増えるだけ）
-const READ_EFFORT = "medium" as const;
+// 写真を読むときの考える量。料金を抑えるため low（上げたいときは "medium" に。1回0.2円ほど増えて数秒遅くなる）
+const READ_EFFORT = "low" as const;
 // 端末側で長辺2576px・360万画素までに縮小済みの JPEG を想定。Vercel の受け取り上限（4.5MB）に収まるよう、それより大きい画像は断る
 const MAX_IMAGE_BASE64 = 4_000_000;
 
