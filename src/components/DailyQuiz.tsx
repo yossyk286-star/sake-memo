@@ -52,7 +52,7 @@ export default function DailyQuiz() {
       <div className="card-top">
         <h2>{round === 0 ? tr("今日の1問") : tr("もう1問（{0}問目）", round + 1)}</h2>
         {stats.solved > 0 && (
-          <span className="muted" style={{ fontSize: 12 }}>
+          <span className="muted" style={{ fontSize: 13 }}>
             {tr("これまで {0}/{1}問正解", stats.correct, stats.solved)}
           </span>
         )}

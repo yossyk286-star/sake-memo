@@ -242,3 +242,21 @@ export async function deleteWithUndo(record: TastingRecord) {
     },
   });
 }
+
+/** 何件かまとめて消して、5秒だけ「元に戻す」を出す（57）。消す前の確認は呼ぶ側で済ませる */
+export async function deleteManyWithUndo(records: TastingRecord[]) {
+  for (const r of records) await deleteRecord(r.id);
+  const { toast } = await import("./toast");
+  const { tr } = await import("./i18n");
+  toast(tr("{0}件を削除しました", records.length), {
+    ms: 5000,
+    action: {
+      label: "元に戻す",
+      onClick: async () => {
+        for (const r of records) await putRecord(r);
+        window.dispatchEvent(new Event(RECORDS_EVENT));
+        toast("元に戻しました");
+      },
+    },
+  });
+}

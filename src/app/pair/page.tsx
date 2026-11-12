@@ -392,7 +392,7 @@ export default function PairPage() {
             value={dish}
             onChange={(e) => setDish(e.target.value)}
           />
-          <button type="submit" className="btn-secondary" style={{ flexShrink: 0, padding: "0 20px", fontSize: 16 }} disabled={!dish.trim() || busy}>
+          <button type="submit" className="btn-secondary" style={{ flexShrink: 0, padding: "0 20px", fontSize: 17 }} disabled={!dish.trim() || busy}>
             {busy ? tr("選び中…") : tr("選ぶ")}
           </button>
         </form>

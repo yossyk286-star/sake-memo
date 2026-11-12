@@ -63,7 +63,7 @@ export default function Milestones() {
         <span className="party-count">{tr("記録 {0}{1}目", party.count, WORDS.cup)}</span>
         {party.title ? (
           <h2 id="party-title">
-            <span className="muted" style={{ display: "block", fontSize: 14, fontWeight: 600 }}>{tr("新しい称号")}</span>
+            <span className="muted" style={{ display: "block", fontSize: 15, fontWeight: 600 }}>{tr("新しい称号")}</span>
             <span className="title-plate" style={plateStyle(titleOf(party.count).tier)}>{tr(party.title)}</span>
           </h2>
         ) : (

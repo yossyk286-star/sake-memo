@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { LAST_SCAN_EVENT, loadLastScan } from "@/lib/lastScan";
 import { tr, trv } from "@/lib/i18n";
 import { holdPageFade } from "@/lib/pageSwap";
+import { reducedMotion } from "@/lib/features";
 
 const TABS = [
   {
@@ -74,7 +75,7 @@ const TABS = [
 ];
 
 // 入力・詳細画面はタブを出さない（保存ボタンと重なるため）。店員さんに見せる画面も、見せるものだけにする
-const HIDDEN_ON = ["/new", "/edit", "/show"];
+const HIDDEN_ON = ["/new", "/edit", "/show", "/flight"];
 
 // 好みのタブから開くまとめの画面
 const TASTE_PAGES = ["/taste", "/stamps", "/shops", "/shop", "/prefs", "/bottles"];
@@ -112,7 +113,7 @@ export default function TabBar() {
 
   const isActive = (href: string) =>
     href === "/"
-      ? pathname === "/" || pathname === "/record" || pathname === "/compare"
+      ? ["/", "/record", "/compare", "/maker", "/later", "/flight", "/year"].includes(pathname)
       : href === "/scan"
         ? pathname.startsWith("/scan") || pathname === "/pair"
         : href === "/taste"
@@ -128,9 +129,14 @@ export default function TabBar() {
    * （薄い所から出てくると読み込み中に見えた）。
    * 画面をつなぐ動き（View Transitions）は、次の画面が描けるまで前の画面を止めて待つので、タブではかくっとして見えた
    */
-  const go = (href: string) => {
+  const go = (e: React.MouseEvent, href: string) => {
     setMini(false);
-    if (!isActive(href)) holdPageFade("tab");
+    if (!isActive(href)) return holdPageFade("tab");
+    // いま開いているタブをもう一度押したら、いちばん上へ戻る（59）。詳細などを開いているときはそのタブの最初の画面へ
+    if (pathname === href) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: reducedMotion() ? "auto" : "smooth" });
+    }
   };
 
   return (
@@ -144,7 +150,7 @@ export default function TabBar() {
               className={t.href === keep ? "tab tab-keep" : "tab"}
               data-tour={`tab-${t.href.slice(1) || "home"}`}
               aria-current={isActive(t.href) ? "page" : undefined}
-              onClick={() => go(t.href)}
+              onClick={(e) => go(e, t.href)}
             >
               <svg
                 width="24"
@@ -165,7 +171,7 @@ export default function TabBar() {
           ))}
         </div>
         {/* 「調べる」はお店で片手で押しやすいよう、帯の外の大きな丸ボタンにする */}
-        <Link href={scan.href} className="tab-scan" data-tour="tab-scan" aria-label={trv(scan.label)} aria-current={scanActive ? "page" : undefined} onClick={() => go(scan.href)}>
+        <Link href={scan.href} className="tab-scan" data-tour="tab-scan" aria-label={trv(scan.label)} aria-current={scanActive ? "page" : undefined} onClick={(e) => go(e, scan.href)}>
           <span className="tab-scan-btn">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               {scanActive ? scan.solid : scan.icon}

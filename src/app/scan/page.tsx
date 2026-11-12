@@ -23,6 +23,15 @@ export default function ScanPage() {
   const [counts, setCounts] = useState(() => (clientReady ? { drinks: loadLastScan()?.drinks.length ?? 0, dishes: loadTodayMenu().length } : { drinks: 0, dishes: 0 }));
   // 「新しいお店」で一覧を作り直すための番号
   const [shop, setShop] = useState(0);
+  // 辞典・蔵元のページ・記録の検索から「この名前で調べる」で来たときの名前（?q=）
+  const [q, setQ] = useState("");
+  useEffect(() => {
+    const v = new URLSearchParams(location.search).get("q");
+    if (v) {
+      setQ(v);
+      setShop((n) => n + 1);
+    }
+  }, []);
 
   useEffect(() => {
     setDrinks(loadLastScan()?.drinks ?? []);
@@ -60,6 +69,7 @@ export default function ScanPage() {
       {drinks && (
         <MenuScan
           key={shop}
+          initialQuery={q}
           initialDrinks={drinks}
           onPick={(d) => router.push(`/new?drink=${encodeURIComponent(d.name)}`)}
         />

@@ -7,7 +7,14 @@ import GenreSortBar from "@/components/GenreSortBar";
 import SearchField from "@/components/SearchField";
 import Hint from "@/components/Hint";
 import SwipeRecord from "@/components/SwipeRecord";
-import { listRecords, peekRecords, RECORDS_EVENT } from "@/lib/db";
+import { deleteManyWithUndo, listRecords, peekRecords, putRecord, RECORDS_EVENT } from "@/lib/db";
+import RecordCard from "@/components/RecordCard";
+import { askConfirm } from "@/components/ConfirmSheet";
+import { shareRecords } from "@/lib/recordShare";
+import { toast } from "@/lib/toast";
+import { cleanTag, tagsUsed } from "@/lib/quickPick";
+import { LATER_EVENT, loadLater } from "@/lib/later";
+import YearRecapCard from "@/components/YearRecapCard";
 import { genreOf, sortBy, type Genre, type SortKey } from "@/lib/genre";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
@@ -60,6 +67,25 @@ export default function RecordsPage() {
   const [sort, setSort] = useState<SortKey>("default");
   const [goodOnly, setGoodOnly] = useState(false);
   const [againOnly, setAgainOnly] = useState(false);
+  // 自分のタグで絞り込み（11）。詳細のタグを押したときは ?tag= で来る
+  const [tag, setTag] = useState<string | null>(null);
+  useEffect(() => {
+    const t = new URLSearchParams(location.search).get("tag");
+    if (t) setTag(t);
+  }, []);
+  // 「選ぶ」でまとめて操作（57）
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [tagging, setTagging] = useState(false);
+  const [bulkTag, setBulkTag] = useState("");
+  // あとで書く箱の数（41）
+  const [later, setLater] = useState(0);
+  useEffect(() => {
+    const count = () => loadLater().then((l) => setLater(l.length));
+    count();
+    window.addEventListener(LATER_EVENT, count);
+    return () => window.removeEventListener(LATER_EVENT, count);
+  }, []);
   const [view, setView] = useState<"list" | "cal">(() => (clientReady && readView() === "cal" ? "cal" : "list"));
   useEffect(() => {
     try {
@@ -134,6 +160,7 @@ export default function RecordsPage() {
         (!genre || genreOf(r) === genre) &&
         (!goodOnly || r.overall >= 4) &&
         (!againOnly || !!r.again) &&
+        (!tag || !!r.tags?.includes(tag)) &&
         (!q ||
           [
             r.name,
@@ -142,7 +169,9 @@ export default function RecordsPage() {
             r.origin,
             r.style ?? "",
             r.memo,
+            r.reading ?? "",
             ...r.flavors,
+            ...(r.tags ?? []).map((t) => `#${t}`),
           ].some((s) => s.toLowerCase().includes(q))),
     );
     if (sort !== "default") {
@@ -160,9 +189,42 @@ export default function RecordsPage() {
       else out.push({ date: r.date, records: [r] });
     }
     return out;
-  }, [records, query, genre, goodOnly, againOnly, sort]);
+  }, [records, query, genre, goodOnly, againOnly, tag, sort]);
 
-  const filtering = !!query.trim() || !!genre || goodOnly || againOnly;
+  const filtering = !!query.trim() || !!genre || goodOnly || againOnly || !!tag;
+  const tagsHere = useMemo(() => tagsUsed(records ?? []), [records]);
+  const pickedRecords = (records ?? []).filter((r) => picked.includes(r.id));
+  function toggle(id: string) {
+    setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  }
+  function endSelect() {
+    setSelecting(false);
+    setPicked([]);
+    setTagging(false);
+  }
+  async function bulkDelete() {
+    const n = pickedRecords.length;
+    if (!n) return;
+    const ok = await askConfirm({
+      message: tr("{0} の{1}件を消します", pickedRecords.slice(0, 3).map((r) => drinkTitle(r)).join(tr("・")) + (n > 3 ? tr(" ほか") : ""), n),
+      action: tr("{0}件を削除", n),
+    });
+    if (!ok) return;
+    await deleteManyWithUndo(pickedRecords);
+    setRecords((rs) => rs?.filter((r) => !picked.includes(r.id)) ?? null);
+    endSelect();
+  }
+  async function bulkAddTag(raw: string) {
+    const t = cleanTag(raw);
+    if (!t) return;
+    const now = Date.now();
+    const next = pickedRecords.map((r) => (r.tags?.includes(t) ? r : { ...r, tags: [...(r.tags ?? []), t], updatedAt: now }));
+    for (const r of next) await putRecord(r);
+    setRecords((rs) => rs?.map((r) => next.find((x) => x.id === r.id) ?? r) ?? null);
+    toast(tr("{0}件に #{1} を付けました", next.length, t));
+    setBulkTag("");
+    setTagging(false);
+  }
   // 同じ名前のお酒の何回目か（古い順に数える）（43）
   const nthOf = useMemo(() => {
     const seen = new Map<string, number>();
@@ -207,7 +269,27 @@ export default function RecordsPage() {
               </h2>
             )}
             <div className="list-group">
-              {day.records.map((r, i) => (
+              {day.records.map((r, i) =>
+                selecting ? (
+                  <div
+                    key={r.id}
+                    className={`select-row${picked.includes(r.id) ? " is-on" : ""}`}
+                    role="checkbox"
+                    aria-checked={picked.includes(r.id)}
+                    tabIndex={0}
+                    onKeyDown={(e) => (e.key === " " || e.key === "Enter") && (e.preventDefault(), toggle(r.id))}
+                    onClickCapture={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggle(r.id);
+                    }}
+                  >
+                    <span className="ck" aria-hidden="true">
+                      {picked.includes(r.id) && "✓"}
+                    </span>
+                    <RecordCard record={r} showDate={!day.date} nth={nthOf.get(r.id)} />
+                  </div>
+                ) : (
                 <SwipeRecord
                   key={r.id}
                   index={i}
@@ -217,8 +299,10 @@ export default function RecordsPage() {
                   onDeleted={(id) =>
                     setRecords((rs) => rs?.filter((x) => x.id !== id) ?? null)
                   }
+                  onChanged={(n) => setRecords((rs) => rs?.map((x) => (x.id === n.id ? n : x)) ?? null)}
                 />
-              ))}
+                ),
+              )}
             </div>
           </section>
   );
@@ -247,7 +331,10 @@ export default function RecordsPage() {
 
       {records && records.length > 0 && (
         <div className="lead lead-row">
-          <span>{tr("これまでの記録 {0}件", records.length)}</span>
+          <span>{selecting ? tr("{0}件 選択", picked.length) : tr("これまでの記録 {0}件", records.length)}</span>
+          <button type="button" className="text-btn select-toggle" aria-pressed={selecting} onClick={() => (selecting ? endSelect() : setSelecting(true))}>
+            {selecting ? tr("完了") : tr("選ぶ")}
+          </button>
           {/* 一覧とカレンダーを切り替える（49） */}
           <div className="view-switch" role="group" aria-label={tr("見せ方")}>
             <button type="button" aria-pressed={view === "list"} aria-label={tr("一覧")} onClick={() => pickView("list")}>
@@ -271,6 +358,15 @@ export default function RecordsPage() {
       )}
 
       <main className={stagger ? "content stagger" : "content"} style={{ paddingBottom: 96 }}>
+        {later > 0 && (
+          <Link href="/later" className="later-banner">
+            <span aria-hidden="true">📷</span>
+            <strong>{tr("あとで書く")}</strong>
+            <span className="later-count">{tr("{0}件", later)}</span>
+            <span aria-hidden="true" className="later-go">›</span>
+          </Link>
+        )}
+        {records && <YearRecapCard records={records} />}
         {records && records.length > 0 && <MomentCard />}
         {records && <MonthRecap records={records} titleOf={drinkTitle} />}
         {records && <BackupNudge count={records.length} />}
@@ -305,6 +401,11 @@ export default function RecordsPage() {
                       {tr("♥ また飲みたい")}
                     </button>
                   )}
+                  {[...new Set([...(tag ? [tag] : []), ...tagsHere.slice(0, 8)])].map((t) => (
+                    <button key={t} type="button" className="chip" aria-pressed={tag === t} onClick={() => setTag(tag === t ? null : t)}>
+                      #{t}
+                    </button>
+                  ))}
                 </>
               }
             />
@@ -322,7 +423,20 @@ export default function RecordsPage() {
           </EmptyState>
         )}
         {records && records.length > 0 && filtering && days.length === 0 && (
-          <p className="empty">{tr("当てはまる記録がありません。")}</p>
+          query.trim() ? (
+            // 見つからないときは、打った名前のまま次の操作へ（62）
+            <section className="empty-next">
+              <p>{tr("「{0}」はまだ記録していません", query.trim())}</p>
+              <Link href={`/scan?q=${encodeURIComponent(query.trim())}`} className="btn-primary">
+                {tr("この名前で調べる")}
+              </Link>
+              <Link href={`/new?name=${encodeURIComponent(query.trim())}`} className="btn-secondary">
+                {tr("この名前で記録する")}
+              </Link>
+            </section>
+          ) : (
+            <p className="empty">{tr("当てはまる記録がありません。")}</p>
+          )
         )}
         {view === "cal" && records && records.length > 0 && !filtering && sort === "default" ? (
           <RecordCalendar records={records} renderDay={renderDay} />
@@ -344,7 +458,61 @@ export default function RecordsPage() {
           : days.map(renderDay)}
       </main>
 
-      {searchGone && (
+      {selecting && (
+        <div className="bulk-bar" role="toolbar" aria-label={tr("選んだ記録の操作")}>
+          {tagging && (
+            <form
+              className="bulk-tag"
+              onSubmit={(e) => {
+                e.preventDefault();
+                bulkAddTag(bulkTag);
+              }}
+            >
+              <div className="chip-wrap">
+                {tagsHere.slice(0, 6).map((t) => (
+                  <button key={t} type="button" className="chip" onClick={() => bulkAddTag(t)}>
+                    #{t}
+                  </button>
+                ))}
+              </div>
+              <div className="row" style={{ flexWrap: "nowrap" }}>
+                <input className="input" autoFocus aria-label={tr("付けるタグ")} placeholder={tr("＃ タグ（例：金沢旅行）")} value={bulkTag} onChange={(e) => setBulkTag(e.target.value)} />
+                <button type="submit" className="btn-secondary" disabled={!cleanTag(bulkTag)}>
+                  {tr("付ける")}
+                </button>
+              </div>
+            </form>
+          )}
+          <div className="bulk-btns">
+            <Link
+              href={`/compare?ids=${picked.slice(0, 4).join(",")}`}
+              aria-disabled={picked.length < 2}
+              className={picked.length < 2 ? "is-off" : undefined}
+              onClick={(e) => picked.length < 2 && e.preventDefault()}
+            >
+              <b aria-hidden="true">⬠</b>
+              {tr("くらべる")}
+            </Link>
+            <button type="button" disabled={!picked.length} onClick={() => shareRecords(pickedRecords).catch(() => toast("共有できませんでした", { tone: "warn" }))}>
+              <b aria-hidden="true">↑</b>
+              {tr("画像で送る")}
+            </button>
+            <button type="button" disabled={!picked.length} aria-pressed={tagging} onClick={() => setTagging(!tagging)}>
+              <b aria-hidden="true">#</b>
+              {tr("タグ")}
+            </button>
+            <button type="button" className="is-danger" disabled={!picked.length} onClick={bulkDelete}>
+              <b aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+                </svg>
+              </b>
+              {tr("削除")}
+            </button>
+          </div>
+        </div>
+      )}
+      {searchGone && !selecting && (
         <button type="button" className="float-search" aria-label={tr("記録を検索")} onClick={jumpToSearch}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <circle cx="10.5" cy="10.5" r="6.5" />
@@ -352,7 +520,7 @@ export default function RecordsPage() {
           </svg>
         </button>
       )}
-      <Link href="/new" className="fab" data-tour="fab" data-mini={mini && features.fabShrink ? "" : undefined} aria-label={tr("記録する")}>
+      {!selecting && <Link href="/new" className="fab" data-tour="fab" data-mini={mini && features.fabShrink ? "" : undefined} aria-label={tr("記録する")}>
         <svg
           width="20"
           height="20"
@@ -366,7 +534,7 @@ export default function RecordsPage() {
           <path d="M12 5v14M5 12h14" />
         </svg>
         <span className="fab-label">{tr("記録する")}</span>
-      </Link>
+      </Link>}
     </>
   );
 }

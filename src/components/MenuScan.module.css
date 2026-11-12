@@ -1,7 +1,7 @@
 .box {
   margin: 16px 16px 0;
   padding: 16px;
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--accent-soft);
   display: flex;
   flex-direction: column;
@@ -36,12 +36,12 @@
 
 .drink h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .text {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
 }
 
@@ -73,7 +73,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 4px 16px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--accent-soft);
 }
 
@@ -112,7 +112,7 @@
 
 
 .badge {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   padding: 2px 10px;
   border-radius: 999px;
@@ -141,7 +141,7 @@
 }
 .methods summary::after {
   content: "›";
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1;
   color: var(--muted);
   transition: transform 0.2s ease;
@@ -171,7 +171,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--accent-soft);
   font-size: 13px;
   line-height: 1.6;
@@ -219,7 +219,7 @@
 /* AI を使わずに出したお酒のカードの中の一言と、調べ直すリンク */
 .localNote {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
   color: var(--muted);
 }
@@ -322,7 +322,7 @@
   height: 40px;
   padding: 0 12px;
   border: 1px solid var(--input-line);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--surface);
   color: var(--text);
   font-size: 15px;
@@ -336,7 +336,7 @@
 
 .act:disabled {
   opacity: 0.6;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 /* 調べた結果がたくさん並ぶので、濃い塗りではなくうすいテーマ色の札にする（主役は右下の「調べる」） */
@@ -348,7 +348,7 @@
 }
 
 .name {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
 }
 
@@ -361,7 +361,7 @@
   height: 36px;
   padding: 0;
   border: 0;
-  border-radius: 18px;
+  border-radius: 16px;
   background: none;
   color: var(--muted);
   font-size: 15px;

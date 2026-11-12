@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { loadShopToday } from "@/lib/shopToday";
 import { useRouter } from "next/navigation";
 import { MultiChips, SingleChips } from "./ChipGroup";
 import AbvInput from "./AbvInput";
 import GlossarySheet from "./GlossarySheet";
-import { RecordPreview, shortDate, stars } from "./RecordCard";
+import { RecordPreview, shortDate, stars, yen } from "./RecordCard";
 import { toast } from "@/lib/toast";
 import { announceBuddy, buddyLine } from "@/lib/buddy";
 import { deleteWithUndo, putRecord, listRecords } from "@/lib/db";
 import { clearStash, saveStash } from "@/lib/recordDraft";
 import {
   ALL_SERVES,
-  FLAVORS,
   KINDS,
   SERVES_BY_KIND,
   STYLES_BY_KIND,
@@ -29,6 +28,8 @@ import { askConfirm } from "@/components/ConfirmSheet";
 import { reducedMotion, useFeatures } from "@/lib/features";
 import { photoDate } from "@/lib/exif";
 import { geoAllowed, here, nearbyShops, type LatLng } from "@/lib/geo";
+import { ABV_PRESETS, cleanTag, DATE_CHIPS, flavorChoices, priceChoices, tagsUsed, VOLUMES } from "@/lib/quickPick";
+import SpecScan from "./SpecScan";
 
 const SCORES: Score[] = [1, 2, 3, 4, 5];
 
@@ -389,10 +390,20 @@ export default function RecordForm({
     });
   }, [initial]);
 
+  // 種類ごとの言葉を、自分がよく選ぶ順に（2）
+  const flavorBase = useMemo(() => flavorChoices(draft.kind, past), [draft.kind, past]);
   const flavorOptions = [
-    ...FLAVORS,
-    ...draft.flavors.filter((f) => !FLAVORS.includes(f)),
+    ...flavorBase,
+    ...draft.flavors.filter((f) => !flavorBase.includes(f)),
   ];
+  const prices = useMemo(() => priceChoices(past, draft.shop), [past, draft.shop]);
+  const allTags = useMemo(() => tagsUsed(past), [past]);
+  const [newTag, setNewTag] = useState("");
+  function addTag() {
+    const t = cleanTag(newTag);
+    if (t && !(draft.tags ?? []).includes(t)) set("tags", [...(draft.tags ?? []), t]);
+    setNewTag("");
+  }
 
   // タイプと飲み方の選択肢は種類で変わる。種類を変えたら、合わなくなったものは外す
   const styleOptions = draft.kind ? STYLES_BY_KIND[draft.kind] : [];
@@ -663,6 +674,15 @@ export default function RecordForm({
           {tr("度数（%）")}
         </label>
         <AbvInput id="f-abv" value={draft.abv} onChange={(v) => set("abv", v)} />
+        {draft.kind && (
+          <div className="chip-wrap quick-chips" role="group" aria-label={tr("よくある度数")}>
+            {ABV_PRESETS[draft.kind].map((v) => (
+              <button key={v} type="button" className="chip" aria-pressed={draft.abv === v} onClick={() => set("abv", draft.abv === v ? null : v)}>
+                {v}%
+              </button>
+            ))}
+          </div>
+        )}
       </div>}
       {show("price") && <div className="field" style={{ flex: 1, minWidth: 0 }}>
         <label className="label" htmlFor="f-price">
@@ -680,8 +700,36 @@ export default function RecordForm({
             set("price", digits ? Number(digits) : null);
           }}
         />
+        {/* よく入れる値段と、このお店で前に入れた値段。± で100円ずつ（54） */}
+        <div className="chip-wrap quick-chips" role="group" aria-label={tr("よく入れる値段")}>
+          {prices.map((p) => (
+            <button key={p} type="button" className="chip" aria-pressed={draft.price === p} onClick={() => set("price", draft.price === p ? null : p)}>
+              {yen(p)}
+            </button>
+          ))}
+          <button type="button" className="chip step-chip" aria-label={tr("100円下げる")} disabled={!draft.price} onClick={() => set("price", Math.max(0, (draft.price ?? 0) - 100) || null)}>
+            −
+          </button>
+          <button type="button" className="chip step-chip" aria-label={tr("100円上げる")} onClick={() => set("price", (draft.price ?? 0) + 100)}>
+            ＋
+          </button>
+        </div>
       </div>}
       </div>
+      {/* 飲んだ量。1日の純アルコール量の計算に使う（32） */}
+      {show("abv") && draft.kind && (
+        <fieldset className="field">
+          <legend className="label">{tr("飲んだ量")}</legend>
+          <div className="chip-wrap" role="group">
+            {VOLUMES[draft.kind].map(([label, ml]) => (
+              <button key={label} type="button" className="chip" aria-pressed={draft.ml === ml} onClick={() => set("ml", draft.ml === ml ? null : ml)}>
+                {tr(label)}
+                <small className="muted">{` ${ml}ml`}</small>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
     </>
   );
 
@@ -709,6 +757,23 @@ export default function RecordForm({
             }}
             required
           />
+          {/* 今日・きのう・おとといは1タップで（61） */}
+          <div className="chip-wrap date-chips" role="group" aria-label={tr("日付をすばやく選ぶ")}>
+            {DATE_CHIPS.map(([label, get]) => (
+              <button
+                key={label}
+                type="button"
+                className="chip"
+                aria-pressed={draft.date === get()}
+                onClick={() => {
+                  setDateFromPhoto(null);
+                  set("date", get());
+                }}
+              >
+                {tr(label)}
+              </button>
+            ))}
+          </div>
           {dateFromPhoto && (
             <p className="muted field-note">
               {tr("写真を撮った日にしました。")}
@@ -792,7 +857,7 @@ export default function RecordForm({
         </div>
         {mode === "かんたん" ? (
           <>
-            <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>
               {tr("名前と★だけで保存できます。味や飲み方はあとから編集で足せます。")}
             </p>
             {!drinkFilled && nameField}
@@ -818,6 +883,44 @@ export default function RecordForm({
             {drinkFields}
             {tasteFields}
           </>
+        )}
+        {mode === "くわしく" && (
+          <fieldset className="field">
+            <legend className="label">{tr("タグ")}</legend>
+            {/* 自分のタグ（11）。これまでに付けたものは押すだけ */}
+            {(allTags.length > 0 || (draft.tags ?? []).length > 0) && (
+              <MultiChips
+                options={[...allTags, ...(draft.tags ?? []).filter((t) => !allTags.includes(t))]}
+                value={draft.tags ?? []}
+                onChange={(v) => set("tags", v)}
+                format={(t) => `#${t}`}
+              />
+            )}
+            <div className="row" style={{ flexWrap: "nowrap" }}>
+              <label htmlFor="f-tag" className="visually-hidden">
+                {tr("タグを足す")}
+              </label>
+              <input
+                id="f-tag"
+                className="input"
+                placeholder={tr("＃ タグを足す（例：金沢旅行）")}
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
+              />
+              <button type="button" className="btn-secondary" onClick={addTag}>
+                {tr("追加")}
+              </button>
+            </div>
+          </fieldset>
+        )}
+        {mode === "くわしく" && (
+          <SpecScan specs={draft.specs ?? []} onChange={(specs) => set("specs", specs)} />
         )}
         {show("memo") && <div className="field">
           <label className="label" htmlFor="f-memo">

@@ -3,7 +3,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { timingSafeEqual } from "node:crypto";
 import { COCKTAIL_REFERENCE } from "@/lib/cocktails";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
-import { FoodMenuSchema, FoodPairingSchema, MenuScanResultSchema, PairingResultSchema, DishIdeasSchema, TermLookupSchema } from "@/lib/schemas";
+import { FoodMenuSchema, FoodPairingSchema, MenuScanResultSchema, PairingResultSchema, DishIdeasSchema, TermLookupSchema, SpecResultSchema } from "@/lib/schemas";
 
 // 名前で調べてネット検索までしたときは時間がかかるので、待ち時間の上限を長めにする
 export const maxDuration = 60;
@@ -255,6 +255,34 @@ export async function POST(req: Request) {
       const out = response.parsed_output;
       if (!out?.found) return error(404, "お酒の言葉として見つかりませんでした。書き方を変えて試してみてください");
       return Response.json(out);
+    } catch (e) {
+      return apiError(e);
+    }
+  }
+
+  // 裏ラベルからスペック（精米歩合・日本酒度など）を読む（12）
+  if (typeof body?.specImage === "string") {
+    const image = body.specImage;
+    if (image.length === 0) return error(400, "写真がありません");
+    if (image.length > MAX_IMAGE_BASE64) return error(413, "写真が大きすぎます");
+    try {
+      const response = await client.messages.parse({
+        model: MODEL,
+        max_tokens: 1500,
+        system: sys(`あなたはお酒のラベルを読む係です。写真に書いてある項目と値だけを、そのまま書き写してください。書いていないことは推測で足さないでください。${READING_RULES}`),
+        output_config: { effort: "low", format: zodOutputFormat(SpecResultSchema) },
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
+              { type: "text", text: "このお酒の裏ラベル（または表ラベル）から、原材料・精米歩合・日本酒度・酸度などのスペックを読み取ってください。" },
+            ],
+          },
+        ],
+      });
+      if (!response.parsed_output) return error(422, "うまく読み取れませんでした。もう一度撮ってみてください");
+      return Response.json(response.parsed_output);
     } catch (e) {
       return apiError(e);
     }

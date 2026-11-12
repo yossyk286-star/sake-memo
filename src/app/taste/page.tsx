@@ -34,23 +34,23 @@ function PriceLines({ records, budget }: { records: TastingRecord[]; budget: num
   const bargain = [...liked].sort((a, b) => b.overall - a.overall || a.price! - b.price!)[0];
   return (
     <>
-      <h2 style={{ fontSize: 14 }}>{tr("値段")}</h2>
-      <p style={{ margin: 0, fontSize: 14 }}>
+      <h2 style={{ fontSize: 15 }}>{tr("値段")}</h2>
+      <p style={{ margin: 0, fontSize: 15 }}>
         {tr("1杯の平均")}{" "}<strong>{yen(average(priced.map((r) => r.price!)))}</strong>
         <span className="muted">{tr("（{0}杯）", priced.length)}</span>
       </p>
       {liked.length > 0 && (
-        <p style={{ margin: 0, fontSize: 14 }}>
+        <p style={{ margin: 0, fontSize: 15 }}>
           {tr("★4以上だったお酒の平均")}{" "}<strong>{yen(average(liked.map((r) => r.price!)))}</strong>
         </p>
       )}
       {budget && (
-        <p style={{ margin: 0, fontSize: 14 }}>
+        <p style={{ margin: 0, fontSize: 15 }}>
           {tr("予算 {0} 以内：{1} / {2}杯", yen(budget), priced.filter((r) => r.price! <= budget).length, priced.length)}
         </p>
       )}
       {bargain && (
-        <p style={{ margin: 0, fontSize: 14 }}>
+        <p style={{ margin: 0, fontSize: 15 }}>
           {tr("お値打ちだったお酒：")}
           <Link href={`/record?id=${bargain.id}`}>
             {tr("{0}（{1}・{2}）", drinkTitle(bargain), stars(bargain.overall), yen(bargain.price!))}
@@ -105,7 +105,7 @@ function BarsSwitch({ groups }: { groups: [string, GroupAverage[]][] }) {
           </span>
         </div>
       ))}
-      <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+      <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {tr("数字は総合の平均（カッコ内は件数）。産地は2杯以上のところだけ。")}
       </p>
     </section>
@@ -173,7 +173,7 @@ export default function TastePage() {
       label: "いまの傾向",
       node: (
         <section className="highlight">
-          <span style={{ fontSize: 12 }}>{tr("いまの傾向")}</span>
+          <span style={{ fontSize: 13 }}>{tr("いまの傾向")}</span>
           {summary.bestCombo ? (
             <p className="highlight-main">{tr("{0} の評価が高めです", summary.bestCombo.label)}</p>
           ) : (
@@ -229,7 +229,7 @@ export default function TastePage() {
             <PriceLines records={records} budget={loadPrefs().budget} />
             {summary && summary.topFlavors.length > 0 && (
               <>
-                <h2 style={{ fontSize: 14, marginTop: records.some((r) => r.price) ? 8 : 0 }}>{tr("よく感じる味")}</h2>
+                <h2 style={{ fontSize: 15, marginTop: records.some((r) => r.price) ? 8 : 0 }}>{tr("よく感じる味")}</h2>
                 <div className="tags">
                   {summary.topFlavors.map((f) => (
                     <span key={f.label} className="tag" style={{ fontSize: 13 }}>

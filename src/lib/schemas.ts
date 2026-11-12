@@ -8,6 +8,9 @@ const TasteLevel = z.number().int().describe("1（弱い）〜5（強い）の�
 /** メニューやラベルの写真、または名前から調べたお酒1つ分 */
 export const ScannedDrinkSchema = z.object({
   name: z.string().describe("お酒の名前・銘柄（例：獺祭 純米大吟醸45、シャブリ）"),
+  reading: z
+    .string()
+    .describe("銘柄名に読みにくい漢字があるときだけ、銘柄部分のひらがなの読み（例：而今→じこん、醸し人九平次→かもしびとくへいじ）。かな・カタカナ・英字だけの名前や、読みがわからないときは空文字"),
   kind: z.enum(KINDS).nullable().describe("お酒の種類。判断できなければ null"),
   style: z
     .string()
@@ -51,9 +54,10 @@ export const MenuScanResultSchema = z.object({
   drinks: z.array(ScannedDrinkSchema).describe("見つかったお酒。お酒が写っていない・お酒の名前でなければ空配列"),
 });
 
-export type ScannedDrink = z.infer<typeof ScannedDrinkSchema>;
+/** 読み（reading）は後から足したので、前に調べて残っている分にはない */
+export type ScannedDrink = Omit<z.infer<typeof ScannedDrinkSchema>, "reading"> & { reading?: string };
 export type DrinkTaste = ScannedDrink["taste"];
-export type MenuScanResult = z.infer<typeof MenuScanResultSchema>;
+export type MenuScanResult = { drinks: ScannedDrink[] };
 
 /** 食べている料理との相性。お酒は送った順の番号で返す */
 export const PairingResultSchema = z.object({
@@ -129,3 +133,17 @@ export type FoodMenu = z.infer<typeof FoodMenuSchema>;
 
 export type FoodPick = z.infer<typeof FoodPickSchema>;
 export type FoodPairing = Omit<z.infer<typeof FoodPairingSchema>, "found">;
+
+/** 裏ラベルなどから読んだスペック（12） */
+export const SpecResultSchema = z.object({
+  specs: z
+    .array(
+      z.object({
+        label: z
+          .string()
+          .describe("項目名。なるべく次の書き方にそろえる：原材料、精米歩合、日本酒度、酸度、アミノ酸度、酒米、酵母、度数、容量、製造年月、品種、ヴィンテージ、産地、熟成年数、樽、IBU、麦芽、ホップ、麹、蒸留"),
+        value: z.string().describe("ラベルに書いてある値をそのまま短く（例：55%、+3、1.6、山田錦、2025年10月）"),
+      }),
+    )
+    .describe("ラベルに書いてある項目だけ。書いていない項目は入れない。お酒のラベルでなければ空配列。多くても10項目"),
+});

@@ -33,10 +33,13 @@ export function MultiChips({
   options,
   value,
   onChange,
+  format,
 }: {
   options: readonly string[];
   value: string[];
   onChange: (v: string[]) => void;
+  /** 見せ方を変える（タグに # を付けるなど）。なければ訳して出す */
+  format?: (o: string) => string;
 }) {
   return (
     <div className="row">
@@ -50,7 +53,7 @@ export function MultiChips({
             aria-pressed={on}
             onClick={() => onChange(on ? value.filter((x) => x !== o) : [...value, o])}
           >
-            {trv(o)}
+            {format ? format(o) : trv(o)}
           </button>
         );
       })}

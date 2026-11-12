@@ -128,7 +128,7 @@ function AddBottle({ onAdded }: { onAdded: (b: Bottle) => void }) {
           {tr("やめる")}
         </button>
       </div>
-      <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+      <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {tr("ラベルを撮って調べた結果からも「家のお酒に登録」で入れられます。")}
       </p>
     </form>
@@ -206,7 +206,7 @@ function BottleCard({
           )}
         </p>
       )}
-      <p style={{ margin: 0, fontSize: 14 }}>
+      <p style={{ margin: 0, fontSize: 15 }}>
         {mine.length > 0 ? (
           <>
             {tr("{0}回記録・平均", mine.length)}{" "}<Stars n={Math.round(avg * 2) / 2} />

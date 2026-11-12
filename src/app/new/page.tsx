@@ -17,6 +17,9 @@ import type { Bottle, RecordDraft, TastingRecord } from "@/lib/types";
 import { tr } from "@/lib/i18n";
 import BackLink from "@/components/BackLink";
 import { backTarget, popTo } from "@/lib/nav";
+import { addLater, getLater, removeLater } from "@/lib/later";
+import { shrinkPhotos } from "@/lib/photo";
+import { toast } from "@/lib/toast";
 
 /** 保存したあと「来た画面へ戻る」ボタンの文字 */
 function fromLabel(from: string) {
@@ -65,6 +68,7 @@ function BottleRecord({ bottle, count, best }: { bottle: Bottle; count: number; 
 }
 
 function NewRecord() {
+  const router = useRouter();
   // メニュー確認の画面で「＋ 記録に追加」を押すと ?drink=お酒の名前 で来る
   const params = useSearchParams();
   const drinkParam = params.get("drink");
@@ -74,6 +78,32 @@ function NewRecord() {
   const wishParam = params.get("wish");
   // 家のお酒から「飲んだので記録する」で来たときは ?bottle=id
   const bottleParam = params.get("bottle");
+  // 記録の一覧で見つからなかった名前（62）は ?name=、あとで書く箱から（41）は ?later=id
+  const nameParam = params.get("name");
+  const laterParam = params.get("later");
+  const [extra, setExtra] = useState<Partial<RecordDraft> | null>(nameParam ? { name: nameParam } : null);
+  const [laterId, setLaterId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!laterParam) return;
+    getLater(laterParam).then((l) => {
+      if (!l) return;
+      setLaterId(l.id);
+      setExtra({ photos: l.photos, date: l.date, ...(l.shop ? { shop: l.shop } : {}) });
+      setManual(true);
+    });
+  }, [laterParam]);
+  /** 写真だけ撮って「あとで書く」箱へ（41） */
+  async function toLater(files: FileList | null) {
+    try {
+      const photos = await shrinkPhotos(files);
+      if (!photos.length) return;
+      await addLater(photos);
+      toast("あとで書くに入れました");
+      router.push("/later");
+    } catch {
+      toast("写真を読み込めませんでした", { tone: "warn" });
+    }
+  }
   const [bottle, setBottle] = useState<{ bottle: Bottle; count: number; best?: TastingRecord } | null>(null);
   const [openBottles, setOpenBottles] = useState(0);
   const [wishId, setWishId] = useState<string | null>(null);
@@ -91,7 +121,7 @@ function NewRecord() {
   // 今日の読み取り結果を読み込んだら MenuScan を作り直して一覧を出す
   const [loaded, setLoaded] = useState(false);
   // メニューのお酒を選んでいる間はフォームを隠す（メニューにないお酒を記録するときだけ出す）
-  const [manual, setManual] = useState(false);
+  const [manual, setManual] = useState(!!nameParam);
   // 前に書きかけて保存しなかった記録と、「続きを書く」で開いた書きかけ
   const [stash, setStash] = useState<Stash | null>(null);
   const [resumed, setResumed] = useState<RecordDraft | null>(null);
@@ -196,6 +226,23 @@ function NewRecord() {
         </section>
       )}
 
+      {!picked && saveCount === 0 && !laterId && (
+        <div className="new-shortcuts">
+          <label className="btn-secondary" style={{ cursor: "pointer" }}>
+            {tr("📷 撮って、あとで書く")}
+            <input type="file" accept="image/*" capture="environment" className="visually-hidden" onChange={(e) => toLater(e.target.files)} />
+          </label>
+          <Link href="/flight" className="btn-secondary">
+            {tr("🍶 飲み比べセット")}
+          </Link>
+        </div>
+      )}
+      {laterId && (
+        <p className="lead" style={{ margin: "16px 16px 0" }}>
+          {tr("「あとで書く」の写真から記録します。保存すると箱から外れます。")}
+        </p>
+      )}
+
       {!picked && saveCount === 0 && openBottles > 0 && (
         <Link href="/bottles" className="btn-secondary" style={{ margin: "16px 16px 0" }}>
           {tr("家のお酒から記録する（{0}本）", openBottles)}
@@ -234,9 +281,10 @@ function NewRecord() {
       ) : (
         /* お酒を選んだり保存したりしたらフォームを作り直して読み取り結果を入れる */
         <RecordForm
-          key={`${saveCount}:${picked?.name ?? "blank"}:${resumed ? "resumed" : ""}`}
+          key={`${saveCount}:${picked?.name ?? "blank"}:${resumed ? "resumed" : ""}:${laterId ?? ""}`}
           prefill={
             resumed ?? {
+              ...(saveCount === 0 ? extra : null),
               ...carry,
               ...(picked ? drinkToDraft(picked) : {}),
               ...(picked && foodParam && picked.name === drinkParam ? { pairing: foodParam } : {}),
@@ -250,6 +298,11 @@ function NewRecord() {
             if (picked) {
               setSavedNames((ns) => [...ns, picked.name]);
               markRecorded(picked.name);
+            }
+            if (laterId) {
+              removeLater(laterId);
+              setLaterId(null);
+              setExtra(null);
             }
             // 飲んだので気になるお酒からは外す
             if (wishId) {

@@ -12,6 +12,12 @@ export interface ServeNote {
   tip: string;
 }
 
+/** 裏ラベルなどに書いてある数字や原料。「精米歩合 55%」 */
+export interface Spec {
+  label: string;
+  value: string;
+}
+
 /** 記録の画面で AI に聞いたことと答え */
 export interface QA {
   q: string;
@@ -57,6 +63,14 @@ export interface TastingRecord {
   /** この記録について AI に聞いたこと */
   qa?: QA[];
   memo: string;
+  /** 飲んだ量（ml）。「1合」「中ジョッキ」などで選ぶ。入れていなければ種類ごとの目安で数える */
+  ml?: number | null;
+  /** 自分で付けたタグ（「金沢旅行」など。# は付けずに持つ） */
+  tags?: string[];
+  /** 銘柄の読み（ひらがな）。読み取りで AI が付けたときだけ */
+  reading?: string;
+  /** 裏ラベルから読んだスペック（精米歩合・日本酒度など） */
+  specs?: Spec[];
   /** ♥ また飲みたい。後から増やした項目なので古い記録にはない */
   again?: boolean;
   /** 飲んだ場所（位置を使ってよいときだけ）。近くの前に行ったお店を出すのに使う */
