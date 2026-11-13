@@ -74,7 +74,7 @@ function serveRows(b: ScannedDrink) {
     note: m.note,
     abv: b.abv != null ? serveAbv(b.abv, m.serve, b.kind) : null,
   }));
-  if (canHighball(b.abv, b.kind) && !rows.some((r) => r.abv?.ratio === "1:3"))
+  if (canHighball(b.abv, b.kind) && !rows.some((r) => /ハイボール|ソーダ|炭酸/.test(r.serve)))
     rows.push({ serve: "ハイボール", note: "", abv: serveAbv(b.abv!, "ハイボール", b.kind) });
   return rows;
 }
@@ -1470,12 +1470,15 @@ export default function MenuScan({
                         <dl className={styles.serveTable}>
                           {serveRows(b).map((m) => (
                             <div key={m.serve} className={styles.serveRow}>
-                              <dt>{trv(m.serve)}</dt>
+                              {/* 割る飲み方は、飲み方の下に「お酒1:ソーダ3」のように割り方を書く */}
+                              <dt>
+                                {trv(m.serve)}
+                                {m.abv?.ratio && <small className={styles.serveRatio}>{m.abv.ratio}</small>}
+                              </dt>
                               <dd>{m.note ? trv(m.note) : <span className="muted">{tr("ソーダで割ってすっきり")}</span>}</dd>
                               {/* 度数がわからない行も3列目を空けておき、表がずれないようにする */}
                               <dd className={styles.serveAbv}>
                                 {m.abv && <b>{!m.abv.ratio && b.abvStated ? `${abvRound(m.abv.abv)}%` : tr("約{0}%", abvRound(m.abv.abv))}</b>}
-                                {m.abv?.ratio && <small>{m.abv.ratio}</small>}
                               </dd>
                             </div>
                           ))}
@@ -1483,8 +1486,6 @@ export default function MenuScan({
                         {b.abv != null && serveRows(b).some((m) => m.abv?.ratio) && (
                           <p className={styles.serveFoot}>
                             {tr("度数は {0} をもとにした目安です", abvText(b.abv, b.abvStated))}
-                            <br />
-                            {tr("（割合はお酒:割るもの）")}
                           </p>
                         )}
                       </details>

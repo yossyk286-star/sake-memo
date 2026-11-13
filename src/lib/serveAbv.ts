@@ -1,3 +1,4 @@
+import { tr } from "./i18n";
 import type { Kind } from "./types";
 
 /**
@@ -11,11 +12,17 @@ export function serveAbv(
 ): { abv: number; ratio: string } | null {
   const s = serve.normalize("NFKC");
   const shochu = kind === "焼酎";
-  const mix = (a: number, b: number) => ({ abv: (abv * a) / (a + b), ratio: `${a}:${b}` });
-  if (/ハイボール|ソーダ|炭酸|トニック|ジンジャー/.test(s)) return mix(1, 3);
-  if (/トワイスアップ/.test(s)) return mix(1, 1);
-  if (/水割り/.test(s)) return shochu ? mix(6, 4) : mix(1, 2.5);
-  if (/お湯割り/.test(s)) return shochu ? mix(6, 4) : mix(1, 2);
+  // ratio は「お酒1:ソーダ3」のように何で割るかまで書く（何を割るのか迷わないように）
+  const mix = (a: number, b: number, with_: string) => ({
+    abv: (abv * a) / (a + b),
+    ratio: tr("お酒{0}:{1}{2}", a, tr(with_), b),
+  });
+  if (/トニック/.test(s)) return mix(1, 3, "トニック");
+  if (/ジンジャー/.test(s)) return mix(1, 3, "ジンジャーエール");
+  if (/ハイボール|ソーダ|炭酸/.test(s)) return mix(1, 3, "ソーダ");
+  if (/トワイスアップ/.test(s)) return mix(1, 1, "水");
+  if (/水割り/.test(s)) return shochu ? mix(6, 4, "水") : mix(1, 2.5, "水");
+  if (/お湯割り/.test(s)) return shochu ? mix(6, 4, "お湯") : mix(1, 2, "お湯");
   if (/ストレート|ニート|ロック|燗|冷|常温|ぬる|熱|そのまま/.test(s)) return { abv, ratio: "" };
   return null;
 }
