@@ -6,6 +6,7 @@ import type { QA } from "@/lib/types";
 import Steps from "./Steps";
 import { askConfirm } from "./ConfirmSheet";
 import { getLang, tr, trv } from "@/lib/i18n";
+import { askKey, findAnswer, saveAnswer } from "@/lib/askCache";
 
 /**
  * 記録の画面や調べた結果から AI に質問する。
@@ -61,6 +62,18 @@ export default function AskAI({
   async function ask(q: string) {
     q = q.trim();
     if (!q) return;
+    // 前に同じものを見ながら同じことを聞いていたら、AI を呼ばずにその答えを出す
+    const past = shown.map(({ q, a }) => ({ q, a }));
+    const key = askKey({ lang: getLang(), context, history: past, q });
+    const cached = findAnswer(key);
+    if (cached) {
+      const qa = { q, a: cached, at: Date.now() };
+      if (onAnswered) await onAnswered(qa);
+      if (!history) setLocal((l) => [...l, qa]);
+      setQuestion("");
+      setError("");
+      return;
+    }
     if (!passcode) return setError("合言葉を入れてください");
     if (!navigator.onLine) return setError("オフラインのため聞けません");
     setBusy(true);
@@ -72,7 +85,7 @@ export default function AskAI({
         body: JSON.stringify({
           ask: q,
           context,
-          history: shown.map(({ q, a }) => ({ q, a })),
+          history: past,
           passcode: normalizePasscode(passcode),
           lang: getLang(),
           stream: true,
@@ -101,6 +114,7 @@ export default function AskAI({
         savePasscode(normalizePasscode(passcode));
         answer = data.answer;
       }
+      saveAnswer(key, answer);
       const qa = { q, a: answer, at: Date.now() };
       if (onAnswered) await onAnswered(qa);
       if (!history) setLocal((l) => [...l, qa]);
