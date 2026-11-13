@@ -1773,8 +1773,12 @@ button.stamp {
   margin: -6px 0 0;
   color: var(--danger);
 }
+/* 考えている間に回る光の枠（.ai-glow）が角ばらないよう、角を丸くしておく */
 .ask-ai-bare {
-  margin-top: 8px;
+  border-radius: 14px;
+  /* 枠が吹き出しにくっつかないよう、左右と上下に少しすき間（中身の幅は変えない） */
+  margin: 2px -6px 0;
+  padding: 6px;
   display: flex;
   flex-direction: column;
 }

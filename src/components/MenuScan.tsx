@@ -21,6 +21,7 @@ import {
   peekRecords,
   peekWishes,
   putBottle,
+  deleteBottle,
   putWish,
   type WishDrink,
 } from "@/lib/db";
@@ -341,11 +342,13 @@ export default function MenuScan({
   const wishOf = (b: ScannedDrink) => wishes.find((w) => w.name === b.name);
 
   // ラベルを撮った瓶を、家で何回かに分けて飲むお酒として登録する
-  const [bottled, setBottled] = useState<string[]>([]);
+  // 登録した名前 → 家のお酒の id（もう一度押したら外すのに使う）
+  const [bottled, setBottled] = useState<Record<string, string>>({});
   async function addBottle(b: ScannedDrink) {
     const d = drinkToDraft(b);
+    const id = crypto.randomUUID();
     await putBottle({
-      id: crypto.randomUUID(),
+      id,
       name: d.name,
       kind: d.kind,
       style: d.style,
@@ -358,7 +361,20 @@ export default function MenuScan({
       finished: false,
       createdAt: Date.now(),
     });
-    setBottled((ns) => [...ns, b.name]);
+    setBottled((m) => ({ ...m, [b.name]: id }));
+  }
+
+  /** 家のお酒ボタン：まだなら登録、登録済みなら確認してから外す */
+  async function toggleBottle(b: ScannedDrink) {
+    const id = bottled[b.name];
+    if (!id) return addBottle(b);
+    if (!(await askConfirm({ message: tr("家のお酒から外しますか？"), action: tr("外す") }))) return;
+    await deleteBottle(id);
+    setBottled((m) => {
+      const next = { ...m };
+      delete next[b.name];
+      return next;
+    });
   }
 
   // 今日は飲まないけど次に試したいお酒に印を付ける（もう一度押すと外す）
@@ -1503,11 +1519,11 @@ export default function MenuScan({
                   <button
                     type="button"
                     className={styles.act}
-                    disabled={bottled.includes(b.name)}
+                    aria-pressed={!!bottled[b.name]}
                     aria-label={tr("家のお酒に登録（買って家にあるお酒）")}
-                    onClick={() => addBottle(b)}
+                    onClick={() => toggleBottle(b)}
                   >
-                    {bottled.includes(b.name)
+                    {bottled[b.name]
                       ? tr("家のお酒 ✓")
                       : tr("＋家のお酒")}
                   </button>
