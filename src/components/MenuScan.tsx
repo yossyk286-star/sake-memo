@@ -55,7 +55,7 @@ import {
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { MOODS, moodFromText, wordMatch } from "@/lib/moods";
 import MoodPicker from "./MoodPicker";
-import { findSaved, saveLookups } from "@/lib/savedLookups";
+import { fillKnown, findSaved, saveLookups, savedNames } from "@/lib/savedLookups";
 import AskAI from "./AskAI";
 import Hint from "./Hint";
 import MenuPicks, { scoreWord } from "./MenuPicks";
@@ -575,7 +575,7 @@ export default function MenuScan({
       setStatus(drinksRef.current.length ? "done" : "idle");
       return false;
     }
-    return request({ image });
+    return request({ image, known: savedNames() });
   }
 
   // 電波がなくて取っておいた写真。開いたときと電波が戻ったときに読み取る
@@ -760,7 +760,7 @@ export default function MenuScan({
 
   /** 写真（メニュー・ラベル）か名前を送って、お酒の解説を受け取る */
   async function request(
-    payload: { image: string } | { query: string },
+    payload: { image: string; known: string[] } | { query: string },
   ): Promise<boolean | "offline"> {
     setError("");
     setLocalHit(null);
@@ -770,7 +770,8 @@ export default function MenuScan({
     try {
       const data = await post(payload);
       setPhase(2);
-      const found = (data as MenuScanResult).drinks;
+      // 前に解説を出したお酒は、AI に書かせずに端末に残っている解説を使う
+      const found = fillKnown((data as MenuScanResult).drinks);
       if (found.length === 0)
         throw new Error(
           "query" in payload
