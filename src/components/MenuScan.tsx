@@ -43,6 +43,7 @@ import { bestPick, MIN_RECORDS, scoreDrinks } from "@/lib/recommend";
 import type { TastingRecord } from "@/lib/types";
 import styles from "./MenuScan.module.css";
 import { abvText } from "@/lib/abv";
+import { abvRound, canHighball, serveAbv } from "@/lib/serveAbv";
 import { findCocktail } from "@/lib/cocktails";
 import PasscodeField from "./PasscodeField";
 import {
@@ -65,6 +66,18 @@ import { askConfirm } from "@/components/ConfirmSheet";
 
 /** 相棒が「好きなやつ」を教えた一覧。アプリを開いている間は同じ一覧で何度も言わない */
 const announcedScans = new Set<string>();
+
+/** 「飲み方で比べる」の行。度数がわかれば飲み方ごとの目安の度数を付け、強いお酒でハイボールの行がなければ足す */
+function serveRows(b: ScannedDrink) {
+  const rows: { serve: string; note: string; abv: ReturnType<typeof serveAbv> }[] = b.serveNotes.map((m) => ({
+    serve: m.serve,
+    note: m.note,
+    abv: b.abv != null ? serveAbv(b.abv, m.serve, b.kind) : null,
+  }));
+  if (canHighball(b.abv, b.kind) && !rows.some((r) => r.abv?.ratio === "1:3"))
+    rows.push({ serve: "ハイボール", note: "", abv: serveAbv(b.abv!, "ハイボール", b.kind) });
+  return rows;
+}
 
 /** 調べたお酒について AI に聞くときの質問の例 */
 const ASK_SUGGESTIONS = [
@@ -1439,7 +1452,7 @@ export default function MenuScan({
                   </div>
                   {/* 飲み方・AI に聞くは、アイコンつきの行をひとつの箱にまとめる（設定画面の行と同じ形） */}
                   <div className={styles.more}>
-                    {b.serveNotes.length > 0 && (
+                    {serveRows(b).length > 0 && (
                       <details className={styles.methods}>
                         <summary>
                           <span className={styles.moreIcon}>
@@ -1448,18 +1461,29 @@ export default function MenuScan({
                           <span className={styles.moreText}>
                             <span className={styles.moreTitle}>{tr("飲み方で比べる")}</span>
                             <span className={styles.moreSub}>
-                              {trJoin(b.serveNotes.map((m) => m.serve))}
+                              {trJoin(serveRows(b).map((m) => m.serve))}
                             </span>
                           </span>
                         </summary>
-                        <dl>
-                          {b.serveNotes.map((m) => (
-                            <div key={m.serve} style={{ display: "contents" }}>
+                        {/* 飲み方・味の違い・その飲み方のおおよその度数（割るものは割合も） */}
+                        <dl className={styles.serveTable}>
+                          {serveRows(b).map((m) => (
+                            <div key={m.serve} className={styles.serveRow}>
                               <dt>{trv(m.serve)}</dt>
-                              <dd>{trv(m.note)}</dd>
+                              <dd>{m.note ? trv(m.note) : <span className="muted">{tr("ソーダで割ってすっきり")}</span>}</dd>
+                              {/* 度数がわからない行も3列目を空けておき、表がずれないようにする */}
+                              <dd className={styles.serveAbv}>
+                                {m.abv && <b>{!m.abv.ratio && b.abvStated ? `${abvRound(m.abv.abv)}%` : tr("約{0}%", abvRound(m.abv.abv))}</b>}
+                                {m.abv?.ratio && <small>{m.abv.ratio}</small>}
+                              </dd>
                             </div>
                           ))}
                         </dl>
+                        {b.abv != null && serveRows(b).some((m) => m.abv?.ratio) && (
+                          <p className={styles.serveFoot}>
+                            {tr("度数は {0} をもとにした目安です（割合はお酒:割るもの）", abvText(b.abv, b.abvStated))}
+                          </p>
+                        )}
                       </details>
                     )}
                     <details className={styles.methods}>

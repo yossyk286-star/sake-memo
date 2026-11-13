@@ -10,7 +10,7 @@ import { daysSince, lastBackup, saveBackup } from "@/lib/backup";
 import { ACCENTS, DEFAULT_THEME, loadTheme, saveTheme, type Appearance, type Theme } from "@/lib/theme";
 import { loadLangSetting, saveLangSetting, tr, trv, type LangSetting } from "@/lib/i18n";
 import { askConfirm } from "@/components/ConfirmSheet";
-import { LimitSetting, LookExtras, MotionSettings, RecordSettings, UseSettings } from "@/components/FeatureSettings";
+import { LimitSetting, LookExtras, RecordSettings, UseSettings } from "@/components/FeatureSettings";
 
 const APPEARANCES: { id: Appearance; label: string }[] = [
   { id: "auto", label: "自動" },
@@ -140,10 +140,6 @@ export default function SettingsPage() {
 
         <h2 className="section-title">{tr("記録")}</h2>
         <RecordSettings />
-
-        <h2 className="section-title">{tr("動き")}</h2>
-        <MotionSettings />
-        <p className="muted settings-note">{tr("スマホで「視差効果を減らす」をオンにしていると、どの動きも出ません。")}</p>
 
         <h2 className="section-title">{tr("言語 / Language")}</h2>
         <section className="card">

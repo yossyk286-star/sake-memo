@@ -170,22 +170,3 @@ export function LimitSetting() {
     />
   );
 }
-
-/** 動きのカード */
-export function MotionSettings() {
-  return (
-    <section className="card switch-list">
-      <SwitchRow k="listStagger" label="一覧が順に浮かぶ" />
-      <SwitchRow k="starWave" label="★が左から灯る" />
-      <SwitchRow k="numRoll" label="点数がくるっと回る" />
-      <SwitchRow k="barGrow" label="好みの棒が伸びる" />
-      <SwitchRow k="radarMorph" label="くらべるの五角形が形を変える" />
-      <SwitchRow k="fabShrink" label="スクロールで「記録する」が縮む" />
-      <SwitchRow k="rowCollapse" label="消した行が縮んで詰まる" />
-      <SwitchRow k="fieldShake" label="入れ忘れた欄が揺れる" />
-      <SwitchRow k="parallax" label="詳細の写真がゆっくり動く" />
-      <SwitchRow k="photoTint" label="詳細の色を写真から取る" />
-      <SwitchRow k="shopCapsule" label="今日のお店を上に出す" note="調べる画面で入れたお店と、今夜の杯数" />
-    </section>
-  );
-}
