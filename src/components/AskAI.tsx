@@ -80,11 +80,15 @@ export default function AskAI({
     setBusy(true);
     setError("");
     try {
-      const res = await sendAI({
+      const res = await sendAI(
+        {
           ask: q,
           context,
           history: past,
-          stream: true }, passcode);
+          stream: true,
+        },
+        passcode,
+      );
       let answer = "";
       if (res.ok && res.body && res.headers.get("Content-Type")?.startsWith("text/plain")) {
         const reader = res.body.getReader();
@@ -126,13 +130,7 @@ export default function AskAI({
         <div key={h.at} className="ask-qa">
           <p className="ask-q">{trv(h.q)}</p>
           <p className="ask-a">{trv(h.a)}</p>
-          <button
-            type="button"
-            className="ask-del"
-            disabled={busy}
-            aria-label={tr("この質問と答えを消す")}
-            onClick={() => remove([h.at])}
-          >
+          <button type="button" className="ask-del" disabled={busy} aria-label={tr("この質問と答えを消す")} onClick={() => remove([h.at])}>
             {tr("消す")}
           </button>
         </div>

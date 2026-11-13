@@ -6,35 +6,14 @@ import Link from "next/link";
 import { TERMS } from "@/lib/glossary";
 import { toast } from "@/lib/toast";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import {
-  drinkToDraft,
-  type MenuScanResult,
-  type DishIdeas,
-  type PairingResult,
-  type ScannedDrink,
-} from "@/lib/menuScan";
+import { drinkToDraft, type MenuScanResult, type DishIdeas, type PairingResult, type ScannedDrink } from "@/lib/menuScan";
 import { placeOf } from "@/lib/origins";
-import {
-  deleteWish,
-  listRecords,
-  listWishes,
-  peekRecords,
-  peekWishes,
-  putBottle,
-  deleteBottle,
-  putWish,
-  type WishDrink,
-} from "@/lib/db";
+import { deleteWish, listRecords, listWishes, peekRecords, peekWishes, putBottle, deleteBottle, putWish, type WishDrink } from "@/lib/db";
 import { loadLastScan, loadShopMenu, saveLastScan, today, type ShopMenu } from "@/lib/lastScan";
 import { loadPasscode } from "@/lib/passcode";
 import { sendAI } from "@/lib/askServer";
 import { shrinkForReading } from "@/lib/photo";
-import {
-  addPending,
-  loadPending,
-  OfflineError,
-  setPending as savePending,
-} from "@/lib/pending";
+import { addPending, loadPending, OfflineError, setPending as savePending } from "@/lib/pending";
 import PendingPhotos from "./PendingPhotos";
 import { EMPTY_PREFS, loadPrefs } from "@/lib/prefs";
 import { announceBuddy, pick } from "@/lib/buddy";
@@ -46,13 +25,7 @@ import { abvText } from "@/lib/abv";
 import { abvRound, canHighball, serveAbv } from "@/lib/serveAbv";
 import { findCocktail } from "@/lib/cocktails";
 import PasscodeField from "./PasscodeField";
-import {
-  loadDishRanks,
-  loadTodayMenu,
-  saveDishRanks,
-  type FoodMenu,
-  type MenuRank,
-} from "@/lib/foodPairing";
+import { loadDishRanks, loadTodayMenu, saveDishRanks, type FoodMenu, type MenuRank } from "@/lib/foodPairing";
 import { GENRES, genreColor, genreOf, type Genre } from "@/lib/genre";
 import { MOODS, moodFromText, wordMatch } from "@/lib/moods";
 import MoodPicker from "./MoodPicker";
@@ -80,12 +53,7 @@ function serveRows(b: ScannedDrink) {
 }
 
 /** 調べたお酒について AI に聞くときの質問の例 */
-const ASK_SUGGESTIONS = [
-  "どんな味？",
-  "初心者でも飲みやすい？",
-  "どの飲み方がいい？",
-  "合う料理は？",
-];
+const ASK_SUGGESTIONS = ["どんな味？", "初心者でも飲みやすい？", "どの飲み方がいい？", "合う料理は？"];
 /** 写真フォルダから一度に選べる枚数（1枚ずつ AI に送るので、多すぎると時間とお金がかかる） */
 const MAX_PHOTOS = 5;
 
@@ -128,13 +96,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 /** 選んだお酒の解説とおすすめ（フォームの上に出しておく） */
-export function PickedDrink({
-  drink,
-  onChange,
-}: {
-  drink: ScannedDrink;
-  onChange?: () => void;
-}) {
+export function PickedDrink({ drink, onChange }: { drink: ScannedDrink; onChange?: () => void }) {
   return (
     <section className="tips" style={{ margin: "16px 16px 0" }}>
       <div className="card-top">
@@ -143,19 +105,13 @@ export function PickedDrink({
           {trv(drink.name)}
         </h2>
         {onChange && (
-          <button
-            type="button"
-            className="picked-change"
-            onClick={onChange}
-          >
+          <button type="button" className="picked-change" onClick={onChange}>
             {tr("別のお酒にする")}
           </button>
         )}
       </div>
       <p className="term-desc">
-        {drink.abv != null && (
-          <strong>{tr("{0}・", abvText(drink.abv, drink.abvStated))}</strong>
-        )}
+        {drink.abv != null && <strong>{tr("{0}・", abvText(drink.abv, drink.abvStated))}</strong>}
         {trv(drink.explanation)}
       </p>
       <p className="term-desc">
@@ -177,9 +133,7 @@ function findKey(text: string) {
   return text
     .normalize("NFKC")
     .toLowerCase()
-    .replace(/[\u3041-\u3096]/g, (c) =>
-      String.fromCharCode(c.charCodeAt(0) + 0x60),
-    )
+    .replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60))
     .replace(/\s+/g, "");
 }
 
@@ -193,9 +147,7 @@ function partOf(word: string, drinks: ScannedDrink[]) {
 }
 
 function findText(d: ScannedDrink) {
-  return [d.name, d.kind, d.style, d.origin, d.menuNote]
-    .filter(Boolean)
-    .join(" ");
+  return [d.name, d.kind, d.style, d.origin, d.menuNote].filter(Boolean).join(" ");
 }
 
 /** メニューやラベルを撮影するか名前で調べてお酒の情報を出し、選んだお酒を記録フォームに渡す */
@@ -221,9 +173,7 @@ export default function MenuScan({
 }) {
   const [passcode, setPasscode] = useState("");
   const [savedPasscode, setSavedPasscode] = useState(false);
-  const [status, setStatus] = useState<"idle" | "reading" | "done">(
-    initialDrinks.length ? "done" : "idle",
-  );
+  const [status, setStatus] = useState<"idle" | "reading" | "done">(initialDrinks.length ? "done" : "idle");
   // 名前で調べている最中はその名前。写真の読み取りと出し分ける
   const [searching, setSearching] = useState<string | null>(null);
   const [drinks, setDrinks] = useState<ScannedDrink[]>(initialDrinks);
@@ -233,9 +183,7 @@ export default function MenuScan({
     drinksRef.current = drinks;
   }, [drinks]);
   // 何枚か選んだときの「何枚目を読み取り中か」
-  const [progress, setProgress] = useState<{ at: number; of: number } | null>(
-    null,
-  );
+  const [progress, setProgress] = useState<{ at: number; of: number } | null>(null);
   // 待つあいだの段（0 写真を整える・1 AI が読む／調べる・2 好みと照らす）と、いま届いたお酒（1枚ずつ浮かべる）
   const [phase, setPhase] = useState(0);
   const [fresh, setFresh] = useState<string[]>([]);
@@ -249,9 +197,7 @@ export default function MenuScan({
     how: string;
     query: string;
   } | null>(null);
-  const [records, setRecords] = useState<TastingRecord[]>(
-    () => peekRecords() ?? [],
-  );
+  const [records, setRecords] = useState<TastingRecord[]>(() => peekRecords() ?? []);
   const [wishes, setWishes] = useState<WishDrink[]>(() => peekWishes() ?? []);
   const [prefs, setPrefs] = useState(EMPTY_PREFS);
   // 食べている料理との相性（お酒の名前ごと）
@@ -412,10 +358,7 @@ export default function MenuScan({
     }
   }
 
-  const picks = useMemo(
-    () => scoreDrinks(drinks, records, prefs),
-    [drinks, records, prefs],
-  );
+  const picks = useMemo(() => scoreDrinks(drinks, records, prefs), [drinks, records, prefs]);
   const best = picks ? bestPick(picks) : -1;
   // 好みど真ん中のお酒があれば、相棒がそっと教える（同じ一覧では1回だけ）
   useEffect(() => {
@@ -451,22 +394,15 @@ export default function MenuScan({
     const name = scrollToCard.current;
     if (!name || openCard !== name) return;
     scrollToCard.current = null;
-    document
-      .querySelector(`[data-card="${CSS.escape(name)}"]`)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.querySelector(`[data-card="${CSS.escape(name)}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [openCard]);
   const genresHere = GENRES.filter((g) => drinks.some((d) => genreOf(d) === g));
   // 調べ直してそのジャンルがなくなったときは絞り込みを外す
-  const activeGenre =
-    genre && genresHere.length > 1 && genresHere.includes(genre) ? genre : null;
+  const activeGenre = genre && genresHere.length > 1 && genresHere.includes(genre) ? genre : null;
   // 選んだ気分を、味で並べるもの（甘口など）と、入っていてほしい言葉（ジンなど）に分ける。
   // どちらでもない言葉があれば AI に聞く
-  const moodParts = useMemo(
-    () => moodWords.map((w) => partOf(w, drinks)),
-    [moodWords, drinks],
-  );
-  const moodLocal =
-    moodParts.length > 0 && moodParts.every((p) => p.mood || p.must);
+  const moodParts = useMemo(() => moodWords.map((w) => partOf(w, drinks)), [moodWords, drinks]);
+  const moodLocal = moodParts.length > 0 && moodParts.every((p) => p.mood || p.must);
   const mustWords = moodParts
     .filter((p) => p.must)
     .map((p) => tr("「{0}」", p.label))
@@ -494,9 +430,7 @@ export default function MenuScan({
     // 「ジン」など言葉で入れたものは、全部入っているお酒を上にまとめる
     const musts = moodParts.flatMap((p) => (p.must ? [p.must] : []));
     const ok = (i: number) => musts.every((f) => f(drinks[i]));
-    const sorted = idx.sort(
-      (a, b) => Number(ok(b)) - Number(ok(a)) || total.get(b)! - total.get(a)!,
-    );
+    const sorted = idx.sort((a, b) => Number(ok(b)) - Number(ok(a)) || total.get(b)! - total.get(a)!);
     return {
       order: sorted,
       hits: musts.length > 0 ? sorted.filter(ok).length : null,
@@ -505,27 +439,19 @@ export default function MenuScan({
   const sortSummary = [
     activeGenre && tr(activeGenre),
     moodWords.length > 0 && !pairing && tr("気分：{0}", trJoin(moodWords)),
-    pairing &&
-      (pairing.mood
-        ? tr("気分：{0}", pairing.dish)
-        : tr("料理：{0}", pairing.dish)),
+    pairing && (pairing.mood ? tr("気分：{0}", pairing.dish) : tr("料理：{0}", pairing.dish)),
   ]
     .filter(Boolean)
     .join(tr("／"));
 
   // 前に飲んだお酒と、まだ飲んだことのない産地
-  const drunkPlaces = useMemo(
-    () => new Set(records.map((r) => placeOf(r) ?? r.origin)),
-    [records],
-  );
+  const drunkPlaces = useMemo(() => new Set(records.map((r) => placeOf(r) ?? r.origin)), [records]);
   function badgesOf(b: ScannedDrink) {
     const out: string[] = [];
     const same = records.filter((r) => r.name && r.name === b.name);
-    if (same.length > 0)
-      out.push(tr("前に★{0}", Math.max(...same.map((r) => r.overall))));
+    if (same.length > 0) out.push(tr("前に★{0}", Math.max(...same.map((r) => r.overall))));
     const place = placeOf(b) ?? b.origin;
-    if (records.length > 0 && place && !drunkPlaces.has(place))
-      out.push("初めての産地");
+    if (records.length > 0 && place && !drunkPlaces.has(place)) out.push("初めての産地");
     return out;
   }
 
@@ -536,13 +462,7 @@ export default function MenuScan({
     if (picked.length === 0) return;
     if (!passcode) return setError("先に合言葉を入れてください");
     const allOk = await readPhotos(picked.slice(0, MAX_PHOTOS));
-    if (picked.length > MAX_PHOTOS && allOk)
-      setError(
-        tr(
-          "一度に読み取れるのは{0}枚までです。残りはもう一度選んでください",
-          MAX_PHOTOS,
-        ),
-      );
+    if (picked.length > MAX_PHOTOS && allOk) setError(tr("一度に読み取れるのは{0}枚までです。残りはもう一度選んでください", MAX_PHOTOS));
   }
 
   /** 何枚かを順に読み取る。電波がなくて読めなかった写真は取っておいて、電波が戻ったら読み取る */
@@ -563,25 +483,13 @@ export default function MenuScan({
     setProgress(null);
     if (offline.length > 0) {
       try {
-        const kept = await addPending(
-          "drink",
-          await Promise.all(offline.map(shrinkForReading)),
-        );
+        const kept = await addPending("drink", await Promise.all(offline.map(shrinkForReading)));
         setPending(kept);
         setError("");
       } catch {
-        setError(
-          "オフラインのため調べられません。電波のあるところでもう一度お試しください",
-        );
+        setError("オフラインのため調べられません。電波のあるところでもう一度お試しください");
       }
-    } else if (files.length > 1 && failed > 0)
-      setError(
-        tr(
-          "{0}枚のうち{1}枚は読み取れませんでした。その写真だけ撮り直してみてください",
-          files.length,
-          failed,
-        ),
-      );
+    } else if (files.length > 1 && failed > 0) setError(tr("{0}枚のうち{1}枚は読み取れませんでした。その写真だけ撮り直してみてください", files.length, failed));
     return offline.length === 0 && failed === 0;
   }
 
@@ -628,12 +536,7 @@ export default function MenuScan({
   }, []);
   // 合言葉を読み込んだあと、電波があればすぐ読み取る
   useEffect(() => {
-    if (
-      passcode &&
-      pending.length > 0 &&
-      navigator.onLine &&
-      !autoTried.current
-    ) {
+    if (passcode && pending.length > 0 && navigator.onLine && !autoTried.current) {
       // 開いたときに自動で読むのは1回だけ（電波はあるのにつながらないとき、何度も繰り返さないように）
       autoTried.current = true;
       readPendingRef.current();
@@ -662,8 +565,7 @@ export default function MenuScan({
     // アプリに入っているカクテルと、前に調べたお酒は AI を呼ばずに出す（無料・オフラインでも出る）
     if (!fresh) {
       const cocktail = findCocktail(q);
-      if (cocktail)
-        return (showLocal(cocktail, "アプリに入っている情報", q), setQuery(""));
+      if (cocktail) return (showLocal(cocktail, "アプリに入っている情報", q), setQuery(""));
       const saved = findSaved(q);
       if (saved) return (showLocal(saved, "前に調べた情報", q), setQuery(""));
     }
@@ -677,20 +579,19 @@ export default function MenuScan({
 
   /** サーバーが理由を返さなかったとき（時間切れ・写真が大きすぎるなど）の説明 */
   function fallbackError(status: number) {
-    if (status === 504)
-      return "時間がかかりすぎて読み取れませんでした。写すお酒を減らして撮ってみてください";
-    if (status === 413)
-      return "写真が大きすぎます。もう少し離れて撮ってみてください";
-    return tr(
-      "読み取りに失敗しました（エラー {0}）。少し待ってからもう一度お試しください",
-      status,
-    );
+    if (status === 504) return "時間がかかりすぎて読み取れませんでした。写すお酒を減らして撮ってみてください";
+    if (status === 413) return "写真が大きすぎます。もう少し離れて撮ってみてください";
+    return tr("読み取りに失敗しました（エラー {0}）。少し待ってからもう一度お試しください", status);
   }
 
   /** 合言葉を付けて送る。うまくいったら合言葉を覚えておく */
   async function post(payload: object) {
-    const res = await sendAI({
-        ...payload }, passcode);
+    const res = await sendAI(
+      {
+        ...payload,
+      },
+      passcode,
+    );
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) setSavedPasscode(false);
     if (!res.ok) throw new Error(data.error ?? fallbackError(res.status));
@@ -767,18 +668,14 @@ export default function MenuScan({
       setPairing({ dish: d, mood: asMood, byName });
       if (!asMood) setMoodWords([]);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "相性を調べられませんでした",
-      );
+      setError(err instanceof Error ? err.message : "相性を調べられませんでした");
     } finally {
       setPairingBusy(false);
     }
   }
 
   /** 写真（メニュー・ラベル）か名前を送って、お酒の解説を受け取る */
-  async function request(
-    payload: { image: string; known: string[] } | { query: string },
-  ): Promise<boolean | "offline"> {
+  async function request(payload: { image: string; known: string[] } | { query: string }): Promise<boolean | "offline"> {
     setError("");
     setLocalHit(null);
     setSearching("query" in payload ? payload.query : null);
@@ -798,12 +695,7 @@ export default function MenuScan({
       // 次からは AI を呼ばずに出せるよう保存しておく
       saveLookups(found, "query" in payload ? payload.query : undefined);
       // 今読み取ったお酒を今日の一覧の上に足す（表と裏など何枚かに分かれたメニューを続けて撮っても、新しい分がすぐ見えるように）
-      const next = [
-        ...found,
-        ...drinksRef.current.filter(
-          (d) => !found.some((f) => f.name === d.name),
-        ),
-      ];
+      const next = [...found, ...drinksRef.current.filter((d) => !found.some((f) => f.name === d.name))];
       drinksRef.current = next;
       if (found.length > 1) setPairing(null);
       saveLastScan(next, loadLastScan()?.recorded ?? []);
@@ -825,21 +717,14 @@ export default function MenuScan({
   }
 
   return (
-    <section
-      className={styles.box}
-      aria-label={tr("メニューやラベルを撮るか、名前で調べて入力")}
-    >
+    <section className={styles.box} aria-label={tr("メニューやラベルを撮るか、名前で調べて入力")}>
       {status === "done" ? (
         <Hint id="scan-done" className={styles.lead}>
-          {tr(
-            "お酒の名前をタップすると、説明や飲み方が開きます。「＋記録」を押すと、お酒の情報が入った状態で感想を書けます。",
-          )}
+          {tr("お酒の名前をタップすると、説明や飲み方が開きます。「＋記録」を押すと、お酒の情報が入った状態で感想を書けます。")}
         </Hint>
       ) : (
         <Hint id="scan-lead" className={styles.lead}>
-          {tr(
-            "お酒のメニューや瓶・缶のラベルを撮るか、名前を入れて調べると、解説とおすすめの飲み方を出して、記録の項目に入れます。",
-          )}
+          {tr("お酒のメニューや瓶・缶のラベルを撮るか、名前を入れて調べると、解説とおすすめの飲み方を出して、記録の項目に入れます。")}
         </Hint>
       )}
       {!savedPasscode && (
@@ -847,11 +732,7 @@ export default function MenuScan({
           value={passcode}
           onChange={setPasscode}
           need={tr("撮って読み取るには「合言葉」が要ります。")}
-          free={[
-            tr("カクテル47種の解説（名前で調べる）"),
-            tr("よくある料理に合うお酒（料理から）"),
-            tr("記録・辞典・味マップ・スタンプ帳"),
-          ]}
+          free={[tr("カクテル47種の解説（名前で調べる）"), tr("よくある料理に合うお酒（料理から）"), tr("記録・辞典・味マップ・スタンプ帳")]}
           forceOpen={error.includes("合言葉")}
           error={error.includes("合言葉") ? error : ""}
         />
@@ -861,10 +742,7 @@ export default function MenuScan({
         count={pending.length}
         busy={pendingBusy}
         onRead={() => {
-          if (!navigator.onLine)
-            return setError(
-              "まだ電波がありません。電波のあるところでもう一度お試しください",
-            );
+          if (!navigator.onLine) return setError("まだ電波がありません。電波のあるところでもう一度お試しください");
           readPendingRef.current();
         }}
         onDiscard={() => {
@@ -875,10 +753,7 @@ export default function MenuScan({
       {/* 読み取り中は、押したボタンの段が「いま何をしているか」の帯に変わる */}
       {status !== "reading" && (
         <div ref={shootRef} className={status === "done" ? styles.shootRow : styles.shootCol}>
-          <label
-            data-tour="scan-shoot"
-            className={`btn-primary ${styles.shoot}`}
-          >
+          <label data-tour="scan-shoot" className={`btn-primary ${styles.shoot}`}>
             <svg
               width="20"
               height="20"
@@ -893,41 +768,18 @@ export default function MenuScan({
               <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
               <circle cx="12" cy="13" r="3.5" />
             </svg>
-            {status === "done"
-              ? tr("撮る")
-              : tr("メニュー・ラベルを撮る")}
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={onPhoto}
-              className="visually-hidden"
-            />
+            {status === "done" ? tr("撮る") : tr("メニュー・ラベルを撮る")}
+            <input type="file" accept="image/*" capture="environment" onChange={onPhoto} className="visually-hidden" />
           </label>
 
-          <label
-            className="btn-secondary"
-            data-tour="scan-photo"
-            style={{ cursor: "pointer" }}
-          >
+          <label className="btn-secondary" data-tour="scan-photo" style={{ cursor: "pointer" }}>
             {tr("写真から")}
             {/* capture を付けないとカメラではなく写真の一覧が開く */}
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={onPhoto}
-              className="visually-hidden"
-            />
+            <input type="file" accept="image/*" multiple onChange={onPhoto} className="visually-hidden" />
           </label>
 
           {!textOpen && (
-            <button
-              type="button"
-              className="btn-secondary"
-              data-tour="scan-text"
-              onClick={() => setTextOpen(true)}
-            >
+            <button type="button" className="btn-secondary" data-tour="scan-text" onClick={() => setTextOpen(true)}>
               {status === "done" ? tr("文字で") : tr("名前で調べる")}
             </button>
           )}
@@ -945,16 +797,8 @@ export default function MenuScan({
           }
           steps={
             searching
-              ? [
-                  "名前を受け取りました",
-                  "お酒の情報を調べています",
-                  "好みと照らします",
-                ]
-              : [
-                  "写真を整えています",
-                  "お酒の名前を読んでいます",
-                  "好みと照らします",
-                ]
+              ? ["名前を受け取りました", "お酒の情報を調べています", "好みと照らします"]
+              : ["写真を整えています", "お酒の名前を読んでいます", "好みと照らします"]
           }
           at={searching ? Math.max(1, phase) : phase}
         />
@@ -1009,11 +853,7 @@ export default function MenuScan({
       )}
 
       {savedPhoto && status !== "reading" && (
-        <button
-          type="button"
-          className="btn-secondary"
-          onClick={() => scan(savedPhoto)}
-        >
+        <button type="button" className="btn-secondary" onClick={() => scan(savedPhoto)}>
           {tr("保存した写真から読み取る")}
         </button>
       )}
@@ -1041,11 +881,7 @@ export default function MenuScan({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={!query.trim()}
-            >
+            <button type="submit" className="btn-primary" disabled={!query.trim()}>
               {tr("この名前で調べる")}
             </button>
           </form>
@@ -1054,15 +890,8 @@ export default function MenuScan({
       {status !== "reading" && extra}
 
       {undo && (
-        <div
-          className="row"
-          style={{ alignItems: "center", flexWrap: "nowrap" }}
-        >
-          <p
-            className={styles.lead}
-            style={{ flex: 1, margin: 0 }}
-            role="status"
-          >
+        <div className="row" style={{ alignItems: "center", flexWrap: "nowrap" }}>
+          <p className={styles.lead} style={{ flex: 1, margin: 0 }} role="status">
             {tr("{0}を一覧から外しました。", undo.label)}
           </p>
           <button
@@ -1087,32 +916,16 @@ export default function MenuScan({
 
       {drinks.length > 0 && !picks && (
         <Hint id="scan-picks" className={styles.lead}>
-          {tr(
-            "記録が{0}件以上たまるか、「好み」タブの「わたしの好み」を登録すると、好みに合いそうなお酒に「おすすめ」を付けます。",
-            MIN_RECORDS,
-          )}
+          {tr("記録が{0}件以上たまるか、「好み」タブの「わたしの好み」を登録すると、好みに合いそうなお酒に「おすすめ」を付けます。", MIN_RECORDS)}
         </Hint>
       )}
       {drinks.length > 0 && picks && best < 0 && (
-        <p className={styles.lead}>
-          {tr(
-            "今回は、これまでの好みとはっきり合うお酒が見つかりませんでした。新しい味を試すチャンスです。",
-          )}
-        </p>
+        <p className={styles.lead}>{tr("今回は、これまでの好みとはっきり合うお酒が見つかりませんでした。新しい味を試すチャンスです。")}</p>
       )}
 
       {drinks.length > 1 && (
-        <div
-          className="row"
-          style={{ alignItems: "center", flexWrap: "nowrap" }}
-        >
-          <button
-            type="button"
-            className="chip"
-            aria-expanded={sortOpen}
-            aria-pressed={sortOpen}
-            onClick={() => setSortOpen(!sortOpen)}
-          >
+        <div className="row" style={{ alignItems: "center", flexWrap: "nowrap" }}>
+          <button type="button" className="chip" aria-expanded={sortOpen} aria-pressed={sortOpen} onClick={() => setSortOpen(!sortOpen)}>
             {tr("⇅ 並び替え")}
           </button>
           <input
@@ -1126,22 +939,12 @@ export default function MenuScan({
           />
         </div>
       )}
-      {drinks.length > 1 && sortSummary && (
-        <p className={styles.sortNow}>{trv(sortSummary)}</p>
-      )}
-      {drinks.length > 1 && find.trim() && order.length === 0 && (
-        <p className={styles.lead}>
-          {tr("「{0}」に当てはまるお酒はありません。", find.trim())}
-        </p>
-      )}
+      {drinks.length > 1 && sortSummary && <p className={styles.sortNow}>{trv(sortSummary)}</p>}
+      {drinks.length > 1 && find.trim() && order.length === 0 && <p className={styles.lead}>{tr("「{0}」に当てはまるお酒はありません。", find.trim())}</p>}
       {drinks.length > 1 && sortOpen && (
         <div className={styles.sortPanel}>
           {genresHere.length > 1 && (
-            <div
-              className="scroll-row"
-              role="group"
-              aria-label={tr("ジャンルで絞り込み")}
-            >
+            <div className="scroll-row" role="group" aria-label={tr("ジャンルで絞り込み")}>
               {genresHere.map((g) => (
                 <button
                   key={g}
@@ -1160,23 +963,14 @@ export default function MenuScan({
           {drinks.length > 1 && (
             <MoodPicker
               labels={MOODS.map((m) => m.label)}
-              suggest={(q) =>
-                MOODS.filter((m) => m.label.includes(q) || m.words.test(q)).map(
-                  (m) => m.label,
-                )
-              }
+              suggest={(q) => MOODS.filter((m) => m.label.includes(q) || m.words.test(q)).map((m) => m.label)}
               values={moodWords}
               busy={pairingBusy}
               onChange={(words) => {
                 setMoodWords(words);
                 setPairing((p) => (words.length > 0 || p?.mood ? null : p));
                 // わからない言葉が入っているときは、選んだ気分をまとめて AI に聞く
-                if (
-                  words.some(
-                    (w) => !partOf(w, drinks).mood && !partOf(w, drinks).must,
-                  )
-                )
-                  pairWith(words.join("・"), true);
+                if (words.some((w) => !partOf(w, drinks).mood && !partOf(w, drinks).must)) pairWith(words.join("・"), true);
               }}
             />
           )}
@@ -1202,12 +996,7 @@ export default function MenuScan({
                 value={dish}
                 onChange={(e) => setDish(e.target.value)}
               />
-              <button
-                type="submit"
-                className="btn-secondary"
-                style={{ flexShrink: 0 }}
-                disabled={!dish.trim() || pairingBusy}
-              >
+              <button type="submit" className="btn-secondary" style={{ flexShrink: 0 }} disabled={!dish.trim() || pairingBusy}>
                 {pairingBusy ? tr("調べ中…") : tr("並べる")}
               </button>
             </form>
@@ -1233,51 +1022,25 @@ export default function MenuScan({
           )}
         </div>
       )}
-      {pairingBusy && (
-        <Steps
-          title="合う順を考えています"
-          steps={[
-            "お酒の一覧をまとめました",
-            "相性を考えています",
-            "合う順に並べます",
-          ]}
-          at={1}
-        />
+      {pairingBusy && <Steps title="合う順を考えています" steps={["お酒の一覧をまとめました", "相性を考えています", "合う順に並べます"]} at={1} />}
+      {moodLocal && !pairingBusy && (moodWords.length > 1 || moodWords.some((w) => !MOODS.some((m) => m.label === w))) && (
+        <p className={styles.lead}>
+          {tr("{0}に合いそうな順に並べました", moodWords.map((w) => tr("「{0}」", w)).join(""))}
+          {hits === null
+            ? ""
+            : hits === 0
+              ? tr("。{0}が入っているものは見つかりませんでした", mustWords)
+              : tr("。{0}が入っているのは{1}杯です", mustWords, hits)}
+          {tr("（AI は使っていません）。")}
+        </p>
       )}
-      {moodLocal &&
-        !pairingBusy &&
-        (moodWords.length > 1 ||
-          moodWords.some((w) => !MOODS.some((m) => m.label === w))) && (
-          <p className={styles.lead}>
-            {tr(
-              "{0}に合いそうな順に並べました",
-              moodWords.map((w) => tr("「{0}」", w)).join(""),
-            )}
-            {hits === null
-              ? ""
-              : hits === 0
-                ? tr("。{0}が入っているものは見つかりませんでした", mustWords)
-                : tr("。{0}が入っているのは{1}杯です", mustWords, hits)}
-            {tr("（AI は使っていません）。")}
-          </p>
-        )}
 
       {pairing && (
-        <div
-          className="row"
-          style={{ alignItems: "center", flexWrap: "nowrap" }}
-        >
+        <div className="row" style={{ alignItems: "center", flexWrap: "nowrap" }}>
           <p className={styles.lead} style={{ flex: 1 }}>
-            {pairing.mood
-              ? tr("「{0}」の気分に合う順に並べました。", pairing.dish)
-              : tr("「{0}」に合う順に並べました。", pairing.dish)}
+            {pairing.mood ? tr("「{0}」の気分に合う順に並べました。", pairing.dish) : tr("「{0}」に合う順に並べました。", pairing.dish)}
           </p>
-          <button
-            type="button"
-            className="btn-ghost"
-            style={{ height: 36, padding: "0 12px", flexShrink: 0 }}
-            onClick={() => setPairing(null)}
-          >
+          <button type="button" className="btn-ghost" style={{ height: 36, padding: "0 12px", flexShrink: 0 }} onClick={() => setPairing(null)}>
             {tr("元の順に戻す")}
           </button>
         </div>
@@ -1291,11 +1054,7 @@ export default function MenuScan({
         const wished = !!wishOf(b);
         return (
           <Fragment key={i}>
-            {n > 0 && n === hits && (
-              <p className={styles.lead}>
-                {tr("ここから下は{0}が入っていないもの", mustWords)}
-              </p>
-            )}
+            {n > 0 && n === hits && <p className={styles.lead}>{tr("ここから下は{0}が入っていないもの", mustWords)}</p>}
             <article
               data-card={b.name}
               className={`${styles.drink} ${i === best ? styles.best : ""} ${open ? "" : styles.closed} ${fresh.includes(b.name) ? "reveal-item" : ""}`}
@@ -1324,33 +1083,19 @@ export default function MenuScan({
                   <span>{trJoin(picks[i].reasons, "、")}</span>
                 </div>
               )}
-              <button
-                type="button"
-                className={styles.cardHead}
-                aria-expanded={open}
-                onClick={() => (open ? setOpenCard(null) : openCardAt(b.name))}
-              >
+              <button type="button" className={styles.cardHead} aria-expanded={open} onClick={() => (open ? setOpenCard(null) : openCardAt(b.name))}>
                 <span className={styles.cardTop}>
                   <span className={styles.name}>
                     {/* 読みにくい銘柄に読みがな（42） */}
                     {getLang() === "ja" && b.reading && <small className="name-reading">{b.reading}</small>}
                     {trv(b.name)}
                   </span>
-                  {open && b.abv != null && (
-                    <span className={styles.abv}>
-                      {abvText(b.abv, b.abvStated)}
-                    </span>
-                  )}
+                  {open && b.abv != null && <span className={styles.abv}>{abvText(b.abv, b.abvStated)}</span>}
                 </span>
               </button>
               {!open && (
-                <button
-                  type="button"
-                  className={styles.oneLine}
-                  onClick={() => openCardAt(b.name)}
-                >
-                  {match &&
-                    `${"●".repeat(match.score)}${"○".repeat(5 - match.score)} `}
+                <button type="button" className={styles.oneLine} onClick={() => openCardAt(b.name)}>
+                  {match && `${"●".repeat(match.score)}${"○".repeat(5 - match.score)} `}
                   {b.abv != null && `${abvText(b.abv, b.abvStated)}・`}
                   {tasteWords(b)}｜{trJoin([b.kind, b.style]) || tr("種類不明")}
                 </button>
@@ -1360,10 +1105,7 @@ export default function MenuScan({
                   {match && (
                     <p className={styles.match}>
                       <strong>
-                        {pairing?.mood
-                          ? tr("気分に合う度")
-                          : tr("{0}との相性", pairing?.dish)}{" "}
-                        {scoreWord(match.score)}{" "}
+                        {pairing?.mood ? tr("気分に合う度") : tr("{0}との相性", pairing?.dish)} {scoreWord(match.score)}{" "}
                         {"●".repeat(match.score) + "○".repeat(5 - match.score)}
                       </strong>
                       {trv(match.reason)}
@@ -1385,11 +1127,7 @@ export default function MenuScan({
                       ))}
                   </div>
                   <TasteBars taste={b.taste} />
-                  {b.menuNote && (
-                    <p className="muted">
-                      {tr("メニューの説明：{0}", b.menuNote)}
-                    </p>
-                  )}
+                  {b.menuNote && <p className="muted">{tr("メニューの説明：{0}", b.menuNote)}</p>}
                   <p className={styles.text}>{trv(b.explanation)}</p>
                   <p className={styles.text}>
                     <strong>{tr("おすすめの飲み方：")}</strong>
@@ -1403,18 +1141,11 @@ export default function MenuScan({
                   )}
                   {localHit?.name === b.name && (
                     <p className={styles.localNote}>
-                      {tr(
-                        "{0}から出しました（AI は使っていません）",
-                        localHit.how,
-                      )}
+                      {tr("{0}から出しました（AI は使っていません）", localHit.how)}
                       {passcode && (
                         <>
                           {" "}
-                          <button
-                            type="button"
-                            className={styles.relook}
-                            onClick={() => lookup(true, localHit.query)}
-                          >
+                          <button type="button" className={styles.relook} onClick={() => lookup(true, localHit.query)}>
                             {tr("AI で調べ直す")}
                           </button>
                         </>
@@ -1434,11 +1165,7 @@ export default function MenuScan({
                         button={tr("さっきの料理メニューから選ぶ")}
                         ranks={dishRanks[b.name]}
                         busy={dishRanking === b.name}
-                        error={
-                          dishRankError?.name === b.name
-                            ? dishRankError.text
-                            : ""
-                        }
+                        error={dishRankError?.name === b.name ? dishRankError.text : ""}
                         onAsk={() => rankDishes(b)}
                       />
                     ) : (
@@ -1447,11 +1174,7 @@ export default function MenuScan({
                         button={tr("合う料理を探す")}
                         ranks={dishIdeas[b.name]}
                         busy={dishRanking === b.name}
-                        error={
-                          dishRankError?.name === b.name
-                            ? dishRankError.text
-                            : ""
-                        }
+                        error={dishRankError?.name === b.name ? dishRankError.text : ""}
                         onAsk={() => rankDishes(b)}
                       />
                     )}
@@ -1466,9 +1189,7 @@ export default function MenuScan({
                           </span>
                           <span className={styles.moreText}>
                             <span className={styles.moreTitle}>{tr("飲み方で比べる")}</span>
-                            <span className={styles.moreSub}>
-                              {trJoin(serveRows(b).map((m) => m.serve))}
-                            </span>
+                            <span className={styles.moreSub}>{trJoin(serveRows(b).map((m) => m.serve))}</span>
                           </span>
                         </summary>
                         {/* 飲み方・味の違い・その飲み方のおおよその度数（割るものは割合も） */}
@@ -1483,16 +1204,12 @@ export default function MenuScan({
                               <dd className={styles.serveAbv}>
                                 {m.abv && <b>{!m.abv.ratio && b.abvStated ? `${abvRound(m.abv.abv)}%` : tr("約{0}%", abvRound(m.abv.abv))}</b>}
                               </dd>
-                              <dd className={styles.serveNote}>
-                                {m.note ? trv(m.note) : <span className="muted">{tr("ソーダで割ってすっきり")}</span>}
-                              </dd>
+                              <dd className={styles.serveNote}>{m.note ? trv(m.note) : <span className="muted">{tr("ソーダで割ってすっきり")}</span>}</dd>
                             </div>
                           ))}
                         </dl>
                         {b.abv != null && serveRows(b).some((m) => m.abv?.ratio) && (
-                          <p className={styles.serveFoot}>
-                            {tr("度数は {0} をもとにした目安です", abvText(b.abv, b.abvStated))}
-                          </p>
+                          <p className={styles.serveFoot}>{tr("度数は {0} をもとにした目安です", abvText(b.abv, b.abvStated))}</p>
                         )}
                       </details>
                     )}
@@ -1507,11 +1224,7 @@ export default function MenuScan({
                         </span>
                       </summary>
                       <div className={styles.askBody}>
-                        <AskAI
-                          bare
-                          context={drinkContext(b)}
-                          suggestions={ASK_SUGGESTIONS}
-                        />
+                        <AskAI bare context={drinkContext(b)} suggestions={ASK_SUGGESTIONS} />
                       </div>
                     </details>
                   </div>
@@ -1519,32 +1232,19 @@ export default function MenuScan({
               )}
               {/* 閉じたカードは押すと開くことが分かるよう、右上の角に「⌄」を付ける（開くとそこが ✕ になる） */}
               {!open && (
-                <button
-                  type="button"
-                  className={styles.chev}
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  onClick={() => openCardAt(b.name)}
-                >
+                <button type="button" className={styles.chev} tabIndex={-1} aria-hidden="true" onClick={() => openCardAt(b.name)}>
                   ⌄
                 </button>
               )}
               <div className={styles.actions}>
-                <button
-                  type="button"
-                  className={`${styles.act} ${styles.actMain}`}
-                  style={open ? { flex: 1 } : undefined}
-                  onClick={() => onPick(b)}
-                >
+                <button type="button" className={`${styles.act} ${styles.actMain}`} style={open ? { flex: 1 } : undefined} onClick={() => onPick(b)}>
                   {tr("＋記録")}
                 </button>
                 <button
                   type="button"
                   className={styles.act}
                   aria-pressed={wished}
-                  aria-label={
-                    wished ? tr("気になるから外す") : tr("気になる（次に試す）")
-                  }
+                  aria-label={wished ? tr("気になるから外す") : tr("気になる（次に試す）")}
                   onClick={() => toggleWish(b)}
                 >
                   {wished ? "★" : "☆"}
@@ -1557,9 +1257,7 @@ export default function MenuScan({
                     aria-label={tr("家のお酒に登録（買って家にあるお酒）")}
                     onClick={() => toggleBottle(b)}
                   >
-                    {bottled[b.name]
-                      ? tr("家のお酒 ✓")
-                      : tr("＋家のお酒")}
+                    {bottled[b.name] ? tr("家のお酒 ✓") : tr("＋家のお酒")}
                   </button>
                 )}
               </div>

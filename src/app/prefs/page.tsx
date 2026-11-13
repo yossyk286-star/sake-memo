@@ -7,7 +7,6 @@ import { ALL_SERVES, FLAVORS, KINDS, STYLES_BY_KIND } from "@/lib/glossary";
 import { EMPTY_PREFS, loadPrefs, savePrefs, type MyPrefs } from "@/lib/prefs";
 import { tr, trv } from "@/lib/i18n";
 
-
 /** 味の寄り方。1〜5 を選び、もう一度押すと「こだわらない」に戻る */
 function LeanRow({
   label,
@@ -28,13 +27,7 @@ function LeanRow({
       <div className="rating-scale">
         <div className="rating-btns">
           {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              type="button"
-              key={n}
-              className="chip"
-              aria-pressed={value === n}
-              onClick={() => onChange(value === n ? null : n)}
-            >
+            <button type="button" key={n} className="chip" aria-pressed={value === n} onClick={() => onChange(value === n ? null : n)}>
               {trv(n)}
             </button>
           ))}
@@ -141,11 +134,7 @@ export default function PrefsPage() {
           ))}
           <fieldset className="field">
             <legend className="label">{tr("苦手な種類")}</legend>
-            <MultiChips
-              options={KINDS.filter((k) => !prefs.kinds.includes(k))}
-              value={prefs.avoidKinds}
-              onChange={(v) => update("avoidKinds", v)}
-            />
+            <MultiChips options={KINDS.filter((k) => !prefs.kinds.includes(k))} value={prefs.avoidKinds} onChange={(v) => update("avoidKinds", v)} />
           </fieldset>
           <fieldset className="field">
             <legend className="label">{tr("好きな飲み方")}</legend>
@@ -153,13 +142,7 @@ export default function PrefsPage() {
           </fieldset>
           <fieldset className="field">
             <legend className="label">{tr("好きな産地")}</legend>
-            <FlavorPicker
-              id="p-origin"
-              base={[]}
-              placeholder={tr("例：新潟、山口、フランス")}
-              value={prefs.origins}
-              onChange={(v) => update("origins", v)}
-            />
+            <FlavorPicker id="p-origin" base={[]} placeholder={tr("例：新潟、山口、フランス")} value={prefs.origins} onChange={(v) => update("origins", v)} />
           </fieldset>
           <fieldset className="field">
             <legend className="label">{tr("好きな味の寄り方（こだわらなければ選ばない）")}</legend>

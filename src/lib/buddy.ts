@@ -60,19 +60,11 @@ const MILESTONES = [10, 30, 50, 100, 200, 300, 500, 1000];
 function kindLines(r: TastingRecord): string[] {
   const serve = r.serve ?? "";
   if (/燗/.test(serve))
-    return [
-      "燗はほっとするね。ぼくもあったまりたい",
-      "湯気までおいしそう。熱燗、いいなあ",
-      "燗をつけると香りがふくらむんだって。ぬる燗？熱燗？",
-    ];
+    return ["燗はほっとするね。ぼくもあったまりたい", "湯気までおいしそう。熱燗、いいなあ", "燗をつけると香りがふくらむんだって。ぬる燗？熱燗？"];
   if (serve === "冷酒") return ["冷酒、のどごしが気持ちいいよね", "冷やすとすっきりキレよく感じるんだって"];
   if (serve === "お湯割り") return ["お湯割り、ほっとするよね", "湯気といっしょに香りが立つね"];
   if (/ロック|水割り|ハイボール|ソーダ/.test(serve) && r.kind !== "日本酒")
-    return [
-      "氷がカランっていう音、好きなんだ",
-      "割ると香りが開くんだって。どうだった？",
-      "氷が溶けていくと味も変わるよね。それも楽しみ",
-    ];
+    return ["氷がカランっていう音、好きなんだ", "割ると香りが開くんだって。どうだった？", "氷が溶けていくと味も変わるよね。それも楽しみ"];
   switch (r.kind) {
     case "日本酒":
       return [
@@ -104,11 +96,7 @@ function kindLines(r: TastingRecord): string[] {
         "水を数滴たらすと、香りが開くこともあるよ",
       ];
     case "焼酎":
-      return [
-        "焼酎は割り方で表情が変わるよね",
-        "芋？麦？原料もメモしておくと楽しいよ",
-        "お湯割り、水割り、ロック。どれが好き？",
-      ];
+      return ["焼酎は割り方で表情が変わるよね", "芋？麦？原料もメモしておくと楽しいよ", "お湯割り、水割り、ロック。どれが好き？"];
     case "その他":
       return ["カクテルかな？レシピを覚えておくと家でも作れるよ", "めずらしいお酒だね。どんな味だった？"];
     default:
@@ -146,12 +134,7 @@ function seasonLines(now: Date): string[] {
  * 保存した記録へのひとこと。all はこの記録も含めたすべての記録
  * 飲みすぎが心配な日は、ほかより先に心配する
  */
-export function buddyLine(
-  r: TastingRecord,
-  all: TastingRecord[],
-  opts: { fromWish?: boolean } = {},
-  now = new Date(),
-): BuddyLine {
+export function buddyLine(r: TastingRecord, all: TastingRecord[], opts: { fromWish?: boolean } = {}, now = new Date()): BuddyLine {
   const others = all.filter((x) => x.id !== r.id);
   const isToday = r.date === localDate(now);
   const sameDay = all.filter((x) => x.date === r.date).length;
@@ -206,10 +189,7 @@ export function buddyLine(
     return {
       mood: "wow",
       text: newPlace
-        ? pick([
-            tr("ついに飲めたね！{0}のスタンプも押しといたよ", place),
-            tr("気になってたお酒、ついに！{0}のスタンプも増えたよ", place),
-          ])
+        ? pick([tr("ついに飲めたね！{0}のスタンプも押しといたよ", place), tr("気になってたお酒、ついに！{0}のスタンプも増えたよ", place)])
         : r.name
           ? pick([
               tr("ついに飲めたね！{0}は気になるリストから外しておいたよ", r.name),
@@ -231,11 +211,7 @@ export function buddyLine(
   if (r.kind && !others.some((x) => x.kind === r.kind))
     return {
       mood: "wow",
-      text: pick([
-        tr("はじめての{0}！新しい扉だね", r.kind),
-        tr("{0}デビューだね！どうだった？", r.kind),
-        tr("{0}ははじめて！好みの幅が広がるね", r.kind),
-      ]),
+      text: pick([tr("はじめての{0}！新しい扉だね", r.kind), tr("{0}デビューだね！どうだった？", r.kind), tr("{0}ははじめて！好みの幅が広がるね", r.kind)]),
     };
 
   const name = r.name.trim();
@@ -246,10 +222,7 @@ export function buddyLine(
     if (r.overall > prev.overall)
       return {
         mood: "happy",
-        text: pick([
-          tr("{0}は{1}回目。前より好きになったみたいだね", name, n),
-          tr("{0}、{1}回目でもっと好きに。相性がいいのかも", name, n),
-        ]),
+        text: pick([tr("{0}は{1}回目。前より好きになったみたいだね", name, n), tr("{0}、{1}回目でもっと好きに。相性がいいのかも", name, n)]),
       };
     if (r.overall < prev.overall)
       return {
@@ -287,28 +260,20 @@ export function buddyLine(
       ]),
     };
 
-  if (isToday && sameDay === 3)
-    return { mood: "normal", text: pick(["3杯目だね。お水もいっしょに飲もうね", "3杯目だね。おつまみもちゃんと食べてる？"]) };
+  if (isToday && sameDay === 3) return { mood: "normal", text: pick(["3杯目だね。お水もいっしょに飲もうね", "3杯目だね。おつまみもちゃんと食べてる？"]) };
 
   const streak = streakDays(new Set(all.map((x) => x.date)), r.date);
   if (isToday && streak >= 3)
     return {
       mood: "normal",
-      text: pick([
-        tr("{0}日続けて記録してるね！休肝日もはさんでね", streak),
-        tr("{0}日連続だね！たまにはお酒をお休みする日もつくろう", streak),
-      ]),
+      text: pick([tr("{0}日続けて記録してるね！休肝日もはさんでね", streak), tr("{0}日連続だね！たまにはお酒をお休みする日もつくろう", streak)]),
     };
 
   const hour = now.getHours();
   if (isToday && (hour >= 23 || hour < 4))
     return {
       mood: "normal",
-      text: pick([
-        "夜ふかしさんだね。あったかくして寝てね",
-        "もうこんな時間！お水飲んで、ゆっくり寝てね",
-        "夜おそくまでおつかれさま。明日に残らないといいね",
-      ]),
+      text: pick(["夜ふかしさんだね。あったかくして寝てね", "もうこんな時間！お水飲んで、ゆっくり寝てね", "夜おそくまでおつかれさま。明日に残らないといいね"]),
     };
 
   const lines = kindLines(r);
@@ -330,8 +295,7 @@ function loadSeen(): Seen {
   }
 }
 
-const daysBetween = (a: string, b: string) =>
-  Math.round((new Date(`${b}T12:00:00`).getTime() - new Date(`${a}T12:00:00`).getTime()) / 86400000);
+const daysBetween = (a: string, b: string) => Math.round((new Date(`${b}T12:00:00`).getTime() - new Date(`${a}T12:00:00`).getTime()) / 86400000);
 
 /**
  * アプリを開いたときのひとこと。出すぎないよう、どれも間をあけて1回だけ

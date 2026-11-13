@@ -91,7 +91,10 @@ export default function TasteMap({ records }: { records: TastingRecord[] }) {
       )}
       {center && (
         <p style={{ margin: 0, fontSize: 15 }}>
-          {genre ? tr("{0}で", genre) : ""}{tr("高く評価したお酒は")}<strong>{tr("{0}・{1}", SWEET_WORDS[center.sweet], BODY_WORDS[center.body])}</strong>{tr("のあたりに集まっています。")}
+          {genre ? tr("{0}で", genre) : ""}
+          {tr("高く評価したお酒は")}
+          <strong>{tr("{0}・{1}", SWEET_WORDS[center.sweet], BODY_WORDS[center.body])}</strong>
+          {tr("のあたりに集まっています。")}
         </p>
       )}
       <div className="taste-map">

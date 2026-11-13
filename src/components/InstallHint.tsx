@@ -31,8 +31,7 @@ export default function InstallHint() {
 
   useEffect(() => {
     if (path !== "/") return;
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
     let seen = true;
     try {
       seen = !!localStorage.getItem(KEY);

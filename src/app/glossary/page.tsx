@@ -151,7 +151,14 @@ export default function GlossaryPage() {
     saveMyTerms(next);
     setJustAdded(t.term);
     setQuery(t.term);
-    announceBuddy({ mood: "wow", text: pick([tr("「{0}」を覚えたね。ひとつ詳しくなった！", t.term), tr("「{0}」をメモしたよ。お店で見かけたら思い出してね", t.term), tr("「{0}」、覚えた！お酒の話がもっと楽しくなるね", t.term)]) });
+    announceBuddy({
+      mood: "wow",
+      text: pick([
+        tr("「{0}」を覚えたね。ひとつ詳しくなった！", t.term),
+        tr("「{0}」をメモしたよ。お店で見かけたら思い出してね", t.term),
+        tr("「{0}」、覚えた！お酒の話がもっと楽しくなるね", t.term),
+      ]),
+    });
     setFilter("すべて");
   }
 
@@ -272,18 +279,18 @@ export default function GlossaryPage() {
                     {t.mine && <span className="muted">{tr(t.category)}</span>}
                   </summary>
                   <div className="fold-body">
-                  <p className="term-desc">{trv(t.description)}</p>
-                  <MyDrinks term={t.term} records={records} />
-                  {t.mine && (
-                    <button
-                      type="button"
-                      className="btn-ghost"
-                      style={{ height: 32, alignSelf: "flex-end", padding: "0 12px", fontSize: 13 }}
-                      onClick={() => remove(t.term)}
-                    >
-                      {tr("辞典から外す")}
-                    </button>
-                  )}
+                    <p className="term-desc">{trv(t.description)}</p>
+                    <MyDrinks term={t.term} records={records} />
+                    {t.mine && (
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        style={{ height: 32, alignSelf: "flex-end", padding: "0 12px", fontSize: 13 }}
+                        onClick={() => remove(t.term)}
+                      >
+                        {tr("辞典から外す")}
+                      </button>
+                    )}
                   </div>
                 </details>
               ))}

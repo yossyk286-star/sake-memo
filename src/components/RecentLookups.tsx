@@ -6,13 +6,7 @@ import type { ScannedDrink } from "@/lib/menuScan";
 import { recentSaved } from "@/lib/savedLookups";
 
 /** 調べる画面の下に、前に調べたお酒を3つ。押すと今日の一覧に入る（AI は呼ばない） */
-export default function RecentLookups({
-  onOpen,
-  onRecord,
-}: {
-  onOpen: (d: ScannedDrink) => void;
-  onRecord: (d: ScannedDrink) => void;
-}) {
+export default function RecentLookups({ onOpen, onRecord }: { onOpen: (d: ScannedDrink) => void; onRecord: (d: ScannedDrink) => void }) {
   const [items, setItems] = useState<ScannedDrink[]>([]);
   useEffect(() => setItems(recentSaved(3)), []);
   if (items.length === 0) return null;

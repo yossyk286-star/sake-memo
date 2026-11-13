@@ -17,7 +17,7 @@ export default function SmoothDetails() {
       const d = summary?.parentElement;
       if (!summary || !(d instanceof HTMLDetailsElement) || d.querySelector(":scope > summary") !== summary) return;
       // summary の中のボタンやリンクは、それぞれの動きに任せる
-      if (target !== summary && target?.closest("a, button, input, select, textarea, label") ) return;
+      if (target !== summary && target?.closest("a, button, input, select, textarea, label")) return;
       if (matchMedia("(prefers-reduced-motion: reduce)").matches || typeof d.animate !== "function") return;
       e.preventDefault();
 
@@ -37,10 +37,7 @@ export default function SmoothDetails() {
         to = d.getBoundingClientRect().height;
       }
       d.style.overflow = "hidden";
-      const a = d.animate(
-        { height: [`${from}px`, `${to}px`] },
-        { duration: closing ? 220 : 280, easing: "cubic-bezier(0.3, 0.8, 0.3, 1)" },
-      );
+      const a = d.animate({ height: [`${from}px`, `${to}px`] }, { duration: closing ? 220 : 280, easing: "cubic-bezier(0.3, 0.8, 0.3, 1)" });
       running.set(d, a);
       const done = () => {
         if (running.get(d) !== a) return;

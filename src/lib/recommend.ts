@@ -47,9 +47,7 @@ export function scoreDrinks(drinks: ScannedDrink[], records: TastingRecord[], pr
   const useRecords = records.length >= MIN_RECORDS;
   if (!useRecords && !hasPrefs(prefs)) return null;
   const base = useRecords ? average(records.map((r) => r.overall)) : 0;
-  const custom = [...new Set([...records.flatMap((r) => r.flavors), ...prefs.likes, ...prefs.dislikes])].filter(
-    (f) => !(f in FLAVOR_WORDS),
-  );
+  const custom = [...new Set([...records.flatMap((r) => r.flavors), ...prefs.likes, ...prefs.dislikes])].filter((f) => !(f in FLAVOR_WORDS));
 
   // 種類やタイプが同じ記録の平均と、全体の平均の差。件数が少ないうちは控えめに効かせる
   function lean(match: (r: TastingRecord) => boolean) {
@@ -119,9 +117,7 @@ export function scoreDrinks(drinks: ScannedDrink[], records: TastingRecord[], pr
     }
 
     // 高く評価した記録で感じた味が、メニューの説明にどれだけあるか（登録した好みと重なる分は数えない）
-    const liked = flavors.filter(
-      (f) => !prefLiked.includes(f) && records.some((r) => r.overall >= 4 && r.flavors.includes(f)),
-    );
+    const liked = flavors.filter((f) => !prefLiked.includes(f) && records.some((r) => r.overall >= 4 && r.flavors.includes(f)));
     const disliked = flavors.filter((f) => records.some((r) => r.overall <= 2 && r.flavors.includes(f)));
     score += 0.4 * liked.length - 0.4 * disliked.length;
     if (liked.length > 0) reasons.push(tr("高評価のときの味（{0}）が入っている", liked.join("・")));

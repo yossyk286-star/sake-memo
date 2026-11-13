@@ -41,11 +41,27 @@ function Compare({ name, card, records }: { name: string; card: NonNullable<Retu
         ) : (
           <span className="match-label">{tr("{0} さんの好み", who)}</span>
         )}
-        <RadarChart axes={AXES} series={result ? [{ label: "あなた", values: mine }, { label: who, values: card.t }] : [{ label: who, values: card.t }]} />
+        <RadarChart
+          axes={AXES}
+          series={
+            result
+              ? [
+                  { label: "あなた", values: mine },
+                  { label: who, values: card.t },
+                ]
+              : [{ label: who, values: card.t }]
+          }
+        />
         {result && (
           <div className="match-legend">
-            <span><i style={{ background: "var(--accent)" }} />{tr("あなた")}</span>
-            <span><i style={{ background: "var(--compare)" }} />{who}</span>
+            <span>
+              <i style={{ background: "var(--accent)" }} />
+              {tr("あなた")}
+            </span>
+            <span>
+              <i style={{ background: "var(--compare)" }} />
+              {who}
+            </span>
           </div>
         )}
         {result && (

@@ -27,7 +27,14 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
             <div style={{ width: `${Math.round(title.progress * 100)}%` }} />
           </div>
           <span className="muted">
-            {title.next ? tr(title.next.left <= 2 ? "「{0}」まで あと{1}{2}。もう目の前！" : "「{0}」まで あと{1}{2}。のんびりいこう", title.next.name, title.next.left, WORDS.cup) : tr(TOP_LINES.title)}
+            {title.next
+              ? tr(
+                  title.next.left <= 2 ? "「{0}」まで あと{1}{2}。もう目の前！" : "「{0}」まで あと{1}{2}。のんびりいこう",
+                  title.next.name,
+                  title.next.left,
+                  WORDS.cup,
+                )
+              : tr(TOP_LINES.title)}
           </span>
         </div>
       </div>
@@ -43,7 +50,10 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
       <details className="badges">
         <summary>
           <span>
-            {tr("あつめたしるし")} <span className="muted">{done.length} / {badges.length}</span>
+            {tr("あつめたしるし")}{" "}
+            <span className="muted">
+              {done.length} / {badges.length}
+            </span>
           </span>
           <span className="badge-peek" aria-hidden="true">
             {done.slice(-4).map((b) => (
@@ -57,7 +67,11 @@ export default function TitleCard({ records }: { records: TastingRecord[] }) {
               <BadgeMedal badge={b} size={58} />
               <strong>{tr(b.label)}</strong>
               <span className="muted">
-                {!b.next ? tr(TOP_LINES.badge) : !b.done ? tr(b.next.how, b.next.need, b.next.arg) : tr(b.next.left === 1 ? "あと{0}{1}！" : "次まで あと{0}{1}", b.next.left, tr(b.next.unit))}
+                {!b.next
+                  ? tr(TOP_LINES.badge)
+                  : !b.done
+                    ? tr(b.next.how, b.next.need, b.next.arg)
+                    : tr(b.next.left === 1 ? "あと{0}{1}！" : "次まで あと{0}{1}", b.next.left, tr(b.next.unit))}
               </span>
             </li>
           ))}

@@ -53,7 +53,11 @@ export default function PasscodeField({
       </p>
       {open && (
         <div id={id} className="pass-body">
-          <p>{tr("写真や名前を調べるのに AI を使っていて、使うたびにお金がかかるので、合言葉を知っている人だけにしています。このアプリを教えてくれた人に聞いてみてください。")}</p>
+          <p>
+            {tr(
+              "写真や名前を調べるのに AI を使っていて、使うたびにお金がかかるので、合言葉を知っている人だけにしています。このアプリを教えてくれた人に聞いてみてください。",
+            )}
+          </p>
           <label className="label" htmlFor={`${id}-in`}>
             {tr("合言葉")}
           </label>

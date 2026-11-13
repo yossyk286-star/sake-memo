@@ -16,18 +16,20 @@ const JapanMapSheet = dynamic(() => import("@/components/JapanMapSheet"), { ssr:
 
 /** 丸いスタンプに1行で入らない長い名前は、言葉の切れ目（\u200b）でだけ折り返す */
 const STAMP_BREAKS: Record<string, string> = {
-  "オーストリア": "オースト\u200bリア",
-  "スコットランド": "スコット\u200bランド",
-  "アイルランド": "アイル\u200bランド",
-  "アルゼンチン": "アルゼン\u200bチン",
-  "オーストラリア": "オースト\u200bラリア",
-  "ニュージーランド": "ニュー\u200bジーランド",
-  "南アフリカ": "南\u200bアフリカ",
+  オーストリア: "オースト\u200bリア",
+  スコットランド: "スコット\u200bランド",
+  アイルランド: "アイル\u200bランド",
+  アルゼンチン: "アルゼン\u200bチン",
+  オーストラリア: "オースト\u200bラリア",
+  ニュージーランド: "ニュー\u200bジーランド",
+  南アフリカ: "南\u200bアフリカ",
 };
 
 function StampName({ name }: { name: string }) {
   return (
-    <span className={(getLang() === "en" ? tr(name).length >= 7 : name.length >= 5) ? "stamp-name stamp-name-long" : "stamp-name"}>{getLang() === "en" ? tr(name) : (STAMP_BREAKS[name] ?? name)}</span>
+    <span className={(getLang() === "en" ? tr(name).length >= 7 : name.length >= 5) ? "stamp-name stamp-name-long" : "stamp-name"}>
+      {getLang() === "en" ? tr(name) : (STAMP_BREAKS[name] ?? name)}
+    </span>
   );
 }
 
@@ -64,9 +66,7 @@ function StampCell({
       onClick={onToggle}
     >
       <StampName name={name} />
-      <span className="stamp-meta">
-        {tr("{0}杯・最高★{1}", stamp.count, stamp.best)}
-      </span>
+      <span className="stamp-meta">{tr("{0}杯・最高★{1}", stamp.count, stamp.best)}</span>
     </button>
   );
 }
@@ -153,15 +153,12 @@ function DiaryDay({ entry, nth, pop }: { entry: DiaryEntry; nth: number; pop?: b
       </span>
       <Link href={`/record?id=${r.id}`} className="diary-body">
         <span className="diary-date">
-          {tr("{0}月{1}日", m, d)}<span className="muted">{tr("・{0}か所目", nth)}</span>
+          {tr("{0}月{1}日", m, d)}
+          <span className="muted">{tr("・{0}か所目", nth)}</span>
         </span>
-        <span className="diary-title">
-          {tr("{0}で {1}", entry.place, drinkTitle(r))}
-        </span>
+        <span className="diary-title">{tr("{0}で {1}", entry.place, drinkTitle(r))}</span>
         {note && <span className={note.quote ? "diary-note quote" : "diary-note"}>{trv(note.text)}</span>}
-        <span className="muted diary-sub">
-          {trJoin([r.shop, r.kind, entry.count > 1 ? tr("ここで{0}杯", entry.count) : null])}
-        </span>
+        <span className="muted diary-sub">{trJoin([r.shop, r.kind, entry.count > 1 ? tr("ここで{0}杯", entry.count) : null])}</span>
       </Link>
     </li>
   );
@@ -205,9 +202,7 @@ function Diary({ entries, popOf }: { entries: DiaryEntry[]; popOf: (name: string
         <section key={y} className="card" style={{ gap: 4 }}>
           <h2 style={{ fontSize: 15 }}>{tr("{0}年", y)}</h2>
           <ol className="diary">
-            {entries.map((e, i) =>
-              e.first.date.startsWith(y) ? <DiaryDay key={e.place} entry={e} nth={i + 1} pop={popOf(e.place)} /> : null,
-            )}
+            {entries.map((e, i) => (e.first.date.startsWith(y) ? <DiaryDay key={e.place} entry={e} nth={i + 1} pop={popOf(e.place)} /> : null))}
           </ol>
         </section>
       ))}
@@ -281,7 +276,13 @@ export default function StampsPage() {
         <BackLink fallback="/taste" />
         <h1>{tr("産地スタンプ帳")}</h1>
         {records && (
-          <button type="button" className="header-pill map-pill" style={{ gridColumn: 3, justifySelf: "end" }} aria-label={tr("日本地図で見る")} onClick={() => setMapOpen(true)}>
+          <button
+            type="button"
+            className="header-pill map-pill"
+            style={{ gridColumn: 3, justifySelf: "end" }}
+            aria-label={tr("日本地図で見る")}
+            onClick={() => setMapOpen(true)}
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5z" />
               <path d="M9 4v13.5M15 6.5V20" />
@@ -292,10 +293,8 @@ export default function StampsPage() {
       </header>
 
       <p className="lead">
-        {tr("47都道府県と海外{0}カ国のうち", total - 47)}{" "}<strong>{tr("{0}か所", stamps.size)}</strong>{" "}{tr("制覇。")}
-        {view === "スタンプ帳"
-          ? tr("色の付いた産地を押すと、飲んだお酒が見られます。")
-          : tr("初めて飲んだ日の順に、旅のように並べました。")}
+        {tr("47都道府県と海外{0}カ国のうち", total - 47)} <strong>{tr("{0}か所", stamps.size)}</strong> {tr("制覇。")}
+        {view === "スタンプ帳" ? tr("色の付いた産地を押すと、飲んだお酒が見られます。") : tr("初めて飲んだ日の順に、旅のように並べました。")}
       </p>
 
       <div className="mode-switch stamps-switch" role="group" aria-label={tr("見かた")}>
@@ -316,47 +315,39 @@ export default function StampsPage() {
       {/* 右下の地図ボタンに最後のカードが隠れないように */}
       <main key={view} className={`content ${swap}`} style={{ paddingBottom: 96 }}>
         {view === "旅日記" && records && <Diary entries={diary} popOf={popOf} />}
-        {view === "スタンプ帳" && REGIONS.map((r) => {
-          const done = r.places.filter((c) => stamps.has(c.name)).length;
-          return (
-            <section key={r.region} className="card" style={{ gap: 12 }}>
-              <div className="card-top">
-                <h2 style={{ fontSize: 15 }}>{trv(r.region)}</h2>
-                <span className="muted">
-                  {trv(done)} / {trv(r.places.length)}
-                </span>
-              </div>
-              <div className="stamp-grid">
-                {r.places.map((c) => (
-                  <StampCell
-                    key={c.name}
-                    name={c.name}
-                    stamp={stamps.get(c.name)}
-                    open={opened === c.name}
-                    onToggle={() => toggle(c.name)}
-                    pop={popOf(c.name)}
-                  />
-                ))}
-              </div>
-              {opened && r.places.some((c) => c.name === opened) && stamps.get(opened) && (
-                <StampDetail name={opened} stamp={stamps.get(opened)!} />
-              )}
-            </section>
-          );
-        })}
+        {view === "スタンプ帳" &&
+          REGIONS.map((r) => {
+            const done = r.places.filter((c) => stamps.has(c.name)).length;
+            return (
+              <section key={r.region} className="card" style={{ gap: 12 }}>
+                <div className="card-top">
+                  <h2 style={{ fontSize: 15 }}>{trv(r.region)}</h2>
+                  <span className="muted">
+                    {trv(done)} / {trv(r.places.length)}
+                  </span>
+                </div>
+                <div className="stamp-grid">
+                  {r.places.map((c) => (
+                    <StampCell
+                      key={c.name}
+                      name={c.name}
+                      stamp={stamps.get(c.name)}
+                      open={opened === c.name}
+                      onToggle={() => toggle(c.name)}
+                      pop={popOf(c.name)}
+                    />
+                  ))}
+                </div>
+                {opened && r.places.some((c) => c.name === opened) && stamps.get(opened) && <StampDetail name={opened} stamp={stamps.get(opened)!} />}
+              </section>
+            );
+          })}
         {view === "スタンプ帳" && others.size > 0 && (
           <section className="card" style={{ gap: 12 }}>
             <h2 style={{ fontSize: 15 }}>{tr("そのほかの産地")}</h2>
             <div className="stamp-grid">
               {[...others].map(([name, s]) => (
-                <StampCell
-                  key={name}
-                  name={name}
-                  stamp={s}
-                  open={opened === name}
-                  onToggle={() => toggle(name)}
-                  pop={popOf(name)}
-                />
+                <StampCell key={name} name={name} stamp={s} open={opened === name} onToggle={() => toggle(name)} pop={popOf(name)} />
               ))}
             </div>
             {opened && others.get(opened) && <StampDetail name={opened} stamp={others.get(opened)!} />}

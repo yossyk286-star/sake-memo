@@ -54,10 +54,12 @@ export async function initLang(next: Lang) {
  */
 export function tr(ja: string, ...args: (string | number | null | undefined)[]): string {
   const s = lang === "en" ? (dict[ja] ?? joined(ja)) : ja;
-  return args.length ? s.replace(/\{(\d+)\}/g, (_, i: string) => {
-    const v = args[Number(i)];
-    return typeof v === "string" ? tr(v) : String(v ?? "");
-  }) : s;
+  return args.length
+    ? s.replace(/\{(\d+)\}/g, (_, i: string) => {
+        const v = args[Number(i)];
+        return typeof v === "string" ? tr(v) : String(v ?? "");
+      })
+    : s;
 }
 
 /** 訳の無い「日本酒・純米」は、区切りごとに訳せればつなげ直す（「Sake · Junmai」） */
@@ -66,8 +68,7 @@ function joined(ja: string): string {
     if (!ja.includes(sep)) continue;
     const parts = ja.split(sep);
     // 「Natural」のように、もともと英語の言葉はそのまま使う
-    if (parts.every((p) => dict[p] !== undefined || /^[\x20-\x7e]+$/.test(p)))
-      return parts.map((p) => dict[p] ?? p).join(dict[sep] ?? sep);
+    if (parts.every((p) => dict[p] !== undefined || /^[\x20-\x7e]+$/.test(p))) return parts.map((p) => dict[p] ?? p).join(dict[sep] ?? sep);
   }
   return ja;
 }

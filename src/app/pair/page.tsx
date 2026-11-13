@@ -156,7 +156,13 @@ export default function PairPage() {
     const home = matchBottles(bottles, pairing);
     setResult({ query, pairing, from, records: mine, bottles: home });
     if (home[0]) {
-      announceBuddy({ text: pick([tr("家にある「{0}」、{1}に合いそう！", home[0].item.name, pairing.dish), tr("{1}なら、家の「{0}」がよさそうだよ", home[0].item.name, pairing.dish)]), mood: "happy" });
+      announceBuddy({
+        text: pick([
+          tr("家にある「{0}」、{1}に合いそう！", home[0].item.name, pairing.dish),
+          tr("{1}なら、家の「{0}」がよさそうだよ", home[0].item.name, pairing.dish),
+        ]),
+        mood: "happy",
+      });
     }
   }
 
@@ -349,106 +355,127 @@ export default function PairPage() {
         }}
       />
       <p className="lead lead-phrases" style={{ paddingTop: 12 }}>
-        {tr("料理を入れるか")}<wbr />{tr("メニューを撮ると、")}<wbr />{tr("合うお酒と、")}<wbr />{tr("記録や")}<wbr />{tr("家のお酒から")}<wbr />{tr("合いそうなものを出します。")}
+        {tr("料理を入れるか")}
+        <wbr />
+        {tr("メニューを撮ると、")}
+        <wbr />
+        {tr("合うお酒と、")}
+        <wbr />
+        {tr("記録や")}
+        <wbr />
+        {tr("家のお酒から")}
+        <wbr />
+        {tr("合いそうなものを出します。")}
       </p>
 
       <main className="content" style={{ paddingBottom: 110 }}>
         {/* 「お酒から」の画面と同じ、うすい色の枠に撮る・料理を入れるをまとめる */}
         <section className="pair-box" aria-label={tr("料理を入れるか、メニューを撮る")}>
-        {!savedPasscode && (
-          <PasscodeField
-            value={passcode}
-            onChange={setPasscode}
-            need={tr("メニューを撮る・めずらしい料理を調べるには「合言葉」が要ります。")}
-            free={[tr("よくある料理に合うお酒（下の欄に料理の名前を入れる）"), tr("記録・辞典・味マップ・スタンプ帳")]}
-            forceOpen={error.includes("合言葉")}
-          error={error.includes("合言葉") ? error : ""}
-          />
-        )}
-        <form
-          className="row"
-          style={{ flexWrap: "nowrap" }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            choose();
-          }}
-        >
-          <label htmlFor="pair-dish" className="visually-hidden">
-            {tr("料理・食べ物")}
-          </label>
-          <input
-            id="pair-dish"
-            className="input"
-            style={{ flex: 1, minWidth: 0 }}
-            type="search"
-            enterKeyHint="search"
-            maxLength={40}
-            placeholder={tr("料理名（例：焼き鳥）")}
-            value={dish}
-            onChange={(e) => setDish(e.target.value)}
-          />
-          <button type="submit" className="btn-secondary" style={{ flexShrink: 0, padding: "0 20px", fontSize: 17 }} disabled={!dish.trim() || busy}>
-            {busy ? tr("選び中…") : tr("選ぶ")}
-          </button>
-        </form>
-        <div className="scroll-row" aria-label={tr("よく食べる料理")}>
-          {suggestions.map((d) => (
-            <button
-              key={d}
-              type="button"
-              className="chip"
-              aria-pressed={result?.pairing.dish === d}
-              onClick={() => choose(d)}
-            >
-              {trv(d)}
+          {!savedPasscode && (
+            <PasscodeField
+              value={passcode}
+              onChange={setPasscode}
+              need={tr("メニューを撮る・めずらしい料理を調べるには「合言葉」が要ります。")}
+              free={[tr("よくある料理に合うお酒（下の欄に料理の名前を入れる）"), tr("記録・辞典・味マップ・スタンプ帳")]}
+              forceOpen={error.includes("合言葉")}
+              error={error.includes("合言葉") ? error : ""}
+            />
+          )}
+          <form
+            className="row"
+            style={{ flexWrap: "nowrap" }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              choose();
+            }}
+          >
+            <label htmlFor="pair-dish" className="visually-hidden">
+              {tr("料理・食べ物")}
+            </label>
+            <input
+              id="pair-dish"
+              className="input"
+              style={{ flex: 1, minWidth: 0 }}
+              type="search"
+              enterKeyHint="search"
+              maxLength={40}
+              placeholder={tr("料理名（例：焼き鳥）")}
+              value={dish}
+              onChange={(e) => setDish(e.target.value)}
+            />
+            <button type="submit" className="btn-secondary" style={{ flexShrink: 0, padding: "0 20px", fontSize: 17 }} disabled={!dish.trim() || busy}>
+              {busy ? tr("選び中…") : tr("選ぶ")}
             </button>
-          ))}
-        </div>
-        <PendingPhotos
-          count={pending.length}
-          busy={reading}
-          onRead={() => {
-            if (!navigator.onLine) return setError("まだ電波がありません。電波のあるところでもう一度お試しください");
-            readPendingRef.current();
-          }}
-          onDiscard={() => {
-            savePending("food", []);
-            setPending([]);
-          }}
-        />
-        <div className="pair-shoot">
-          <label className="btn-primary" aria-disabled={reading}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+          </form>
+          <div className="scroll-row" aria-label={tr("よく食べる料理")}>
+            {suggestions.map((d) => (
+              <button key={d} type="button" className="chip" aria-pressed={result?.pairing.dish === d} onClick={() => choose(d)}>
+                {trv(d)}
+              </button>
+            ))}
+          </div>
+          <PendingPhotos
+            count={pending.length}
+            busy={reading}
+            onRead={() => {
+              if (!navigator.onLine) return setError("まだ電波がありません。電波のあるところでもう一度お試しください");
+              readPendingRef.current();
+            }}
+            onDiscard={() => {
+              savePending("food", []);
+              setPending([]);
+            }}
+          />
+          <div className="pair-shoot">
+            <label className="btn-primary" aria-disabled={reading}>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
                 <circle cx="12" cy="13" r="3.5" />
-            </svg>
-            {reading ? (progress ? tr("読み取り中…（{0}/{1}枚）", progress.at, progress.of) : tr("読み取り中…")) : tr("メニューを撮る")}
-            <input type="file" accept="image/*" capture="environment" onChange={onPhoto} disabled={reading} className="visually-hidden" />
-          </label>
-          <label className="btn-secondary" aria-disabled={reading}>
-            {tr("写真から")}
-            {/* capture を付けないとカメラではなく写真の一覧が開く */}
-            <input type="file" accept="image/*" multiple onChange={onPhoto} disabled={reading} className="visually-hidden" />
-          </label>
-        </div>
+              </svg>
+              {reading ? (progress ? tr("読み取り中…（{0}/{1}枚）", progress.at, progress.of) : tr("読み取り中…")) : tr("メニューを撮る")}
+              <input type="file" accept="image/*" capture="environment" onChange={onPhoto} disabled={reading} className="visually-hidden" />
+            </label>
+            <label className="btn-secondary" aria-disabled={reading}>
+              {tr("写真から")}
+              {/* capture を付けないとカメラではなく写真の一覧が開く */}
+              <input type="file" accept="image/*" multiple onChange={onPhoto} disabled={reading} className="visually-hidden" />
+            </label>
+          </div>
         </section>
         {reading && <Skeleton label={tr("メニューを読み取っています…")} chips />}
         {menu && !reading && (
           <section ref={menuRef} className="pair-mine pair-menu" aria-live="polite">
             <div className="pair-menu-head">
               <h2 className="pair-head">{tr("読み取った料理")}</h2>
-              <button type="button" className="text-btn" onClick={() => {
+              <button
+                type="button"
+                className="text-btn"
+                onClick={() => {
                   setMenu(null);
                   setJustRead(false);
-                }}>
+                }}
+              >
                 {tr("閉じる")}
               </button>
             </div>
             <p className={justRead ? "pair-done pair-done-new" : "pair-done"}>
-              <span className="pair-done-check" aria-hidden="true">✓</span>
+              <span className="pair-done-check" aria-hidden="true">
+                ✓
+              </span>
               <span>
                 <strong>
-                  {tr("{0}品読み取りました", menu.length)}{addedCount != null && tr("（今回 +{0}品）", addedCount)}
+                  {tr("{0}品読み取りました", menu.length)}
+                  {addedCount != null && tr("（今回 +{0}品）", addedCount)}
                 </strong>
                 <span className="muted">{tr("料理を押すと、合うお酒が出ます")}</span>
               </span>
@@ -495,7 +522,9 @@ export default function PairPage() {
             </div>
             {top && top.items.length > 1 && (
               <p className="muted pair-none">
-                {tr("迷ったら")}<strong className="pair-top">{trv(top.label)}</strong>{tr("。{0}品に合います。", top.items.length)}
+                {tr("迷ったら")}
+                <strong className="pair-top">{trv(top.label)}</strong>
+                {tr("。{0}品に合います。", top.items.length)}
               </p>
             )}
           </section>

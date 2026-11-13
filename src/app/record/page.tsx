@@ -205,15 +205,17 @@ function DetailBody() {
   const filledScores = scores.filter(([, v]) => v);
   /** AI に聞くときに渡す中身（入っている欄だけ） */
   const rows: Row[] = r
-    ? ([
-        ["日付", r.date],
-        ["飲んだ場所", r.shop],
-        ...drinkRows,
-        ...servedRows,
-        ["感じた味", trJoin(r.flavors)],
-        ...filledScores.map(([k, v]) => [k, `${v} / 5`] as Row),
-        ["メモ", r.memo],
-      ] as Row[]).filter(([, v]) => v.trim())
+    ? (
+        [
+          ["日付", r.date],
+          ["飲んだ場所", r.shop],
+          ...drinkRows,
+          ...servedRows,
+          ["感じた味", trJoin(r.flavors)],
+          ...filledScores.map(([k, v]) => [k, `${v} / 5`] as Row),
+          ["メモ", r.memo],
+        ] as Row[]
+      ).filter(([, v]) => v.trim())
     : [];
 
   return (
@@ -237,7 +239,11 @@ function DetailBody() {
         </main>
       )}
       {r && (
-        <main className="content detail-page" data-tint={tint ? "" : undefined} style={{ paddingTop: 16, "--kind": tint ?? kindColor(r.kind) } as React.CSSProperties}>
+        <main
+          className="content detail-page"
+          data-tint={tint ? "" : undefined}
+          style={{ paddingTop: 16, "--kind": tint ?? kindColor(r.kind) } as React.CSSProperties}
+        >
           {/* 上からそのお酒の種類の色がうっすら差して、下で地に溶ける */}
           <div className="detail-tint" aria-hidden="true" />
           {/* 写真があるときは上に出して右下に小さく足すボタンを重ねる。ないときは下のボタンの列から足す */}
@@ -281,7 +287,11 @@ function DetailBody() {
                 <span className="detail-score-num roll" data-roll={features.numRoll ? "" : undefined}>
                   {features.scale === "star5" ? trv(r.overall) : features.scale === "ten" ? Math.round(r.overall * 2) : Math.round(r.overall * 20)}
                 </span>
-                {features.scale === "star5" ? <Stars n={r.overall} label="" /> : <span className="muted detail-score-of">{features.scale === "ten" ? "/10" : "/100"}</span>}
+                {features.scale === "star5" ? (
+                  <Stars n={r.overall} label="" />
+                ) : (
+                  <span className="muted detail-score-of">{features.scale === "ten" ? "/10" : "/100"}</span>
+                )}
               </div>
             </div>
             <div className="detail-when">
@@ -307,7 +317,12 @@ function DetailBody() {
               <div className="card detail-taste">
                 {filledScores.length >= 3 && (
                   <div className="detail-radar">
-                    <RadarChart axes={scores.map(([a]) => a)} series={[{ label: tr("この記録"), values: scores.map(([, v]) => v) }]} showValues color="var(--kind)" />
+                    <RadarChart
+                      axes={scores.map(([a]) => a)}
+                      series={[{ label: tr("この記録"), values: scores.map(([, v]) => v) }]}
+                      showValues
+                      color="var(--kind)"
+                    />
                   </div>
                 )}
                 {/* 五角形が出るときは角に数字があるので、目盛りは五角形が出ないとき（2つ以下）だけ */}

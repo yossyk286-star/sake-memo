@@ -58,11 +58,26 @@ export function buildShowCard(records: TastingRecord[], prefs: MyPrefs, kind: Ki
     return xs.length > 0 ? average(xs) : null;
   }
   const taste = [
-    wordFor(lean((r) => r.sweetness, prefs.sweetness), sweetWords(kind)),
-    wordFor(lean((r) => r.body, prefs.body), ["軽くてすっきり", "コクがある"]),
-    wordFor(lean((r) => r.aroma, prefs.aroma), ["香りは控えめ", "香りが華やか"]),
-    wordFor(lean((r) => r.acidity), ["酸味はおだやか", "酸味がしっかり"]),
-    wordFor(lean((r) => r.finish), ["後味がゆっくり", "キレがいい"]),
+    wordFor(
+      lean((r) => r.sweetness, prefs.sweetness),
+      sweetWords(kind),
+    ),
+    wordFor(
+      lean((r) => r.body, prefs.body),
+      ["軽くてすっきり", "コクがある"],
+    ),
+    wordFor(
+      lean((r) => r.aroma, prefs.aroma),
+      ["香りは控えめ", "香りが華やか"],
+    ),
+    wordFor(
+      lean((r) => r.acidity),
+      ["酸味はおだやか", "酸味がしっかり"],
+    ),
+    wordFor(
+      lean((r) => r.finish),
+      ["後味がゆっくり", "キレがいい"],
+    ),
   ].filter((w): w is string => w !== null);
 
   const allowedStyles = kind ? STYLES_BY_KIND[kind] : null;
@@ -70,16 +85,30 @@ export function buildShowCard(records: TastingRecord[], prefs: MyPrefs, kind: Ki
   const styles = [
     ...new Set([
       ...prefs.styles.filter((s) => !allowedStyles || allowedStyles.includes(s)),
-      ...topCounts(liked.map((r) => r.style ?? ""), 2),
+      ...topCounts(
+        liked.map((r) => r.style ?? ""),
+        2,
+      ),
     ]),
   ].slice(0, 3);
   const serves = [
     ...new Set([
       ...prefs.serves.filter((s) => !allowedServes || allowedServes.includes(s)),
-      ...topCounts(liked.map((r) => r.serve ?? ""), 2),
+      ...topCounts(
+        liked.map((r) => r.serve ?? ""),
+        2,
+      ),
     ]),
   ].slice(0, 3);
-  const likes = [...new Set([...prefs.likes, ...topCounts(liked.flatMap((r) => r.flavors), 3)])]
+  const likes = [
+    ...new Set([
+      ...prefs.likes,
+      ...topCounts(
+        liked.flatMap((r) => r.flavors),
+        3,
+      ),
+    ]),
+  ]
     .filter((f) => !prefs.dislikes.includes(f))
     .slice(0, 5);
 
@@ -97,16 +126,11 @@ export function showKinds(records: TastingRecord[], prefs: MyPrefs): Kind[] {
     records.filter((r) => r.overall >= LIKED && r.kind).map((r) => r.kind!),
     KINDS.length,
   ) as Kind[];
-  return [...new Set([...prefs.kinds.filter((k): k is Kind => KINDS.includes(k as Kind)), ...fromRecords])].filter(
-    (k) => !prefs.avoidKinds.includes(k),
-  );
+  return [...new Set([...prefs.kinds.filter((k): k is Kind => KINDS.includes(k as Kind)), ...fromRecords])].filter((k) => !prefs.avoidKinds.includes(k));
 }
 
 export function isEmptyCard(c: ShowCard) {
-  return (
-    c.taste.length + c.styles.length + c.serves.length + c.likes.length + c.dislikes.length + c.favorites.length === 0 &&
-    !c.budget
-  );
+  return c.taste.length + c.styles.length + c.serves.length + c.likes.length + c.dislikes.length + c.favorites.length === 0 && !c.budget;
 }
 
 /** 今日の気分（src/lib/moods.ts の MOODS）を、店員さんに伝わる言い方にする。ないものはそのまま出す */

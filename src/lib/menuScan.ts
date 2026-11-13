@@ -10,9 +10,7 @@ function styleOf(kind: Kind | null, style: string) {
 }
 
 /** 読み取ったお酒を記録フォームの値に変換する */
-export function drinkToDraft(
-  d: ScannedDrink,
-): Pick<RecordDraft, "name" | "maker" | "origin" | "kind" | "style" | "serve" | "menuNote" | "abv" | "reading"> {
+export function drinkToDraft(d: ScannedDrink): Pick<RecordDraft, "name" | "maker" | "origin" | "kind" | "style" | "serve" | "menuNote" | "abv" | "reading"> {
   return {
     name: d.name,
     maker: d.maker,

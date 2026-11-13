@@ -74,7 +74,12 @@ export default function FlightPage() {
     }));
     for (const r of out) await putRecord(r);
     toast(tr("{0}杯を記録しました", out.length));
-    router.replace(`/compare?ids=${out.slice(0, 4).map((r) => r.id).join(",")}`);
+    router.replace(
+      `/compare?ids=${out
+        .slice(0, 4)
+        .map((r) => r.id)
+        .join(",")}`,
+    );
   }
 
   return (
@@ -101,7 +106,13 @@ export default function FlightPage() {
           </label>
           <div className="row" style={{ flexWrap: "nowrap" }}>
             <input id="fl-shop" className="input" placeholder={tr("店名（例：〇〇酒場）")} value={shop} onChange={(e) => setShop(e.target.value)} />
-            <button type="button" className="chip" style={{ flexShrink: 0 }} aria-pressed={shop.trim() === "家"} onClick={() => setShop(shop.trim() === "家" ? "" : "家")}>
+            <button
+              type="button"
+              className="chip"
+              style={{ flexShrink: 0 }}
+              aria-pressed={shop.trim() === "家"}
+              onClick={() => setShop(shop.trim() === "家" ? "" : "家")}
+            >
               {tr("家で")}
             </button>
           </div>
@@ -129,19 +140,21 @@ export default function FlightPage() {
                 onChange={(e) => setRow(i, { name: e.target.value })}
               />
               {ranking && r.name.trim() && (
-                <button
-                  type="button"
-                  className="chip flight-rank"
-                  aria-pressed={!!r.rank}
-                  onClick={() => setRow(i, { rank: r.rank ? null : nextRank })}
-                >
+                <button type="button" className="chip flight-rank" aria-pressed={!!r.rank} onClick={() => setRow(i, { rank: r.rank ? null : nextRank })}>
                   {r.rank ? tr("{0}番目", r.rank) : tr("押す")}
                 </button>
               )}
             </div>
             <div className="flight-stars" role="radiogroup" aria-label={tr("{0}の★", NUM[i])}>
               {([1, 2, 3, 4, 5] as Overall[]).map((n) => (
-                <button key={n} type="button" role="radio" aria-checked={r.overall === n} className={r.overall && r.overall >= n ? "on" : ""} onClick={() => setRow(i, { overall: n })}>
+                <button
+                  key={n}
+                  type="button"
+                  role="radio"
+                  aria-checked={r.overall === n}
+                  className={r.overall && r.overall >= n ? "on" : ""}
+                  onClick={() => setRow(i, { overall: n })}
+                >
                   ★
                 </button>
               ))}

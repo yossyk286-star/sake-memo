@@ -4,21 +4,13 @@ import type { Kind } from "./types";
 
 /** 絞り込みで使うジャンル。種類に、その他から分けたカクテルを足したもの */
 export type Genre = Kind | "カクテル";
-export const GENRES: Genre[] = [
-  ...KINDS.filter((k) => k !== "その他"),
-  "カクテル",
-  "その他",
-];
+export const GENRES: Genre[] = [...KINDS.filter((k) => k !== "その他"), "カクテル", "その他"];
 
 /** その他のうち、カクテルとして分けるタイプ */
 const COCKTAIL_STYLES = new Set(["カクテル", "サワー", "リキュール"]);
 
 /** 種類が「その他」か未入力でも、カクテルのタイプや名前ならカクテルにする */
-export function genreOf(d: {
-  kind: Kind | null;
-  style: string | null;
-  name: string;
-}): Genre | null {
+export function genreOf(d: { kind: Kind | null; style: string | null; name: string }): Genre | null {
   if (d.kind && d.kind !== "その他") return d.kind;
   if (d.style && COCKTAIL_STYLES.has(d.style)) return "カクテル";
   const c = d.name ? findCocktail(d.name) : null;
@@ -41,13 +33,7 @@ const KIND_VAR: Record<Kind, string> = {
 };
 
 /** 並び替え。甘さは 1=辛口〜5=甘口 */
-export type SortKey =
-  | "default"
-  | "sweet"
-  | "dry"
-  | "abvLow"
-  | "abvHigh"
-  | "rating";
+export type SortKey = "default" | "sweet" | "dry" | "abvLow" | "abvHigh" | "rating";
 export const SORT_LABELS: Record<SortKey, string> = {
   default: "",
   sweet: "甘口から",
@@ -64,11 +50,7 @@ type Sortable = {
 };
 
 /** 並び替えた新しい配列を返す。値がないものは後ろ（元の順のまま） */
-export function sortBy<T>(
-  items: T[],
-  key: SortKey,
-  get: (t: T) => Sortable,
-): T[] {
+export function sortBy<T>(items: T[], key: SortKey, get: (t: T) => Sortable): T[] {
   if (key === "default") return items;
   const value = (t: T): number | null => {
     const s = get(t);
@@ -87,11 +69,6 @@ export function sortBy<T>(
   };
   return items
     .map((t, i) => ({ t, i, v: value(t) }))
-    .sort(
-      (a, b) =>
-        (a.v == null ? 1 : 0) - (b.v == null ? 1 : 0) ||
-        (b.v ?? 0) - (a.v ?? 0) ||
-        a.i - b.i,
-    )
+    .sort((a, b) => (a.v == null ? 1 : 0) - (b.v == null ? 1 : 0) || (b.v ?? 0) - (a.v ?? 0) || a.i - b.i)
     .map((x) => x.t);
 }

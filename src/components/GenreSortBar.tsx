@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  GENRES,
-  SORT_LABELS,
-  genreColor,
-  type Genre,
-  type SortKey,
-} from "@/lib/genre";
+import { GENRES, SORT_LABELS, genreColor, type Genre, type SortKey } from "@/lib/genre";
 import { tr, trv } from "@/lib/i18n";
 import SortPick from "@/components/SortPick";
 
@@ -49,11 +43,7 @@ export default function GenreSortBar({
         />
       </div>
       {(used.length > 1 || extra) && (
-        <div
-          className="scroll-row"
-          role="group"
-          aria-label={tr("ジャンルで絞り込み")}
-        >
+        <div className="scroll-row" role="group" aria-label={tr("ジャンルで絞り込み")}>
           {trv(extra)}
           {(used.length > 1 ? used : []).map((g) => (
             <button

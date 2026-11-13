@@ -46,18 +46,10 @@ export default function RadarChart({
       width="100%"
       style={{ maxWidth: 360, display: "block", margin: "0 auto", overflow: "visible" }}
       role="img"
-      aria-label={series
-        .map((s) => `${tr(s.label)}：${axes.map((a, i) => `${tr(a)}${s.values[i] ?? tr("未入力")}`).join(tr("、"))}`)
-        .join(tr("。"))}
+      aria-label={series.map((s) => `${tr(s.label)}：${axes.map((a, i) => `${tr(a)}${s.values[i] ?? tr("未入力")}`).join(tr("、"))}`).join(tr("。"))}
     >
       {[0, 1, 2, 3, 4, 5].map((level) => (
-        <polygon
-          key={level}
-          points={toPoints(axes.map((_, i) => point(i, n, level)))}
-          fill="none"
-          stroke="var(--line)"
-          strokeWidth={level === MAX ? 1.5 : 1}
-        />
+        <polygon key={level} points={toPoints(axes.map((_, i) => point(i, n, level)))} fill="none" stroke="var(--line)" strokeWidth={level === MAX ? 1.5 : 1} />
       ))}
       {axes.map((_, i) => {
         const [x, y] = point(i, n, MAX);

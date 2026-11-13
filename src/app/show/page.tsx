@@ -70,10 +70,7 @@ export default function ShowPage() {
 
   const kinds = useMemo(() => (records && prefs ? showKinds(records, prefs) : []), [records, prefs]);
   // 今日の気分では、記録がない種類も選べるようにする（よく飲む種類が先）
-  const kindOptions = useMemo(
-    () => (mode === "mood" ? [...new Set([...kinds, ...KINDS.filter((k) => k !== "その他")])] : kinds),
-    [mode, kinds],
-  );
+  const kindOptions = useMemo(() => (mode === "mood" ? [...new Set([...kinds, ...KINDS.filter((k) => k !== "その他")])] : kinds), [mode, kinds]);
   const card = useMemo(() => (records && prefs ? buildShowCard(records, prefs, kind) : null), [records, prefs, kind]);
 
   function updateMoods(next: string[]) {
@@ -188,12 +185,7 @@ export default function ShowPage() {
             )
           ) : (
             <>
-              <button
-                type="button"
-                className="btn-secondary show-flip"
-                aria-pressed={flipped}
-                onClick={() => setFlipped(!flipped)}
-              >
+              <button type="button" className="btn-secondary show-flip" aria-pressed={flipped} onClick={() => setFlipped(!flipped)}>
                 <svg
                   width="16"
                   height="16"

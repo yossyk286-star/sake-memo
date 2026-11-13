@@ -43,7 +43,7 @@ export function newMilestones(records: TastingRecord[]): { badges: Badge[]; titl
   // 段ごとの覚え方は 2026-11 から。それより前に覚えた人は、いまの段を黙って覚える
   const known = seen?.includes("tiers") ?? false;
   try {
-    localStorage.setItem(SEEN_KEY, JSON.stringify([...new Set([...(known ? seen ?? [] : []), ...ids, "tiers"])]));
+    localStorage.setItem(SEEN_KEY, JSON.stringify([...new Set([...(known ? (seen ?? []) : []), ...ids, "tiers"])]));
   } catch {
     // 覚えられない端末では、開くたびに出てしまうので何も出さない
     return { badges: [], title: null };

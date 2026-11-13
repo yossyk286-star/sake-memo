@@ -18,7 +18,12 @@ export default function BackLink({ fallback, slide }: { fallback: string; slide?
     const to = backTarget(fallback);
     popTo(to);
     const path = to.split("?")[0];
-    if (slide) transitionTo(() => router.push(to), () => location.pathname === path, "back");
+    if (slide)
+      transitionTo(
+        () => router.push(to),
+        () => location.pathname === path,
+        "back",
+      );
     else router.push(to);
   }
   return (

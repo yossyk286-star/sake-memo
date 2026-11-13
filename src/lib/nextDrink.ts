@@ -53,9 +53,7 @@ export function nextIdeas(records: TastingRecord[], prefs: MyPrefs, limit = 4): 
   }
   const topStyle = [...styles.values()].sort((a, b) => average(b.scores) - average(a.scores))[0];
   if (topStyle && average(topStyle.scores) >= 3.5) {
-    const tried = new Set(
-      records.filter((r) => r.kind === topStyle.kind && r.style === topStyle.style).map((r) => r.serve),
-    );
+    const tried = new Set(records.filter((r) => r.kind === topStyle.kind && r.style === topStyle.style).map((r) => r.serve));
     const serve = SERVES_BY_KIND[topStyle.kind].find((s) => !tried.has(s));
     if (serve && topStyle.kind !== "ビール") {
       ideas.unshift({

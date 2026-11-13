@@ -81,7 +81,17 @@ export default function ShopBar({ drinks, dishes, onReset }: { drinks: number; d
         {name ? (
           <button type="button" className="shop-bar-name" onClick={edit} aria-label={tr("今日のお店の名前を変える")}>
             <strong>{name}</strong>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" />
             </svg>
           </button>
@@ -90,11 +100,7 @@ export default function ShopBar({ drinks, dishes, onReset }: { drinks: number; d
             <strong>{tr("＋ 今日のお店の名前")}</strong>
           </button>
         )}
-        <span>
-          {name || parts
-            ? [tr("今日のお店"), parts && trv(parts)].filter(Boolean).join(tr("・"))
-            : tr("入れると記録のときに店名が入ります")}
-        </span>
+        <span>{name || parts ? [tr("今日のお店"), parts && trv(parts)].filter(Boolean).join(tr("・")) : tr("入れると記録のときに店名が入ります")}</span>
       </span>
       {(name || drinks + dishes > 0) && (
         <button

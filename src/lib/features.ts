@@ -120,7 +120,6 @@ export function saveFeatures(next: Partial<Features>) {
   window.dispatchEvent(new Event(EVENT));
 }
 
-
 /** <html> に書体・詰め具合・利き手・動きの印を付ける（見た目は globals.css で決める） */
 export function applyFeatures(f: Features) {
   const root = document.documentElement;

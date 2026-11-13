@@ -30,7 +30,5 @@ export function serveNoteText(n: ServeNote) {
 
 /** 飲み方メモ付きの記録のうち、いちばん評価が高いもの（同じなら新しいほう） */
 export function bestServeNote(records: TastingRecord[]) {
-  return records
-    .filter((r) => hasServeNote(r.serveNote))
-    .sort((a, b) => b.overall - a.overall || b.createdAt - a.createdAt)[0];
+  return records.filter((r) => hasServeNote(r.serveNote)).sort((a, b) => b.overall - a.overall || b.createdAt - a.createdAt)[0];
 }
