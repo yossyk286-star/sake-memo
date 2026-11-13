@@ -125,6 +125,9 @@ const MAX_ASK = 300;
 const MAX_CONTEXT = 1500;
 const MAX_HISTORY = 4;
 
+/** 料理との相性を見るときの役割（料理の写真・料理名・お酒1杯から・料理や気分との相性で共通） */
+const PAIR_SYSTEM = "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。";
+
 const ASK_SYSTEM = `あなたはお酒にくわしい、やさしい案内役です。利用者が自分の記録（飲んだお酒の感想）や、メニュー・ラベルで見つけたお酒の情報を見ながら質問します。
 その内容をふまえて、初心者にもわかる日本語で、3〜6文くらいで具体的に答えてください。飲み方の質問には温度や割り方の比率などの数字も入れてください。
 見出しや箇条書きの記号（#、*、-）は使わず、ふつうの文章で答えてください。わからないことは推測だと言ってください。`;
@@ -315,7 +318,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: READ_MODEL,
         max_tokens: 16000,
-        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+        system: sys(PAIR_SYSTEM),
         output_config: { effort: READ_EFFORT, format: zodOutputFormat(FoodMenuSchema) },
         messages: [
           {
@@ -348,7 +351,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 2000,
-        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+        system: sys(PAIR_SYSTEM),
         output_config: { effort: "low", format: zodOutputFormat(FoodPairingSchema) },
         messages: [
           {
@@ -380,7 +383,7 @@ export async function POST(req: Request) {
         const response = await client.messages.parse({
           model: MODEL,
           max_tokens: 2000,
-          system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+          system: sys(PAIR_SYSTEM),
           output_config: { effort: "low", format: zodOutputFormat(DishIdeasSchema) },
           messages: [
             {
@@ -396,7 +399,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 4000,
-        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+        system: sys(PAIR_SYSTEM),
         output_config: { effort: "low", format: zodOutputFormat(PairingResultSchema) },
         messages: [
           {
@@ -429,7 +432,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 4000,
-        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+        system: sys(PAIR_SYSTEM),
         output_config: { effort: "low", format: zodOutputFormat(PairingResultSchema) },
         messages: [
           {

@@ -217,7 +217,7 @@ export default function RecordsPage() {
     const n = pickedRecords.length;
     if (!n) return;
     const ok = await askConfirm({
-      message: tr("{0} の{1}件を消します", pickedRecords.slice(0, 3).map((r) => drinkTitle(r)).join(tr("・")) + (n > 3 ? tr(" ほか") : ""), n),
+      message: tr("{0} の{1}件を削除しますか？", pickedRecords.slice(0, 3).map((r) => drinkTitle(r)).join(tr("・")) + (n > 3 ? tr(" ほか") : ""), n),
       action: tr("{0}件を削除", n),
     });
     if (!ok) return;

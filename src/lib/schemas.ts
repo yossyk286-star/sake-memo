@@ -71,8 +71,6 @@ export const MenuListSchema = z.object({
     .describe("写真に載っているお酒すべて。数に上限はない。お酒が写っていなければ空配列"),
 });
 
-export type MenuListItem = z.infer<typeof MenuListSchema>["drinks"][number];
-
 /** 読み（reading）は後から足したので、前に調べて残っている分にはない */
 export type ScannedDrink = Omit<z.infer<typeof ScannedDrinkSchema>, "reading"> & { reading?: string };
 export type DrinkTaste = ScannedDrink["taste"];

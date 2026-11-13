@@ -26,11 +26,11 @@ import {
   type WishDrink,
 } from "@/lib/db";
 import { loadLastScan, loadShopMenu, saveLastScan, today, type ShopMenu } from "@/lib/lastScan";
-import { loadPasscode, PASSCODE_KEY } from "@/lib/passcode";
+import { loadPasscode } from "@/lib/passcode";
+import { sendAI } from "@/lib/askServer";
 import { shrinkForReading } from "@/lib/photo";
 import {
   addPending,
-  fetchOnline,
   loadPending,
   OfflineError,
   setPending as savePending,
@@ -689,21 +689,11 @@ export default function MenuScan({
 
   /** 合言葉を付けて送る。うまくいったら合言葉を覚えておく */
   async function post(payload: object) {
-    const res = await fetchOnline("/api/read-menu", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...payload,
-        passcode: passcode.trim().normalize("NFKC"),
-        lang: getLang(),
-      }),
-    });
+    const res = await sendAI({
+        ...payload }, passcode);
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) setSavedPasscode(false);
     if (!res.ok) throw new Error(data.error ?? fallbackError(res.status));
-    try {
-      localStorage.setItem(PASSCODE_KEY, passcode.trim().normalize("NFKC"));
-    } catch {}
     setSavedPasscode(true);
     return data;
   }
@@ -905,7 +895,7 @@ export default function MenuScan({
             </svg>
             {status === "done"
               ? tr("撮る")
-              : tr("メニューやラベルを撮って読み取る")}
+              : tr("メニュー・ラベルを撮る")}
             <input
               type="file"
               accept="image/*"

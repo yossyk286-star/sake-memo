@@ -256,7 +256,7 @@ textarea {
 .page-header h1 {
   margin: 0;
   /* 小さい iPhone で右のボタンと並んでも見出しが2行に割れないように */
-  font-size: clamp(26px, 7vw, 32px);
+  font-size: clamp(24px, 6.8vw, 32px);
   white-space: nowrap;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -6128,7 +6128,7 @@ button.header-pill {
 /* 幅の小さい iPhone（SE 第1世代・320px）で横にはみ出さないように（14） */
 @media (max-width: 359px) {
   .page-header h1 {
-    font-size: 28px;
+    font-size: 24px;
   }
   .page-header .header-pill {
     padding: 7px 10px;

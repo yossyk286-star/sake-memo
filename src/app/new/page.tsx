@@ -236,7 +236,7 @@ function NewRecord() {
         <div className="new-shortcuts">
           <label className="btn-secondary" style={{ cursor: "pointer" }}>
             <LineIcon name="camera" />
-            {tr("撮って、あとで書く")}
+            {tr("あとで書く")}
             <input type="file" accept="image/*" capture="environment" className="visually-hidden" onChange={(e) => toLater(e.target.files)} />
           </label>
           <Link href="/flight" className="btn-secondary">
