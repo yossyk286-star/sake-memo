@@ -11,6 +11,8 @@ export function titleOf(count: number) {
     /** 何段目か（0 から）。まだ記録がなければ -1 */
     tier: at,
     name: now?.name ?? null,
+    /** その称号のひとこと */
+    quip: now?.quip ?? null,
     next: next ? { name: next.name, left: next.at - count } : null,
     /** 次の称号までの進み具合（0〜1）。いちばん上なら 1 */
     progress: next ? (count - from) / (next.at - from) : 1,
@@ -29,28 +31,27 @@ function loadSeen(): string[] | null {
 }
 
 /**
- * 前に見たときから新しく取れたしるしと称号。見たことにして覚える。
+ * 前に見たときから新しく取れたしるし（段が上がったものも）と称号。見たことにして覚える。
  * はじめて調べるときは、いま持っている分を黙って覚えるだけ（前から使っている人にまとめて出さない）
  */
 export function newMilestones(records: TastingRecord[]): { badges: Badge[]; title: string | null } {
-  const title = titleOf(records.length).name;
-  const all = badgesOf(records);
-  const done = all.filter((b) => b.done);
-  // プラチナは後から増やしたので、印を分けて覚える（前から使っている人に、もうプラチナの分をまとめて出さない）
-  const plat = all.filter((b) => b.done && b.plat?.done);
-  const ids = [...done.map((b) => b.id), ...plat.map((b) => `plat:${b.id}`), ...(title ? [`title:${title}`] : [])];
+  const now = titleOf(records.length);
+  const all = badgesOf(records).filter((b) => b.done);
+  // しるしは段ごと（「places@2」＝産地の金）、称号は段の番号で覚える（言葉を変えても出し直さない）
+  const ids = [...all.map((b) => `${b.id}@${b.tier}`), ...(now.tier >= 0 ? [`title@${now.tier}`] : [])];
   const seen = loadSeen();
-  const platKnown = seen?.includes("plat") ?? false;
+  // 段ごとの覚え方は 2026-11 から。それより前に覚えた人は、いまの段を黙って覚える
+  const known = seen?.includes("tiers") ?? false;
   try {
-    localStorage.setItem(SEEN_KEY, JSON.stringify([...new Set([...(seen ?? []), ...ids, "plat"])]));
+    localStorage.setItem(SEEN_KEY, JSON.stringify([...new Set([...(known ? seen ?? [] : []), ...ids, "tiers"])]));
   } catch {
     // 覚えられない端末では、開くたびに出てしまうので何も出さない
     return { badges: [], title: null };
   }
-  if (!seen) return { badges: [], title: null };
+  if (!known) return { badges: [], title: null };
   const had = new Set(seen);
   return {
-    badges: [...done.filter((b) => !had.has(b.id)), ...(platKnown ? plat.filter((b) => had.has(b.id) && !had.has(`plat:${b.id}`)) : [])],
-    title: title && !had.has(`title:${title}`) ? title : null,
+    badges: all.filter((b) => !had.has(`${b.id}@${b.tier}`)),
+    title: now.name && !had.has(`title@${now.tier}`) ? now.name : null,
   };
 }

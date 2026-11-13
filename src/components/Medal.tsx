@@ -1,14 +1,27 @@
 import { useId } from "react";
 
 /** 地金の色。hi＝光の当たる所、mid＝地、lo＝彫り込みの影 */
-const METALS = [
-  { hi: "#ecc9a6", mid: "#b98257", lo: "#6e4423" }, // 銅
+/**
+ * 称号は10段。隣どうしの色が似ないように、木→緑青→銅→銀→金→プラチナ（うす紫の光）→ダイヤ（水色）→ルビー→黒金→虹。
+ * しるしは銅〜ダイヤの5段なので BADGE_FROM ずらして使う。
+ * face は内側の地の色（黒金のように、ふちと地の色が違うとき）、ink は彫った線の色、rainbow は地を虹色にする
+ */
+type Metal = { hi: string; mid: string; lo: string; sheen?: string; facets?: boolean; face?: [string, string]; ink?: string; rainbow?: boolean };
+const METALS: Metal[] = [
+  { hi: "#fbf3e4", mid: "#e6d3ad", lo: "#9a7e52" }, // 白木
+  { hi: "#d5efe6", mid: "#62a594", lo: "#225a4d" }, // 緑青（青銅）
+  { hi: "#f7c8a5", mid: "#c86c3a", lo: "#6a2c10" }, // 銅
   { hi: "#f4f5f7", mid: "#bcc1c8", lo: "#6b727c" }, // 銀
   { hi: "#f6e3a6", mid: "#cfa548", lo: "#7c5a14" }, // 金
-  { hi: "#ffffff", mid: "#d5dbe3", lo: "#4f5966", sheen: "#e9eef7" }, // プラチナ（白く冷たい光）
+  { hi: "#ffffff", mid: "#d8d2ef", lo: "#564a86", sheen: "#f1ecff" }, // プラチナ（うす紫の白い光）
   { hi: "#ffffff", mid: "#cfeaf7", lo: "#2f5f7e", facets: true }, // ダイヤモンド（面に光の切り子）
+  { hi: "#ffd0d8", mid: "#d02c4c", lo: "#5a0c1c", sheen: "#ff9db0" }, // ルビー
+  { hi: "#f6e3a6", mid: "#cfa548", lo: "#6b4c10", face: ["#3b3327", "#0e0c08"], ink: "#e3bf5c" }, // 黒金（金のふちに黒い地）
+  { hi: "#ffffff", mid: "#e9e4f7", lo: "#6c6a8e", rainbow: true, ink: "#4b4870" }, // 虹
 ];
-const LOCKED: { hi: string; mid: string; lo: string; sheen?: string; facets?: boolean } = { hi: "#f1f1f4", mid: "#d9d9df", lo: "#a5a5ae" };
+/** しるしの段 0（銅）が METALS の何番目か */
+export const BADGE_FROM = 2;
+const LOCKED: Metal = { hi: "#f1f1f4", mid: "#d9d9df", lo: "#a5a5ae" };
 
 /** 彫り込む絵（24×24 の線画）。fill を付けたものは塗りで彫る */
 const ICONS: Record<string, { d: string; fill?: string }> = {
@@ -93,9 +106,20 @@ export default function Medal({
           <stop offset="1" stopColor={c.lo} />
         </linearGradient>
         <linearGradient id={`f${id}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor={c.mid} />
-          <stop offset="0.6" stopColor={c.hi} />
-          <stop offset="1" stopColor={c.mid} />
+          {c.rainbow ? (
+            ["#ffb3c7", "#ffd9a0", "#fff3a8", "#b9f0c6", "#a9dcff", "#cdb8ff"].map((col, i) => <stop key={col} offset={i / 5} stopColor={col} />)
+          ) : c.face ? (
+            <>
+              <stop offset="0" stopColor={c.face[0]} />
+              <stop offset="1" stopColor={c.face[1]} />
+            </>
+          ) : (
+            <>
+              <stop offset="0" stopColor={c.mid} />
+              <stop offset="0.6" stopColor={c.hi} />
+              <stop offset="1" stopColor={c.mid} />
+            </>
+          )}
         </linearGradient>
         <clipPath id={`c${id}`}>
           <circle cx="50" cy="50" r="46" />
@@ -128,8 +152,8 @@ export default function Medal({
       )}
       {/* ふちの細い線（打刻のふちどり） */}
       <circle cx="50" cy="50" r="42.5" fill="none" stroke={c.hi} strokeOpacity="0.7" strokeWidth="0.8" strokeDasharray="1.2 2.2" />
-      {carve(0.7, c.hi, 0.9 * ink)}
-      {carve(0, c.lo, ink)}
+      {carve(0.7, c.face ? "#000" : c.hi, 0.9 * ink)}
+      {carve(0, c.ink ?? c.lo, ink)}
       {shine && !locked && (
         <g clipPath={`url(#c${id})`}>
           <rect className="medal-glint" x="-30" y="-10" width="14" height="130" fill="#fff" opacity="0.35" transform="rotate(25 50 50)" />
