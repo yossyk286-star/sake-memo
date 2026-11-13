@@ -1481,7 +1481,9 @@ export default function MenuScan({
                         </dl>
                         {b.abv != null && serveRows(b).some((m) => m.abv?.ratio) && (
                           <p className={styles.serveFoot}>
-                            {tr("度数は {0} をもとにした目安です（割合はお酒:割るもの）", abvText(b.abv, b.abvStated))}
+                            {tr("度数は {0} をもとにした目安です", abvText(b.abv, b.abvStated))}
+                            <br />
+                            {tr("（割合はお酒:割るもの）")}
                           </p>
                         )}
                       </details>
