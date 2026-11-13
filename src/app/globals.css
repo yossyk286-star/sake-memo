@@ -6732,6 +6732,47 @@ html[data-fx~="barGrow"] .bar-fill {
   gap: 10px;
   font-size: 13px;
 }
+button.meter-row {
+  width: 100%;
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+/* 「変える」を足しても1行に収まるよう、押せる形のときはメーターを少し短く・文字は折り返さない */
+button.meter-row .bottle-meter {
+  flex-basis: 72px;
+}
+button.meter-row > .muted {
+  white-space: nowrap;
+}
+/* 「変える」は右はしに小さく、押せると分かる色で */
+.meter-change {
+  margin-left: auto;
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.meter-edit input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+.meter-edit-num {
+  width: 3.2em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.meter-edit-ok {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 14px;
+}
 .bottle-meter {
   flex: 0 0 96px;
   height: 8px;
@@ -7411,7 +7452,8 @@ html[data-selecting] .bulk-bar {
   left: 0;
   right: 0;
   padding: 10px max(16px, calc(50% - 280px + 16px)) 12px;
-  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  /* 右下の虫めがね（タブバーの下端 max(10px, 安全域-8px) から 58px）のすぐ上にボタンの下端が来る高さ */
+  bottom: calc(max(10px, env(safe-area-inset-bottom) - 8px) + 58px);
   pointer-events: none;
 }
 .scan-float > * {
