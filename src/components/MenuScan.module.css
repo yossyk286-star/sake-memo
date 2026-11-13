@@ -258,11 +258,15 @@
   line-height: 1.3;
   white-space: nowrap;
 }
+/* 度数は控えめに：小さめ・濃いグレー（下の割合より少し濃い） */
 .serveAbv b {
   font-family: var(--num-font);
   font-variant-numeric: tabular-nums;
-  font-size: 14px;
-  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  /* 左の文字（13px・行の高さ1.7）と1行目の高さをそろえる */
+  line-height: 22px;
+  color: color-mix(in srgb, var(--muted) 65%, var(--text));
 }
 .serveAbv small {
   font-size: 11px;
