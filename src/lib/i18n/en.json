@@ -1,4 +1,7 @@
 {
+"残り": "Left",
+"変える": "Change",
+"決める": "Set",
 "読み取り機能の設定がまだです（API キーと合言葉を登録してください）": "Reading isn't set up yet (register the API key and passcode).",
 "合言葉が違います": "Wrong passcode.",
 "合言葉を何度も間違えたので、15分ほど待ってからお試しください": "Too many wrong passcodes. Please wait about 15 minutes and try again.",

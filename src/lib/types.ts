@@ -111,5 +111,7 @@ export interface Bottle {
   finished: boolean;
   /** 残りわずかのしるし。後から増やした項目なので古い瓶にはない */
   low?: boolean;
+  /** 自分で決めた残り（0〜1）と、決めたときの記録の数。そのあとの記録の分だけ減らしていく。後から増やした項目 */
+  leftSet?: { ratio: number; count: number } | null;
   createdAt: number;
 }

@@ -216,46 +216,49 @@
   white-space: nowrap;
 }
 
-/* 飲み方の表：左に飲み方、まん中に味の違い、右に度数。題の文字の頭（左 54px）にそろえる */
+/* 飲み方の表：1行目に飲み方と度数、2行目に味の違いを横いっぱいに。題の文字の頭（左 54px）にそろえる */
 .serveTable {
   margin: 0;
   padding: 0 14px 4px 54px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
 }
 
 .serveRow {
   display: contents;
 }
 
-.serveRow > * {
-  padding: 7px 0;
+.serveRow > dt,
+.serveRow > .serveAbv {
+  padding-top: 8px;
   border-top: 0.5px solid var(--line);
 }
-/* 列のすき間は左の余白でとる（区切り線がとぎれないように） */
-.serveRow > * + * {
-  padding-left: 10px;
-}
-.serveRow:first-child > * {
-  border-top: 0;
+.serveRow:first-child > dt,
+.serveRow:first-child > .serveAbv {
   padding-top: 0;
+  border-top: 0;
+}
+
+.serveNote {
+  grid-column: 1 / -1;
+  padding: 1px 0 8px;
 }
 
 .methods dt {
   font-weight: 700;
-  white-space: nowrap;
+  line-height: 22px;
 }
 
 .methods dd {
   margin: 0;
+  /* 全体の keep-all だと句読点だけが次の行に落ちるので、ここはふつうの折り返しにする */
+  word-break: normal;
+  line-break: strict;
 }
 
 .serveAbv {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  padding-left: 10px;
   text-align: right;
-  line-height: 1.3;
   white-space: nowrap;
 }
 /* 度数は控えめに：小さめ・濃いグレー（下の割合より少し濃い） */
@@ -269,10 +272,9 @@
   color: color-mix(in srgb, var(--muted) 65%, var(--text));
 }
 .serveRatio {
-  display: block;
+  margin-left: 8px;
   font-size: 11px;
   font-weight: 400;
-  line-height: 1.4;
   color: var(--muted);
 }
 
@@ -468,6 +470,11 @@
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 700;
+}
+
+/* 開いたときに名前が上のバーに隠れないよう、上に少し余白をとって止める */
+.drink[data-card] {
+  scroll-margin-top: calc(env(safe-area-inset-top) + 64px);
 }
 
 .name {

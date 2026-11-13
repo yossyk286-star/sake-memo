@@ -152,6 +152,8 @@ function BottleCard({
   const f = useFeatures();
   // 残りメーター（45）と、開けてからの日数・飲み頃（46）
   const left = remaining(b, mine, f.pour);
+  // 残りを変えているときのスライダーの値（%）。閉じているときは null
+  const [editPct, setEditPct] = useState<number | null>(null);
   const opened = openedOf(b, mine);
   const days = opened ? daysSinceDate(opened) : null;
   const within = drinkWithin(b);
@@ -184,14 +186,48 @@ function BottleCard({
             </span>
           ))}
       </p>
-      {!b.finished && f.meter && (
-        <div className="meter-row" aria-label={tr("残り約{0}%", Math.round(left.ratio * 100))}>
+      {!b.finished && f.meter && (editPct !== null ? (
+        // 残りを自分で決める。スライダーで5%きざみ、「決める」で保存
+        <div className="meter-row meter-edit">
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={editPct}
+            onChange={(e) => setEditPct(Number(e.target.value))}
+            aria-label={tr("残り")}
+          />
+          <b className="meter-edit-num">{editPct}%</b>
+          <button type="button" className="text-btn" onClick={() => setEditPct(null)}>
+            {tr("やめる")}
+          </button>
+          <button
+            type="button"
+            className="btn-secondary meter-edit-ok"
+            onClick={() => {
+              onChange({ ...b, leftSet: { ratio: editPct / 100, count: mine.length } });
+              setEditPct(null);
+            }}
+          >
+            {tr("決める")}
+          </button>
+        </div>
+      ) : (
+        // メーターを押すと残りを自分で変えられる
+        <button
+          type="button"
+          className="meter-row"
+          onClick={() => setEditPct(Math.round(left.ratio * 20) * 5)}
+          aria-label={tr("残り約{0}%", Math.round(left.ratio * 100)) + "・" + tr("変える")}
+        >
           <span className="bottle-meter" aria-hidden="true">
             <i style={{ width: `${left.ratio * 100}%`, background: left.ratio < 0.25 ? "var(--danger)" : kindColor(b.kind) }} />
           </span>
           <span className="muted">{left.cups > 0 ? tr("残り約{0}%・あと{1}杯くらい", Math.round(left.ratio * 100), left.cups) : tr("そろそろ空きそう")}</span>
-        </div>
-      )}
+          <span className="meter-change">{tr("変える")}</span>
+        </button>
+      ))}
       {!b.finished && (
         <p className={late ? "open-days is-late" : "open-days muted"}>
           {days === null ? (

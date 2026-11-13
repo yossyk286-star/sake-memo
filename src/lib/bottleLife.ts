@@ -19,7 +19,10 @@ function pourOf(b: Bottle, pour: number) {
 export function remaining(b: Bottle, mine: TastingRecord[], pour: number) {
   const size = sizeOf(b);
   const p = pourOf(b, pour);
-  const left = Math.max(0, size - mine.length * p);
+  // 自分で残りを決めていたら、そこから後の記録の分だけ減らす
+  const start = b.leftSet ? size * b.leftSet.ratio : size;
+  const used = b.leftSet ? Math.max(0, mine.length - b.leftSet.count) : mine.length;
+  const left = Math.max(0, start - used * p);
   return { ratio: left / size, cups: Math.floor(left / p) };
 }
 

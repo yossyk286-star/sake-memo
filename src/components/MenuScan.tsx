@@ -441,6 +441,20 @@ export default function MenuScan({
   const [find, setFind] = useState("");
   // タップで開いているカード（1杯だけのときは最初から開く）
   const [openCard, setOpenCard] = useState<string | null>(null);
+  // 一覧から開いたカードは、名前が画面の上に来るところまで動かす（開いたあと途中から見えないように）
+  const scrollToCard = useRef<string | null>(null);
+  function openCardAt(name: string) {
+    scrollToCard.current = name;
+    setOpenCard(name);
+  }
+  useEffect(() => {
+    const name = scrollToCard.current;
+    if (!name || openCard !== name) return;
+    scrollToCard.current = null;
+    document
+      .querySelector(`[data-card="${CSS.escape(name)}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [openCard]);
   const genresHere = GENRES.filter((g) => drinks.some((d) => genreOf(d) === g));
   // 調べ直してそのジャンルがなくなったときは絞り込みを外す
   const activeGenre =
@@ -1293,6 +1307,7 @@ export default function MenuScan({
               </p>
             )}
             <article
+              data-card={b.name}
               className={`${styles.drink} ${i === best ? styles.best : ""} ${open ? "" : styles.closed} ${fresh.includes(b.name) ? "reveal-item" : ""}`}
               style={
                 fresh.includes(b.name)
@@ -1323,7 +1338,7 @@ export default function MenuScan({
                 type="button"
                 className={styles.cardHead}
                 aria-expanded={open}
-                onClick={() => setOpenCard(open ? null : b.name)}
+                onClick={() => (open ? setOpenCard(null) : openCardAt(b.name))}
               >
                 <span className={styles.cardTop}>
                   <span className={styles.name}>
@@ -1342,7 +1357,7 @@ export default function MenuScan({
                 <button
                   type="button"
                   className={styles.oneLine}
-                  onClick={() => setOpenCard(b.name)}
+                  onClick={() => openCardAt(b.name)}
                 >
                   {match &&
                     `${"●".repeat(match.score)}${"○".repeat(5 - match.score)} `}
@@ -1470,15 +1485,16 @@ export default function MenuScan({
                         <dl className={styles.serveTable}>
                           {serveRows(b).map((m) => (
                             <div key={m.serve} className={styles.serveRow}>
-                              {/* 割る飲み方は、飲み方の下に「お酒1:ソーダ3」のように割り方を書く */}
+                              {/* 1行目：飲み方（割る飲み方は「お酒1:ソーダ3」も）と、右に度数。2行目：味の違いを横いっぱいに */}
                               <dt>
                                 {trv(m.serve)}
                                 {m.abv?.ratio && <small className={styles.serveRatio}>{m.abv.ratio}</small>}
                               </dt>
-                              <dd>{m.note ? trv(m.note) : <span className="muted">{tr("ソーダで割ってすっきり")}</span>}</dd>
-                              {/* 度数がわからない行も3列目を空けておき、表がずれないようにする */}
                               <dd className={styles.serveAbv}>
                                 {m.abv && <b>{!m.abv.ratio && b.abvStated ? `${abvRound(m.abv.abv)}%` : tr("約{0}%", abvRound(m.abv.abv))}</b>}
+                              </dd>
+                              <dd className={styles.serveNote}>
+                                {m.note ? trv(m.note) : <span className="muted">{tr("ソーダで割ってすっきり")}</span>}
                               </dd>
                             </div>
                           ))}
@@ -1518,7 +1534,7 @@ export default function MenuScan({
                   className={styles.chev}
                   tabIndex={-1}
                   aria-hidden="true"
-                  onClick={() => setOpenCard(b.name)}
+                  onClick={() => openCardAt(b.name)}
                 >
                   ⌄
                 </button>
