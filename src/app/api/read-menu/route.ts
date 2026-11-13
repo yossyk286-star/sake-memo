@@ -458,7 +458,8 @@ export async function POST(req: Request) {
     const response = await client.messages.parse({
       model: MODEL,
       max_tokens: 8000,
-      system: sys(SYSTEM),
+      // 解説の呼び出しどうしで長い説明文（用語集など）を使い回し、2回目からの読み込み料金を1割にする
+      system: [{ type: "text", text: sys(SYSTEM), cache_control: { type: "ephemeral" } }],
       output_config: { effort: "low", format: zodOutputFormat(MenuScanResultSchema) },
       messages: [{ role: "user", content }],
     });
@@ -511,7 +512,10 @@ export async function POST(req: Request) {
       }
       return [];
     };
-    const explained = await Promise.all(chunks.map(explainChunk));
+    // 最初の組を先に送り、説明文の使い回しが用意できたころに残りを同時に送る（全部同時だと使い回せない）
+    const first = explainChunk(chunks[0]);
+    if (chunks.length > 1) await new Promise((r) => setTimeout(r, 1500));
+    const explained = await Promise.all([first, ...chunks.slice(1).map(explainChunk)]);
 
     // 写真から読んだこと（名前・度数など）を優先し、解説は2回目の答えから付ける。解説が付かなかったお酒も名前だけは残す
     const drinks = chunks.flatMap((chunk, c) =>
