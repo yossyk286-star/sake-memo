@@ -54,6 +54,25 @@ export const MenuScanResultSchema = z.object({
   drinks: z.array(ScannedDrinkSchema).describe("見つかったお酒。お酒が写っていない・お酒の名前でなければ空配列"),
 });
 
+/**
+ * メニュー・ラベルの写真から、まず載っているお酒の名前と書いてあることだけを全部書き出させる（1回目）。
+ * 解説まで一度に書かせると答えが長くなって途中で切れ、品が抜けるため、解説は2回目に文字だけで分けて書かせる
+ */
+export const MenuListSchema = z.object({
+  drinks: z
+    .array(
+      ScannedDrinkSchema.pick({ name: true, reading: true, kind: true, style: true, maker: true, origin: true, menuNote: true }).extend({
+        abv: z.number().nullable().describe("写真に度数が書いてあればその値（%）。書いていなければ null（推定しない）"),
+        facts: z
+          .string()
+          .describe("写真に書いてあるそのほかの手がかり（値段・量・精米歩合・原材料・品種・年号など）を短く。なければ空文字"),
+      }),
+    )
+    .describe("写真に載っているお酒すべて。数に上限はない。お酒が写っていなければ空配列"),
+});
+
+export type MenuListItem = z.infer<typeof MenuListSchema>["drinks"][number];
+
 /** 読み（reading）は後から足したので、前に調べて残っている分にはない */
 export type ScannedDrink = Omit<z.infer<typeof ScannedDrinkSchema>, "reading"> & { reading?: string };
 export type DrinkTaste = ScannedDrink["taste"];
@@ -126,7 +145,7 @@ export const FoodMenuSchema = z.object({
         pick: FoodPickSchema.describe("この料理にいちばん合うお酒"),
       }),
     )
-    .describe("写っている料理。多くても12品。飲み物は含めない。料理が写っていなければ空配列"),
+    .describe("写っている料理すべて。数に上限はない。飲み物は含めない。料理が写っていなければ空配列"),
 });
 
 export type FoodMenu = z.infer<typeof FoodMenuSchema>;
