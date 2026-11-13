@@ -17,9 +17,11 @@ export default function PressFx() {
       chip.style.setProperty("--ink-x", `${e.clientX - r.left}px`);
       chip.style.setProperty("--ink-y", `${e.clientY - r.top}px`);
       chip.style.setProperty("--ink-r", `${Math.hypot(r.width, r.height)}px`);
-      // 付け直して毎回はじめから広げる
-      chip.removeAttribute("data-ink");
-      void chip.offsetWidth;
+      // 続けて押したときだけ付け直して、はじめから広げる（毎回 offsetWidth で描き直させると、押した瞬間の1コマが重くなる）
+      if (chip.hasAttribute("data-ink")) {
+        chip.removeAttribute("data-ink");
+        void chip.offsetWidth;
+      }
       chip.setAttribute("data-ink", "");
       window.setTimeout(() => chip.removeAttribute("data-ink"), 500);
     };

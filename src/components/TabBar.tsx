@@ -88,6 +88,8 @@ export default function TabBar() {
   const [scanned, setScanned] = useState(0);
   // 下へスクロールしたら帯を縮めて画面を広く見せる。上へ戻すか、いちばん上近くで元に戻す
   const [mini, setMini] = useState(false);
+  // 押したタブ。次の画面が描けるまで待たずに、押した瞬間からそのタブを選んだ見た目にする（from は押したときの画面。移り終わったら使わない）
+  const [pending, setPending] = useState<{ href: string; from: string } | null>(null);
   useEffect(() => {
     setMini(false);
     let last = window.scrollY;
@@ -111,7 +113,7 @@ export default function TabBar() {
   }, [pathname]);
   if (HIDDEN_ON.includes(pathname)) return null;
 
-  const isActive = (href: string) =>
+  const onPath = (href: string) =>
     href === "/"
       ? ["/", "/record", "/compare", "/maker", "/later", "/flight", "/year"].includes(pathname)
       : href === "/scan"
@@ -119,6 +121,7 @@ export default function TabBar() {
         : href === "/taste"
           ? TASTE_PAGES.includes(pathname)
           : pathname.startsWith(href);
+  const isActive = (href: string) => (pending && pending.from === pathname ? href === pending.href : onPath(href));
   const scan = TABS.find((t) => t.href === "/scan")!;
   const others = TABS.filter((t) => t.href !== "/scan");
   // 縮んだときに残すタブ（いまの画面。調べる画面などで無いときは記録）
@@ -131,7 +134,10 @@ export default function TabBar() {
    */
   const go = (e: React.MouseEvent, href: string) => {
     setMini(false);
-    if (!isActive(href)) return holdPageFade("tab");
+    if (!onPath(href)) {
+      setPending({ href, from: pathname });
+      return holdPageFade("tab");
+    }
     // いま開いているタブをもう一度押したら、いちばん上へ戻る（59）。詳細などを開いているときはそのタブの最初の画面へ
     if (pathname === href) {
       e.preventDefault();

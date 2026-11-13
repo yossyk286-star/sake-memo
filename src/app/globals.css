@@ -188,6 +188,18 @@ body {
 body {
   text-wrap: pretty;
 }
+
+/* 押す所は、2回たたいて拡大するかを待たずにすぐ反応させる */
+a,
+button,
+label,
+summary,
+select,
+input,
+textarea,
+[role="button"] {
+  touch-action: manipulation;
+}
 h1,
 h2,
 h3,
@@ -3723,6 +3735,10 @@ body::before {
 .scan-tabs {
   margin: 6px 16px 0;
 }
+/* 押したらすぐ画面を替えたいので、白い丸は少し速くすべらせる（ScanTabs の 180ms と合わせる） */
+.scan-tabs::before {
+  transition-duration: 0.18s;
+}
 .mode-switch a {
   display: flex;
   align-items: center;
@@ -6378,7 +6394,7 @@ html[data-fx~="fieldShake"] .field[data-missing] .star-rating {
 
 /* 保存できたら ✓ の丸に縮んでから移る（9）。幅は動かさず、まわりを切り取って丸にする */
 .save-btn {
-  transition: clip-path 0.3s cubic-bezier(0.3, 0.9, 0.3, 1), background-color 0.2s ease, transform 0.1s ease;
+  transition: clip-path 0.22s cubic-bezier(0.3, 0.9, 0.3, 1), background-color 0.2s ease, transform 0.1s ease;
   clip-path: inset(0 0 round 14px);
 }
 .save-btn.is-done {

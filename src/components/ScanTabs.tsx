@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { tr } from "@/lib/i18n";
 import { holdPageFade } from "@/lib/pageSwap";
 
@@ -18,6 +18,11 @@ const TABS = [
 export default function ScanTabs({ current }: { current: "drink" | "food" }) {
   const router = useRouter();
   const [at, setAt] = useState<string>(current);
+  // もう片方の画面を先に読んでおき、押したらすぐ描けるようにする
+  useEffect(() => {
+    const other = TABS.find((t) => t.id !== current);
+    if (other) router.prefetch(other.href);
+  }, [current, router]);
 
   function go(e: React.MouseEvent, id: string, href: string) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
@@ -25,8 +30,8 @@ export default function ScanTabs({ current }: { current: "drink" | "food" }) {
     if (id === current) return;
     holdPageFade(id === "food" ? "next" : "prev");
     setAt(id);
-    // 丸がすべり終わってから移る（途中で移ると新しい画面の丸が最後の位置へ飛んで見える。0.28s は globals.css の .mode-switch::before と合わせる）
-    window.setTimeout(() => router.replace(href), 280);
+    // 丸がすべり終わってから移る（途中で移ると新しい画面の丸が最後の位置へ飛んで見える。0.18s は globals.css の .scan-tabs::before と合わせる）
+    window.setTimeout(() => router.replace(href), 180);
   }
 
   return (

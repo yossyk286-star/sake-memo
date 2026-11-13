@@ -483,7 +483,7 @@ export default function RecordForm({
     if (!initial) listRecords().then((all) => announceBuddy(buddyLine(record, all, { fromWish })));
     if (!reducedMotion()) {
       setDone(true);
-      await new Promise((r) => setTimeout(r, 450));
+      await new Promise((r) => setTimeout(r, 280));
     }
     if (onSaved) {
       setDone(false);
