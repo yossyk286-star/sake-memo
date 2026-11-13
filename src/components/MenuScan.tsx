@@ -1421,27 +1421,50 @@ export default function MenuScan({
                       />
                     )}
                   </div>
-                  {b.serveNotes.length > 0 && (
+                  {/* 飲み方・AI に聞くは、アイコンつきの行をひとつの箱にまとめる（設定画面の行と同じ形） */}
+                  <div className={styles.more}>
+                    {b.serveNotes.length > 0 && (
+                      <details className={styles.methods}>
+                        <summary>
+                          <span className={styles.moreIcon}>
+                            <LineIcon name="glass" />
+                          </span>
+                          <span className={styles.moreText}>
+                            <span className={styles.moreTitle}>{tr("飲み方で比べる")}</span>
+                            <span className={styles.moreSub}>
+                              {trJoin(b.serveNotes.map((m) => m.serve))}
+                            </span>
+                          </span>
+                        </summary>
+                        <dl>
+                          {b.serveNotes.map((m) => (
+                            <div key={m.serve} style={{ display: "contents" }}>
+                              <dt>{trv(m.serve)}</dt>
+                              <dd>{trv(m.note)}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </details>
+                    )}
                     <details className={styles.methods}>
-                      <summary>{tr("飲み方で比べる")}</summary>
-                      <dl>
-                        {b.serveNotes.map((m) => (
-                          <div key={m.serve} style={{ display: "contents" }}>
-                            <dt>{trv(m.serve)}</dt>
-                            <dd>{trv(m.note)}</dd>
-                          </div>
-                        ))}
-                      </dl>
+                      <summary>
+                        <span className={styles.moreIcon}>
+                          <LineIcon name="sparkle" />
+                        </span>
+                        <span className={styles.moreText}>
+                          <span className={styles.moreTitle}>{tr("AI に聞く")}</span>
+                          <span className={styles.moreSub}>{tr("味や合わせ方を質問できます")}</span>
+                        </span>
+                      </summary>
+                      <div className={styles.askBody}>
+                        <AskAI
+                          bare
+                          context={drinkContext(b)}
+                          suggestions={ASK_SUGGESTIONS}
+                        />
+                      </div>
                     </details>
-                  )}
-                  <details className={styles.methods}>
-                    <summary>{tr("AI に聞く")}</summary>
-                    <AskAI
-                      bare
-                      context={drinkContext(b)}
-                      suggestions={ASK_SUGGESTIONS}
-                    />
-                  </details>
+                  </div>
                 </>
               )}
               {/* 閉じたカードは押すと開くことが分かるよう、右上の角に「⌄」を付ける（開くとそこが ✕ になる） */}

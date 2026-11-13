@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
 import type { QA } from "@/lib/types";
 import Steps from "./Steps";
+import { askConfirm } from "./ConfirmSheet";
 import { getLang, tr, trv } from "@/lib/i18n";
 
 /**
@@ -11,18 +12,21 @@ import { getLang, tr, trv } from "@/lib/i18n";
  * history と onAnswered を渡すと答えを記録に残せる。渡さなければ画面を閉じるまでだけ覚えておく。
  * context は見ているものの要約（AI に渡す文）、suggestions はタップで入る質問の例。
  * bare は枠と見出しなし（カードの中に入れるとき）
+ * onDeleted は消した質問の at を受け取って記録から外す（渡さなければ画面の中だけで消す）
  */
 export default function AskAI({
   context,
   suggestions,
   history,
   onAnswered,
+  onDeleted,
   bare = false,
 }: {
   context: string;
   suggestions: string[];
   history?: QA[];
   onAnswered?: (qa: QA) => Promise<void>;
+  onDeleted?: (ats: number[]) => Promise<void>;
   bare?: boolean;
 }) {
   const inputId = useId();
@@ -41,6 +45,18 @@ export default function AskAI({
     setPasscode(p);
     setSaved(!!p);
   }, []);
+
+  /** 質問と答えを消す（確認してから）。ats が全部なら会話をまるごと消す */
+  async function remove(ats: number[]) {
+    const all = ats.length > 1;
+    const ok = await askConfirm({
+      message: all ? tr("AI との会話をすべて消しますか？") : tr("この質問と答えを消しますか？"),
+      action: all ? tr("すべて消す") : tr("消す"),
+    });
+    if (!ok) return;
+    if (onDeleted) await onDeleted(ats);
+    if (!history) setLocal((l) => l.filter((h) => !ats.includes(h.at)));
+  }
 
   async function ask(q: string) {
     q = q.trim();
@@ -104,8 +120,22 @@ export default function AskAI({
         <div key={h.at} className="ask-qa">
           <p className="ask-q">{trv(h.q)}</p>
           <p className="ask-a">{trv(h.a)}</p>
+          <button
+            type="button"
+            className="ask-del"
+            disabled={busy}
+            aria-label={tr("この質問と答えを消す")}
+            onClick={() => remove([h.at])}
+          >
+            {tr("消す")}
+          </button>
         </div>
       ))}
+      {shown.length > 1 && (
+        <button type="button" className="ask-del ask-del-all" disabled={busy} onClick={() => remove(shown.map((h) => h.at))}>
+          {tr("会話をすべて消す")}
+        </button>
+      )}
       {partial?.a ? (
         <div className="ask-qa" aria-live="polite">
           <p className="ask-q">{trv(partial.q)}</p>
