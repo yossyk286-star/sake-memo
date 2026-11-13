@@ -43,6 +43,29 @@ export function saveLookups(drinks: ScannedDrink[], query?: string) {
   } catch {}
 }
 
+/** 解説が残っているお酒の名前。写真を読むときに送り、これらは AI に解説を書かせずにここの解説を使う */
+export function savedNames() {
+  return [...new Set(Object.values(load()).map(({ drink }) => drink.name))];
+}
+
+/**
+ * 写真の読み取りで known（前に解説を出したもの）と返ってきたお酒に、残してある解説をつなぐ。
+ * 名前・メニューの説明・書いてあった度数は今回の写真のものを使う
+ */
+export function fillKnown(found: (ScannedDrink & { known?: boolean })[]): ScannedDrink[] {
+  return found.map(({ known, ...d }) => {
+    const saved = known ? findSaved(d.name) : null;
+    if (!saved) return d;
+    return {
+      ...saved,
+      name: d.name,
+      menuNote: d.menuNote || saved.menuNote,
+      abv: d.abvStated ? d.abv : saved.abv,
+      abvStated: d.abvStated || saved.abvStated,
+    };
+  });
+}
+
 /** 最近調べたお酒（名前が同じものは1つ） */
 export function recentSaved(n: number) {
   const seen = new Set<string>();
