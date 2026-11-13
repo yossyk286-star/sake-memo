@@ -3,10 +3,10 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { timingSafeEqual } from "node:crypto";
 import { COCKTAIL_REFERENCE } from "@/lib/cocktails";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
-import { FoodMenuSchema, FoodPairingSchema, MenuScanResultSchema, PairingResultSchema, DishIdeasSchema, TermLookupSchema, SpecResultSchema } from "@/lib/schemas";
+import { FoodMenuSchema, FoodPairingSchema, MenuListSchema, MenuScanResultSchema, PairingResultSchema, DishIdeasSchema, TermLookupSchema, SpecResultSchema } from "@/lib/schemas";
 
-// 名前で調べてネット検索までしたときは時間がかかるので、待ち時間の上限を長めにする
-export const maxDuration = 60;
+// 名前で調べてネット検索までしたときや、品の多いメニューを全部読むときは時間がかかるので、待ち時間の上限を長めにする
+export const maxDuration = 120;
 
 // 料金を抑えるため一番安いモデルを使う。変えたいときは環境変数 MENU_MODEL で上書き
 const MODEL = process.env.MENU_MODEL || "claude-haiku-5-5";
@@ -36,6 +36,10 @@ const MAX_QUERY = 60;
 // 料理との相性を見るときの、料理名の文字数とお酒の数の上限
 const MAX_DISH = 40;
 const MAX_PAIRING_DRINKS = 40;
+// 写真から書き出したお酒の解説を、何本ずつに分けて同時に書かせるか（1回の答えを短くして、途中で切れたり時間切れになったりしないように）
+const EXPLAIN_CHUNK = 5;
+// 1枚の写真から読むお酒の上限（ふつうのメニューなら届かない。答えが長くなりすぎないための安全弁）
+const MAX_MENU_DRINKS = 60;
 
 /** 名前で調べたお酒をよく知らないとき、解説の先頭に付けさせる言葉。「名前からの推測」が入っていたらネットで調べ直す */
 const GUESS_MARK = "詳しい情報が見つからなかったので、名前からの推測です。";
@@ -59,7 +63,6 @@ const SYSTEM = `あなたはお酒の初心者に、お酒を解説するアシ�
 - 居酒屋・バー・レストランのお酒のメニュー写真：載っているお酒ごとに情報を取り出す。料理やソフトドリンクは含めない
 - 瓶・缶・箱のラベル写真：写っているお酒（ふつうは1本）の情報をラベルから読み取る。裏ラベルの原材料・精米歩合・アルコール度数・蔵元・産地も手がかりにする
 - お酒の名前：そのお酒1つについて答える。「ネットで調べた情報」が付いていれば、それを優先して使う
-メニューにお酒がたくさん載っているときは、目立つもの・お酒らしいものから最大12本までにしてください（多すぎると読み切れないため）。
 蔵元・産地・タイプは、写真に書かれていなくても、有名な銘柄で確かにわかる場合だけ入れてください。自信がなければ空文字か null にしてください。
 「味の予想」「おすすめの飲み方」「合う料理」「飲み方ごとの違い」「度数」は、説明・種類・タイプ・銘柄から推定して必ず埋めてください。複数あるときは違いがわかるよう、相対的に付けてください。度数は書いてあればその値（abvStated=true）、なければおおよその値（abvStated=false）にしてください。
 名前で調べたお酒が、調べた情報にもなく、よく知らないときは、名前から推測できる範囲で答え、解説の最初に「${GUESS_MARK}」と書いてください。名前がお酒でなければ空配列にしてください。
@@ -308,7 +311,7 @@ export async function POST(req: Request) {
     try {
       const response = await client.messages.parse({
         model: READ_MODEL,
-        max_tokens: 6000,
+        max_tokens: 16000,
         system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
         output_config: { effort: READ_EFFORT, format: zodOutputFormat(FoodMenuSchema) },
         messages: [
@@ -318,7 +321,7 @@ export async function POST(req: Request) {
               { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
               {
                 type: "text",
-                text: `料理のメニューか、料理そのものの写真です。載っている（写っている）料理それぞれに、いちばん合うお酒を1つずつ、日本酒・ワイン・ビール・ウイスキー・焼酎・その他（梅酒やカクテルなど）から選んでください。同じお酒で合う料理はなるべく同じ種類・タイプにそろえ、全体で2〜4種類にしぼってください。title には料理名を入れず、お酒の特徴だけを短く書いてください（例：キレのあるラガー）。\n${READING_RULES}${likes ? `\n\n利用者の好み（合うものの中から、なるべく好みに寄せる）：${likes}` : ""}`,
+                text: `料理のメニューか、料理そのものの写真です。載っている（写っている）料理は、数が多くても1品も飛ばさずに全部入れてください。小さい字・端の列・別の枠・おすすめの黒板なども見落とさないでください。それぞれの料理に、いちばん合うお酒を1つずつ、日本酒・ワイン・ビール・ウイスキー・焼酎・その他（梅酒やカクテルなど）から選んでください。同じお酒で合う料理はなるべく同じ種類・タイプにそろえ、全体で2〜4種類にしぼってください。title には料理名を入れず、お酒の特徴だけを短く書いてください（例：キレのあるラガー）。料理が多いときは reason を1文に短くしてください。\n${READING_RULES}${likes ? `\n\n利用者の好み（合うものの中から、なるべく好みに寄せる）：${likes}` : ""}`,
               },
             ],
           },
@@ -450,15 +453,90 @@ export async function POST(req: Request) {
     if (image.length > MAX_IMAGE_BASE64) return error(413, "写真が大きすぎます");
   }
 
-  const ask = async (content: Anthropic.ContentBlockParam[], fromPhoto = false) => {
+  // 文字だけで解説を書かせる（名前で調べるとき・写真から書き出したお酒の解説）
+  const ask = async (content: Anthropic.ContentBlockParam[]) => {
     const response = await client.messages.parse({
-      model: fromPhoto ? READ_MODEL : MODEL,
+      model: MODEL,
       max_tokens: 8000,
       system: sys(SYSTEM),
-      output_config: { effort: fromPhoto ? READ_EFFORT : "low", format: zodOutputFormat(MenuScanResultSchema) },
+      output_config: { effort: "low", format: zodOutputFormat(MenuScanResultSchema) },
       messages: [{ role: "user", content }],
     });
     return response.stop_reason === "refusal" ? null : response.parsed_output;
+  };
+
+  /**
+   * 写真のお酒を全部読む。1回目は写真から名前と書いてあることだけを全部書き出し（答えが短いので品が抜けない）、
+   * 2回目は書き出したお酒を何本かずつに分けて、文字だけで解説を同時に書かせる
+   */
+  const readPhoto = async (data: string) => {
+    const listed = await client.messages.parse({
+      model: READ_MODEL,
+      max_tokens: 12000,
+      system: sys(SYSTEM),
+      output_config: { effort: READ_EFFORT, format: zodOutputFormat(MenuListSchema) },
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: "image/jpeg", data } },
+            {
+              type: "text",
+              text: "この写真（メニューまたはラベル）に載っているお酒を、数が多くても1本も飛ばさずに全部書き出してください。解説はまだ書かず、名前と写真に書いてあることだけを入れてください。メニューは上から下、右から左（横書きなら左から右）へ、すべての行・列・枠・ページ・小さい字・手書きの追加・黒板まで順に見てください。グラスとボトルなど同じお酒が量違いで並んでいるときは1つにまとめてください。毛筆のロゴの下や横に小さいふりがなや地名があれば、それで名前を確かめてください（「県外のお酒」などの見出しも見落とさないでください）。名前はまず写真の字を一字ずつ確かめてから書いてください。",
+            },
+          ],
+        },
+      ],
+    });
+    if (listed.stop_reason === "refusal" || !listed.parsed_output) return null;
+    const items = listed.parsed_output.drinks.slice(0, MAX_MENU_DRINKS);
+    if (items.length === 0) return { drinks: [] };
+
+    const chunks: (typeof items)[] = [];
+    for (let i = 0; i < items.length; i += EXPLAIN_CHUNK) chunks.push(items.slice(i, i + EXPLAIN_CHUNK));
+    const explainChunk = async (chunk: typeof items) => {
+      const lines = chunk.map((d, i) => `${i}. ${JSON.stringify(d)}`).join("\n");
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const out = await ask([
+            {
+              type: "text",
+              text: `メニューやラベルの写真から読み取ったお酒です（JSON、写真に書いてあったことだけ）。この${chunk.length}本を、同じ順番で1本ずつ全部解説してください。名前（name）・読み・蔵元・産地・メニューの説明は、書いてある通りにそのまま使い、変えないでください。facts は写真に書いてあった手がかりなので、解説に使ってください。度数（abv）が null なら推定してください。\n\n${lines}`,
+            },
+          ]);
+          if (out?.drinks.length) return out.drinks;
+        } catch (e) {
+          if (attempt === 1) console.error("read-menu explain error", e instanceof Error ? e.message.slice(0, 200) : e);
+        }
+      }
+      return [];
+    };
+    const explained = await Promise.all(chunks.map(explainChunk));
+
+    // 写真から読んだこと（名前・度数など）を優先し、解説は2回目の答えから付ける。解説が付かなかったお酒も名前だけは残す
+    const drinks = chunks.flatMap((chunk, c) =>
+      chunk.map((d, i) => {
+        const ex = explained[c].find((x) => x.name === d.name) ?? explained[c][i];
+        return {
+          name: d.name,
+          reading: d.reading,
+          kind: d.kind ?? ex?.kind ?? null,
+          style: d.style || ex?.style || "",
+          maker: d.maker || ex?.maker || "",
+          origin: d.origin || ex?.origin || "",
+          menuNote: d.menuNote,
+          explanation: ex?.explanation ?? "",
+          recommendedServe: ex?.recommendedServe ?? "",
+          recommendation: ex?.recommendation ?? "",
+          pairing: ex?.pairing ?? "",
+          abv: d.abv ?? ex?.abv ?? null,
+          abvStated: d.abv != null,
+          taste: ex?.taste ?? { sweetness: 3, acidity: 3, body: 3, aroma: 3 },
+          serveNotes: ex?.serveNotes ?? [],
+        };
+      }),
+    );
+    return { drinks };
   };
 
   try {
@@ -478,10 +556,7 @@ export async function POST(req: Request) {
         if (notes) result = (await askAbout(notes)) ?? result;
       }
     } else {
-      result = await ask([
-        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
-        { type: "text", text: "この写真（メニューまたはラベル）のお酒を読み取って解説してください。名前はまず写真の字を一字ずつ確かめてから書いてください。" },
-      ], true);
+      result = await readPhoto(image);
     }
 
     if (!result) return error(422, "うまく読み取れませんでした。もう一度撮ってみてください");
