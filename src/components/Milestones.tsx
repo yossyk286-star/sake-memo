@@ -37,7 +37,11 @@ export default function Milestones() {
 
   if (!party) return null;
   const next = titleOf(party.count).next;
-  const head = party.title ? tr("「{0}」になりました", party.title) : party.badges[0].tier > 0 ? tr("「{0}」が一段ピカッとしました", party.badges[0].label) : tr("「{0}」のしるし", party.badges[0].label);
+  const head = party.title
+    ? tr("「{0}」になりました", party.title)
+    : party.badges[0].tier > 0
+      ? tr("「{0}」が一段ピカッとしました", party.badges[0].label)
+      : tr("「{0}」のしるし", party.badges[0].label);
   const nextLine = next ? tr("次の「{0}」まで あと{1}{2}", next.name, next.left, WORDS.cup) : "";
 
   async function share() {
@@ -63,8 +67,12 @@ export default function Milestones() {
         <span className="party-count">{tr("記録 {0}{1}目", party.count, WORDS.cup)}</span>
         {party.title ? (
           <h2 id="party-title">
-            <span className="muted" style={{ display: "block", fontSize: 15, fontWeight: 600 }}>{tr("新しい称号")}</span>
-            <span className="title-plate" style={plateStyle(titleOf(party.count).tier)}>{tr(party.title)}</span>
+            <span className="muted" style={{ display: "block", fontSize: 15, fontWeight: 600 }}>
+              {tr("新しい称号")}
+            </span>
+            <span className="title-plate" style={plateStyle(titleOf(party.count).tier)}>
+              {tr(party.title)}
+            </span>
             {titleOf(party.count).quip && <span className="title-quip">{tr(titleOf(party.count).quip ?? "")}</span>}
           </h2>
         ) : (

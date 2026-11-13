@@ -36,12 +36,12 @@ function PriceLines({ records, budget }: { records: TastingRecord[]; budget: num
     <>
       <h2 style={{ fontSize: 15 }}>{tr("値段")}</h2>
       <p style={{ margin: 0, fontSize: 15 }}>
-        {tr("1杯の平均")}{" "}<strong>{yen(average(priced.map((r) => r.price!)))}</strong>
+        {tr("1杯の平均")} <strong>{yen(average(priced.map((r) => r.price!)))}</strong>
         <span className="muted">{tr("（{0}杯）", priced.length)}</span>
       </p>
       {liked.length > 0 && (
         <p style={{ margin: 0, fontSize: 15 }}>
-          {tr("★4以上だったお酒の平均")}{" "}<strong>{yen(average(liked.map((r) => r.price!)))}</strong>
+          {tr("★4以上だったお酒の平均")} <strong>{yen(average(liked.map((r) => r.price!)))}</strong>
         </p>
       )}
       {budget && (
@@ -52,9 +52,7 @@ function PriceLines({ records, budget }: { records: TastingRecord[]; budget: num
       {bargain && (
         <p style={{ margin: 0, fontSize: 15 }}>
           {tr("お値打ちだったお酒：")}
-          <Link href={`/record?id=${bargain.id}`}>
-            {tr("{0}（{1}・{2}）", drinkTitle(bargain), stars(bargain.overall), yen(bargain.price!))}
-          </Link>
+          <Link href={`/record?id=${bargain.id}`}>{tr("{0}（{1}・{2}）", drinkTitle(bargain), stars(bargain.overall), yen(bargain.price!))}</Link>
         </p>
       )}
     </>
@@ -167,121 +165,125 @@ export default function TastePage() {
   const count = records?.length ?? 0;
   const summary = useMemo(() => (records && count >= MIN_RECORDS ? summarize(records) : null), [records, count]);
 
-  const tasteSections = ([
-    summary && {
-      id: "trend",
-      label: "いまの傾向",
-      node: (
-        <section className="highlight">
-          <span style={{ fontSize: 13 }}>{tr("いまの傾向")}</span>
-          {summary.bestCombo ? (
-            <p className="highlight-main">{tr("{0} の評価が高めです", summary.bestCombo.label)}</p>
-          ) : (
-            <p className="highlight-main">{tr("同じタイプと飲み方の組み合わせが2件以上たまると、ここに出ます")}</p>
-          )}
-        </section>
-      ),
-    },
-    ideas.length > 0 && {
-      id: "next",
-      label: "次の一杯に",
-      node: (
-        <section className="tips">
-          <h2>{tr("次の一杯に")}</h2>
-          <ul className="next-list">
-            {(showAllIdeas ? ideas : ideas.slice(0, 1)).map((i) => (
-              <li key={i.title}>
-                <strong>{trv(i.title)}</strong>
-                <span>{trv(i.reason)}</span>
-                {i.description && <span className="muted">{trv(i.description)}</span>}
-              </li>
-            ))}
-          </ul>
-          {ideas.length > 1 && (
-            <button type="button" className="text-btn next-more" aria-expanded={showAllIdeas} onClick={() => setShowAllIdeas((v) => !v)}>
-              {showAllIdeas ? tr("閉じる") : tr("ほかの案も見る（{0}件）", ideas.length - 1)}
-            </button>
-          )}
-        </section>
-      ),
-    },
-    records && records.length > 0 && { id: "map", label: "味マップ", node: <TasteMap records={records} /> },
-    summary && {
-      id: "bars",
-      label: "種類・タイプ・飲み方・産地ごと",
-      node: (
-        <BarsSwitch
-          groups={[
-            ["種類", summary.byKind],
-            ["タイプ", summary.byStyle],
-            ["飲み方", summary.byServe],
-            ["産地", summary.byOrigin],
-          ]}
-        />
-      ),
-    },
-    records &&
-      (records.some((r) => r.price) || (summary && summary.topFlavors.length > 0)) && {
-        id: "price",
-        label: "値段・よく感じる味",
+  const tasteSections = (
+    [
+      summary && {
+        id: "trend",
+        label: "いまの傾向",
         node: (
-          <section className="card" style={{ gap: 6 }}>
-            <PriceLines records={records} budget={loadPrefs().budget} />
-            {summary && summary.topFlavors.length > 0 && (
-              <>
-                <h2 style={{ fontSize: 15, marginTop: records.some((r) => r.price) ? 8 : 0 }}>{tr("よく感じる味")}</h2>
-                <div className="tags">
-                  {summary.topFlavors.map((f) => (
-                    <span key={f.label} className="tag" style={{ fontSize: 13 }}>
-                      {trv(f.label)} ×{trv(f.count)}
-                    </span>
-                  ))}
-                </div>
-              </>
+          <section className="highlight">
+            <span style={{ fontSize: 13 }}>{tr("いまの傾向")}</span>
+            {summary.bestCombo ? (
+              <p className="highlight-main">{tr("{0} の評価が高めです", summary.bestCombo.label)}</p>
+            ) : (
+              <p className="highlight-main">{tr("同じタイプと飲み方の組み合わせが2件以上たまると、ここに出ます")}</p>
             )}
           </section>
         ),
       },
-    {
-      id: "actions",
-      label: "店員さんに見せる・好みくらべ",
-      node: (
-        <div className="taste-actions" data-tour="taste-show">
-          <Link href="/show" className="hub-item hub-show">
-            <strong>{tr("店員さんに見せる")}</strong>
-            <span className="muted">{tr("好みを大きく表示")}</span>
-          </Link>
-          <Link href="/match" className="hub-item hub-show hub-match">
-            <strong>{tr("友だちと好みくらべ")}</strong>
-            <span className="muted">{tr("リンクで相性を見る")}</span>
-          </Link>
-        </div>
-      ),
-    },
-  ] as (Section | false | null | undefined)[]).filter((s): s is Section => !!s);
-
-  const titleSections = ([
-    records && records.length > 0 && { id: "title", label: "称号としるし", node: <TitleCard records={records} /> },
-    {
-      id: "list",
-      label: "スタンプ帳・お店・気になる・家のお酒",
-      node: (
-        <nav className="hub-list" aria-label={tr("記録のまとめ")}>
-          <HubRow
-            href="/stamps"
-            icon="stamp"
-            label="産地スタンプ帳"
-            value={tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)}
-            progress={stampInfo.total ? stampInfo.stamps.size / stampInfo.total : undefined}
+      ideas.length > 0 && {
+        id: "next",
+        label: "次の一杯に",
+        node: (
+          <section className="tips">
+            <h2>{tr("次の一杯に")}</h2>
+            <ul className="next-list">
+              {(showAllIdeas ? ideas : ideas.slice(0, 1)).map((i) => (
+                <li key={i.title}>
+                  <strong>{trv(i.title)}</strong>
+                  <span>{trv(i.reason)}</span>
+                  {i.description && <span className="muted">{trv(i.description)}</span>}
+                </li>
+              ))}
+            </ul>
+            {ideas.length > 1 && (
+              <button type="button" className="text-btn next-more" aria-expanded={showAllIdeas} onClick={() => setShowAllIdeas((v) => !v)}>
+                {showAllIdeas ? tr("閉じる") : tr("ほかの案も見る（{0}件）", ideas.length - 1)}
+              </button>
+            )}
+          </section>
+        ),
+      },
+      records && records.length > 0 && { id: "map", label: "味マップ", node: <TasteMap records={records} /> },
+      summary && {
+        id: "bars",
+        label: "種類・タイプ・飲み方・産地ごと",
+        node: (
+          <BarsSwitch
+            groups={[
+              ["種類", summary.byKind],
+              ["タイプ", summary.byStyle],
+              ["飲み方", summary.byServe],
+              ["産地", summary.byOrigin],
+            ]}
           />
-          <HubRow href="/shops" icon="shop" label="お店" value={tr("{0}軒", shopCount)} />
-          <HubRow href="/wishlist" icon="star" label="気になるお酒" value={tr("{0}件", wishCount)} />
-          <HubRow href="/bottles" icon="bottle" label="家のお酒" value={tr("{0}本", bottleCount)} />
-          <HubRow href="/prefs" icon="pen" label="わたしの好み" note={tr("自分で登録")} />
-        </nav>
-      ),
-    },
-  ] as (Section | false | null | undefined)[]).filter((s): s is Section => !!s);
+        ),
+      },
+      records &&
+        (records.some((r) => r.price) || (summary && summary.topFlavors.length > 0)) && {
+          id: "price",
+          label: "値段・よく感じる味",
+          node: (
+            <section className="card" style={{ gap: 6 }}>
+              <PriceLines records={records} budget={loadPrefs().budget} />
+              {summary && summary.topFlavors.length > 0 && (
+                <>
+                  <h2 style={{ fontSize: 15, marginTop: records.some((r) => r.price) ? 8 : 0 }}>{tr("よく感じる味")}</h2>
+                  <div className="tags">
+                    {summary.topFlavors.map((f) => (
+                      <span key={f.label} className="tag" style={{ fontSize: 13 }}>
+                        {trv(f.label)} ×{trv(f.count)}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          ),
+        },
+      {
+        id: "actions",
+        label: "店員さんに見せる・好みくらべ",
+        node: (
+          <div className="taste-actions" data-tour="taste-show">
+            <Link href="/show" className="hub-item hub-show">
+              <strong>{tr("店員さんに見せる")}</strong>
+              <span className="muted">{tr("好みを大きく表示")}</span>
+            </Link>
+            <Link href="/match" className="hub-item hub-show hub-match">
+              <strong>{tr("友だちと好みくらべ")}</strong>
+              <span className="muted">{tr("リンクで相性を見る")}</span>
+            </Link>
+          </div>
+        ),
+      },
+    ] as (Section | false | null | undefined)[]
+  ).filter((s): s is Section => !!s);
+
+  const titleSections = (
+    [
+      records && records.length > 0 && { id: "title", label: "称号としるし", node: <TitleCard records={records} /> },
+      {
+        id: "list",
+        label: "スタンプ帳・お店・気になる・家のお酒",
+        node: (
+          <nav className="hub-list" aria-label={tr("記録のまとめ")}>
+            <HubRow
+              href="/stamps"
+              icon="stamp"
+              label="産地スタンプ帳"
+              value={tr("{0} / {1}か所", stampInfo.stamps.size, stampInfo.total)}
+              progress={stampInfo.total ? stampInfo.stamps.size / stampInfo.total : undefined}
+            />
+            <HubRow href="/shops" icon="shop" label="お店" value={tr("{0}軒", shopCount)} />
+            <HubRow href="/wishlist" icon="star" label="気になるお酒" value={tr("{0}件", wishCount)} />
+            <HubRow href="/bottles" icon="bottle" label="家のお酒" value={tr("{0}本", bottleCount)} />
+            <HubRow href="/prefs" icon="pen" label="わたしの好み" note={tr("自分で登録")} />
+          </nav>
+        ),
+      },
+    ] as (Section | false | null | undefined)[]
+  ).filter((s): s is Section => !!s);
 
   const features = useFeatures();
   const [quiz, setQuiz] = useState(false);
@@ -353,7 +355,12 @@ export default function TastePage() {
 }
 
 const ICONS: Record<string, ReactNode> = {
-  stamp: <><circle cx="10" cy="10" r="6.5" /><circle cx="10" cy="10" r="3" /></>,
+  stamp: (
+    <>
+      <circle cx="10" cy="10" r="6.5" />
+      <circle cx="10" cy="10" r="3" />
+    </>
+  ),
   shop: <path d="M3.5 8.5 10 3.5l6.5 5V16h-13z M8 16v-4h4v4" />,
   star: <path d="m10 3 2.1 4.4 4.8.6-3.5 3.3.9 4.7L10 13.7 5.7 16l.9-4.7L3.1 8l4.8-.6z" />,
   bottle: <path d="M8 3h4v3.5l1.5 2V17h-7V8.5L8 6.5z M6.5 11h7" />,

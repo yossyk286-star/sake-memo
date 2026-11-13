@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
+import { loadPasscode } from "@/lib/passcode";
+import { sendAI } from "@/lib/askServer";
 import type { QA } from "@/lib/types";
 import Steps from "./Steps";
 import { askConfirm } from "./ConfirmSheet";
@@ -79,21 +80,17 @@ export default function AskAI({
     setBusy(true);
     setError("");
     try {
-      const res = await fetch("/api/read-menu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const res = await sendAI(
+        {
           ask: q,
           context,
           history: past,
-          passcode: normalizePasscode(passcode),
-          lang: getLang(),
           stream: true,
-        }),
-      });
+        },
+        passcode,
+      );
       let answer = "";
       if (res.ok && res.body && res.headers.get("Content-Type")?.startsWith("text/plain")) {
-        savePasscode(normalizePasscode(passcode));
         const reader = res.body.getReader();
         const dec = new TextDecoder();
         setPartial({ q, a: "" });
@@ -111,7 +108,6 @@ export default function AskAI({
         const data = await res.json().catch(() => ({}));
         if (res.status === 401) setSaved(false);
         if (!res.ok) throw new Error(data.error ?? "答えをもらえませんでした");
-        savePasscode(normalizePasscode(passcode));
         answer = data.answer;
       }
       saveAnswer(key, answer);
@@ -134,13 +130,7 @@ export default function AskAI({
         <div key={h.at} className="ask-qa">
           <p className="ask-q">{trv(h.q)}</p>
           <p className="ask-a">{trv(h.a)}</p>
-          <button
-            type="button"
-            className="ask-del"
-            disabled={busy}
-            aria-label={tr("この質問と答えを消す")}
-            onClick={() => remove([h.at])}
-          >
+          <button type="button" className="ask-del" disabled={busy} aria-label={tr("この質問と答えを消す")} onClick={() => remove([h.at])}>
             {tr("消す")}
           </button>
         </div>

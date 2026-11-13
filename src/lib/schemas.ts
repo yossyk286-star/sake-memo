@@ -10,13 +10,13 @@ export const ScannedDrinkSchema = z.object({
   name: z.string().describe("お酒の名前・銘柄（例：獺祭 純米大吟醸45、シャブリ）"),
   reading: z
     .string()
-    .describe("銘柄名に読みにくい漢字があるときだけ、銘柄部分のひらがなの読み（例：而今→じこん、醸し人九平次→かもしびとくへいじ）。かな・カタカナ・英字だけの名前や、読みがわからないときは空文字"),
+    .describe(
+      "銘柄名に読みにくい漢字があるときだけ、銘柄部分のひらがなの読み（例：而今→じこん、醸し人九平次→かもしびとくへいじ）。かな・カタカナ・英字だけの名前や、読みがわからないときは空文字",
+    ),
   kind: z.enum(KINDS).nullable().describe("お酒の種類。判断できなければ null"),
   style: z
     .string()
-    .describe(
-      `タイプ。種類ごとに次から選ぶ：${KINDS.map((k) => `${k}=${STYLES_BY_KIND[k].join("/")}`).join("、")}。書かれていない・判断できなければ空文字`,
-    ),
+    .describe(`タイプ。種類ごとに次から選ぶ：${KINDS.map((k) => `${k}=${STYLES_BY_KIND[k].join("/")}`).join("、")}。書かれていない・判断できなければ空文字`),
   maker: z.string().describe("蔵元・醸造所・ワイナリー・蒸溜所の名前。わからなければ空文字"),
   origin: z.string().describe("産地（日本なら都道府県名、海外なら国名）。わからなければ空文字"),
   menuNote: z.string().describe("メニューやラベルに書かれている味や香りの説明をそのまま。なければ空文字"),
@@ -63,15 +63,11 @@ export const MenuListSchema = z.object({
     .array(
       ScannedDrinkSchema.pick({ name: true, reading: true, kind: true, style: true, maker: true, origin: true, menuNote: true }).extend({
         abv: z.number().nullable().describe("写真に度数が書いてあればその値（%）。書いていなければ null（推定しない）"),
-        facts: z
-          .string()
-          .describe("写真に書いてあるそのほかの手がかり（値段・量・精米歩合・原材料・品種・年号など）を短く。なければ空文字"),
+        facts: z.string().describe("写真に書いてあるそのほかの手がかり（値段・量・精米歩合・原材料・品種・年号など）を短く。なければ空文字"),
       }),
     )
     .describe("写真に載っているお酒すべて。数に上限はない。お酒が写っていなければ空配列"),
 });
-
-export type MenuListItem = z.infer<typeof MenuListSchema>["drinks"][number];
 
 /** 読み（reading）は後から足したので、前に調べて残っている分にはない */
 export type ScannedDrink = Omit<z.infer<typeof ScannedDrinkSchema>, "reading"> & { reading?: string };
@@ -118,11 +114,7 @@ export type TermLookup = z.infer<typeof TermLookupSchema>;
 /** 料理に合うお酒1つ分 */
 export const FoodPickSchema = z.object({
   kind: z.enum(KINDS).describe("お酒の種類"),
-  style: z
-    .string()
-    .describe(
-      `タイプ。種類ごとに次から選ぶ：${KINDS.map((k) => `${k}=${STYLES_BY_KIND[k].join("/")}`).join("、")}。どれでもなければ空文字`,
-    ),
+  style: z.string().describe(`タイプ。種類ごとに次から選ぶ：${KINDS.map((k) => `${k}=${STYLES_BY_KIND[k].join("/")}`).join("、")}。どれでもなければ空文字`),
   title: z.string().describe("おすすめを短く（例：辛口の純米酒をぬる燗で、軽めの赤ワイン）。20字くらいまで"),
   reason: z.string().describe("なぜこの料理に合うか、初心者にもわかるように1〜2文で"),
   examples: z.string().describe("お店や酒屋で探しやすい銘柄・品種の例を2つくらい（例：黒龍、ピノ・ノワール）。思いつかなければ空文字"),
@@ -160,7 +152,9 @@ export const SpecResultSchema = z.object({
       z.object({
         label: z
           .string()
-          .describe("項目名。なるべく次の書き方にそろえる：原材料、精米歩合、日本酒度、酸度、アミノ酸度、酒米、酵母、度数、容量、製造年月、品種、ヴィンテージ、産地、熟成年数、樽、IBU、麦芽、ホップ、麹、蒸留"),
+          .describe(
+            "項目名。なるべく次の書き方にそろえる：原材料、精米歩合、日本酒度、酸度、アミノ酸度、酒米、酵母、度数、容量、製造年月、品種、ヴィンテージ、産地、熟成年数、樽、IBU、麦芽、ホップ、麹、蒸留",
+          ),
         value: z.string().describe("ラベルに書いてある値をそのまま短く（例：55%、+3、1.6、山田錦、2025年10月）"),
       }),
     )

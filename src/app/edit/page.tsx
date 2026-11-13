@@ -41,10 +41,7 @@ function EditBody() {
             </div>
           )}
           {/* 読み取り結果は、すでに入っている内容の上に重ねる */}
-          <RecordForm
-            key={picked?.name ?? "saved"}
-            initial={picked ? { ...record, ...drinkToDraft(picked) } : record}
-          />
+          <RecordForm key={picked?.name ?? "saved"} initial={picked ? { ...record, ...drinkToDraft(picked) } : record} />
         </>
       )}
     </>

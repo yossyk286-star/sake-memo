@@ -44,7 +44,12 @@ function BottleRecord({ bottle, count, best }: { bottle: Bottle; count: number; 
         </p>
         {best?.serveNote && (
           <p className="term-desc" style={{ margin: 0 }}>
-            {tr("このお酒でいちばん良かった回（{0}・{1}）の飲み方を入れています：{2}", stars(best.overall), best.serve ?? tr("飲み方未入力"), serveNoteText(best.serveNote))}
+            {tr(
+              "このお酒でいちばん良かった回（{0}・{1}）の飲み方を入れています：{2}",
+              stars(best.overall),
+              best.serve ?? tr("飲み方未入力"),
+              serveNoteText(best.serveNote),
+            )}
           </p>
         )}
       </section>
@@ -114,9 +119,7 @@ function NewRecord() {
   const [drinks, setDrinks] = useState<ScannedDrink[]>([]);
   const [picked, setPicked] = useState<ScannedDrink | null>(null);
   // 同じメニューから続けて記録するとき、店名と日付は引き継ぐ
-  const [carry, setCarry] = useState<Pick<RecordDraft, "shop" | "date"> | null>(
-    null,
-  );
+  const [carry, setCarry] = useState<Pick<RecordDraft, "shop" | "date"> | null>(null);
   const [savedNames, setSavedNames] = useState<string[]>([]);
   const [saveCount, setSaveCount] = useState(0);
   // 来た画面（調べる・気になるなど）。保存したあとそこへ戻れるようにする
@@ -206,27 +209,17 @@ function NewRecord() {
       )}
 
       {saveCount > 0 && !picked && (
-        <section
-          className="tips"
-          style={{ margin: "16px 16px 0" }}
-          role="status"
-        >
+        <section className="tips" style={{ margin: "16px 16px 0" }} role="status">
           <h2>{tr("保存しました")}</h2>
           <p className="term-desc">
-            {remaining.length > 0
-              ? tr("ほかにも飲んだお酒があれば、下から選んで続けて記録できます。")
-              : tr("続けて別の記録も作れます。")}
+            {remaining.length > 0 ? tr("ほかにも飲んだお酒があれば、下から選んで続けて記録できます。") : tr("続けて別の記録も作れます。")}
           </p>
           {from !== "/" && (
             <Link href={from} className="btn-primary" style={{ marginBottom: 8 }} onClick={() => popTo(from)}>
               {fromLabel(from)}
             </Link>
           )}
-          <Link
-            href="/"
-            className="btn-secondary"
-            style={{ display: "flex", justifyContent: "center" }}
-          >
+          <Link href="/" className="btn-secondary" style={{ display: "flex", justifyContent: "center" }}>
             {tr("記録の一覧へ")}
           </Link>
         </section>
@@ -236,7 +229,7 @@ function NewRecord() {
         <div className="new-shortcuts">
           <label className="btn-secondary" style={{ cursor: "pointer" }}>
             <LineIcon name="camera" />
-            {tr("撮って、あとで書く")}
+            {tr("あとで書く")}
             <input type="file" accept="image/*" capture="environment" className="visually-hidden" onChange={(e) => toLater(e.target.files)} />
           </label>
           <Link href="/flight" className="btn-secondary">
@@ -282,12 +275,7 @@ function NewRecord() {
 
       {!picked && !manual && remaining.length > 0 ? (
         <div style={{ margin: "12px 16px 0" }}>
-          <button
-            type="button"
-            className="btn-ghost"
-            style={{ width: "100%" }}
-            onClick={() => setManual(true)}
-          >
+          <button type="button" className="btn-ghost" style={{ width: "100%" }} onClick={() => setManual(true)}>
             {tr("一覧にないお酒を手で記録する")}
           </button>
         </div>

@@ -20,7 +20,9 @@ export default function ScanPage() {
   // 2回目からは今日の一覧ですぐ描く（最初はサーバーの絵と合わせるため、読んでから）
   const [drinks, setDrinks] = useState<ScannedDrink[] | null>(() => (clientReady ? (loadLastScan()?.drinks ?? []) : null));
   // 今日のお店のメニューの数（調べるたびに増えるので、一覧が変わった合図で数え直す）
-  const [counts, setCounts] = useState(() => (clientReady ? { drinks: loadLastScan()?.drinks.length ?? 0, dishes: loadTodayMenu().length } : { drinks: 0, dishes: 0 }));
+  const [counts, setCounts] = useState(() =>
+    clientReady ? { drinks: loadLastScan()?.drinks.length ?? 0, dishes: loadTodayMenu().length } : { drinks: 0, dishes: 0 },
+  );
   // 「新しいお店」で一覧を作り直すための番号
   const [shop, setShop] = useState(0);
   // 辞典・蔵元のページ・記録の検索から「この名前で調べる」で来たときの名前（?q=）
@@ -40,7 +42,6 @@ export default function ScanPage() {
     window.addEventListener(LAST_SCAN_EVENT, count);
     return () => window.removeEventListener(LAST_SCAN_EVENT, count);
   }, []);
-
 
   return (
     <>
@@ -63,17 +64,12 @@ export default function ScanPage() {
       />
 
       <Hint id="scan-page" className="lead scan-hint">
-        {tr("撮ったり調べたりした結果は今日のあいだ残るので、あとから「記録する」でも同じお酒から選べます。 次に試したいお酒は「☆」で")}<Link href="/wishlist">{tr("気になるお酒")}</Link>{tr("に残せます。")}
+        {tr("撮ったり調べたりした結果は今日のあいだ残るので、あとから「記録する」でも同じお酒から選べます。 次に試したいお酒は「☆」で")}
+        <Link href="/wishlist">{tr("気になるお酒")}</Link>
+        {tr("に残せます。")}
       </Hint>
 
-      {drinks && (
-        <MenuScan
-          key={shop}
-          initialQuery={q}
-          initialDrinks={drinks}
-          onPick={(d) => router.push(`/new?drink=${encodeURIComponent(d.name)}`)}
-        />
-      )}
+      {drinks && <MenuScan key={shop} initialQuery={q} initialDrinks={drinks} onPick={(d) => router.push(`/new?drink=${encodeURIComponent(d.name)}`)} />}
 
       {/* 今日まだ何も調べていないときだけ、前に調べたものを下に出す */}
       {drinks && counts.drinks === 0 && (

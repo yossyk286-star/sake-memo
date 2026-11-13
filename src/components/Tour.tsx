@@ -141,26 +141,24 @@ export default function Tour() {
   // 光らせる枠は少し大きめに。画面の端からははみ出さないようにする
   const pad = 3;
   const edge = 4;
-  const hole = rect && (() => {
-    const top = Math.max(edge, rect.top - pad);
-    const left = Math.max(edge, rect.left - pad);
-    const right = Math.min(innerWidth - edge, rect.left + rect.width + pad);
-    const bottom = Math.min(innerHeight - edge, rect.top + rect.height + pad);
-    // 角の丸みはボタンに合わせる
-    const borderRadius = Math.min(Math.max(rect.radius + pad, 10), (bottom - top) / 2);
-    return { top, left, width: right - left, height: bottom - top, borderRadius };
-  })();
+  const hole =
+    rect &&
+    (() => {
+      const top = Math.max(edge, rect.top - pad);
+      const left = Math.max(edge, rect.left - pad);
+      const right = Math.min(innerWidth - edge, rect.left + rect.width + pad);
+      const bottom = Math.min(innerHeight - edge, rect.top + rect.height + pad);
+      // 角の丸みはボタンに合わせる
+      const borderRadius = Math.min(Math.max(rect.radius + pad, 10), (bottom - top) / 2);
+      return { top, left, width: right - left, height: bottom - top, borderRadius };
+    })();
   // ボタンが画面の下半分なら吹き出しは上に、上半分なら下に出す
   const below = hole ? hole.top + hole.height / 2 < innerHeight / 2 : false;
   const centerX = hole ? hole.left + hole.width / 2 : 0;
 
   return (
     <div className="tour" role="dialog" aria-modal="true" aria-label={tr("画面の案内")}>
-      {hole ? (
-        <div key="hole" className="tour-hole" style={hole} aria-hidden="true" />
-      ) : (
-        <div key="dim" className="tour-dim" aria-hidden="true" />
-      )}
+      {hole ? <div key="hole" className="tour-hole" style={hole} aria-hidden="true" /> : <div key="dim" className="tour-dim" aria-hidden="true" />}
       {hole && (
         <>
           <svg
@@ -176,7 +174,14 @@ export default function Tour() {
             aria-hidden="true"
           >
             {/* 矢印はボタンの方を向く */}
-            <path d={below ? "M14 34V6M5 14l9-10 9 10" : "M14 2v28M5 22l9 10 9-10"} fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d={below ? "M14 34V6M5 14l9-10 9 10" : "M14 2v28M5 22l9 10 9-10"}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <div
             ref={boxRef}

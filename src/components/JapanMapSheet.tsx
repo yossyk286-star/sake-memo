@@ -15,9 +15,7 @@ import { tr, trv } from "@/lib/i18n";
 const WorldMap = dynamic(() => import("@/components/WorldMap"), { ssr: false });
 
 // 地図の id（ローマ字）→ スタンプ帳の県名
-const PREFS = REGIONS.filter((r) => r.region !== "海外").flatMap((r) =>
-  r.places.map((p) => ({ id: p.aliases[0], name: p.name })),
-);
+const PREFS = REGIONS.filter((r) => r.region !== "海外").flatMap((r) => r.places.map((p) => ({ id: p.aliases[0], name: p.name })));
 const [, , JAPAN_W, JAPAN_H] = JAPAN_VIEWBOX.split(" ").map(Number);
 const ABROAD = REGIONS.find((r) => r.region === "海外")!.places.map((p) => p.name);
 
@@ -57,9 +55,7 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
 
   // 県を押したらその県に寄る。小さい県でもまわりが少し見える広さにする
   const pickedPref = mode === "日本" ? PREFS.find((p) => p.name === picked) : undefined;
-  const viewBox = useViewBox(
-    pickedPref ? fitBox(JAPAN_BOXES[pickedPref.id], JAPAN_W / JAPAN_H, JAPAN_W / 3.2) : JAPAN_VIEWBOX,
-  );
+  const viewBox = useViewBox(pickedPref ? fitBox(JAPAN_BOXES[pickedPref.id], JAPAN_W / JAPAN_H, JAPAN_W / 3.2) : JAPAN_VIEWBOX);
 
   const shape = (p: (typeof PREFS)[number]) => (
     <path
@@ -77,17 +73,10 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
   // 後ろの画面（.app）を奥へ下げるので、シートはその外（body の直下）に置く
   return createPortal(
     <div className="sheet-backdrop" onClick={onClose}>
-      <section
-        className="sheet jmap-sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="jmap-title"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <section className="sheet jmap-sheet" role="dialog" aria-modal="true" aria-labelledby="jmap-title" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-head">
           <h2 id="jmap-title">
-            {tr("{0}地図", mode)}{" "}
-            <span className="jmap-count">{mode === "日本" ? `${done} / 47` : `${abroad} / ${ABROAD.length}`}</span>
+            {tr("{0}地図", mode)} <span className="jmap-count">{mode === "日本" ? `${done} / 47` : `${abroad} / ${ABROAD.length}`}</span>
           </h2>
           <button className="icon-btn" aria-label={tr("閉じる")} onClick={onClose} autoFocus>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -123,13 +112,21 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
                 onClick={() => setPicked((x) => (x === "沖縄" ? null : "沖縄"))}
               >
                 <rect className="jmap-inset" x="2" y="2" width="132" height="102" rx="8" />
-                <text x="12" y="24">{tr("沖縄")}</text>
+                <text x="12" y="24">
+                  {tr("沖縄")}
+                </text>
                 <g transform={OKINAWA_SHIFT}>{shape(PREFS.find((p) => p.id === "okinawa")!)}</g>
               </g>
             </svg>
             <div className="map-legend jmap-legend" aria-hidden="true">
-              <span><i className="jmap-swatch on" />{tr("飲んだ")}</span>
-              <span><i className="jmap-swatch" />{tr("まだ")}</span>
+              <span>
+                <i className="jmap-swatch on" />
+                {tr("飲んだ")}
+              </span>
+              <span>
+                <i className="jmap-swatch" />
+                {tr("まだ")}
+              </span>
             </div>
             {pickedPref && (
               <button type="button" className="jmap-all" onClick={() => setPicked(null)}>
@@ -141,18 +138,25 @@ export default function JapanMapSheet({ stamps, onClose }: { stamps: Map<string,
 
         <div className="jmap-info" aria-live="polite">
           {!picked ? (
-            <span className="muted">{mode === "日本" ? tr("県") : tr("国や点")}{tr("を押すと、そこで飲んだお酒が見られます")}</span>
+            <span className="muted">
+              {mode === "日本" ? tr("県") : tr("国や点")}
+              {tr("を押すと、そこで飲んだお酒が見られます")}
+            </span>
           ) : !stamp || !best ? (
             <span>
               <strong>{trv(picked)}</strong>
-              <span className="muted">{"　"}{tr("まだ。次に試してみる？")}</span>
+              <span className="muted">
+                {"　"}
+                {tr("まだ。次に試してみる？")}
+              </span>
             </span>
           ) : (
             <Link href={`/record?id=${best.id}`} className="jmap-best">
               <span>
                 <strong>{trv(picked)}</strong>
                 <span className="muted">
-                  　{"　"}{tr("{0}杯・最高{1}", stamp.count, stars(stamp.best))}
+                  　{"　"}
+                  {tr("{0}杯・最高{1}", stamp.count, stars(stamp.best))}
                 </span>
               </span>
               <span className="jmap-best-name">{tr("いちばん：{0} ›", drinkTitle(best))}</span>

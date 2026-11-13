@@ -78,13 +78,7 @@ export default function ConfirmHost() {
   if (!p) return null;
   return (
     <div className={`confirm-backdrop${closing ? " is-closing" : ""}`} onClick={() => done(-1)}>
-      <div
-        className="confirm-sheet"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="confirm-msg"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirm-msg" onClick={(e) => e.stopPropagation()}>
         <div className="confirm-box">
           <div className="confirm-head">
             {p.preview && <div className="confirm-preview">{p.preview}</div>}

@@ -34,7 +34,9 @@ const ICONS: Record<string, { d: string; fill?: string }> = {
   globe: { d: "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" },
   tokkuri: { d: "M9.5 3h5M10.5 3v3c0 1.5-4.5 4-4.5 9a6 6 0 0 0 12 0c0-5-4.5-7.5-4.5-9V3" },
   wine: { d: "M8 3h8l-.5 5a3.5 3.5 0 0 1-7 0zM12 11.5V20M8.5 20.5h7" },
-  beer: { d: "M5 8h10v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2zM15 11h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2M5 8c0-2 2-3 3.5-2 1-1.5 4-1.5 5 0 1.5 0 2 1 1.5 2M8.5 11v6M11.5 11v6" },
+  beer: {
+    d: "M5 8h10v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2zM15 11h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2M5 8c0-2 2-3 3.5-2 1-1.5 4-1.5 5 0 1.5 0 2 1 1.5 2M8.5 11v6M11.5 11v6",
+  },
   whisky: { d: "M5 6h14l-1.5 13a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2zM5.8 12h12.4M9 14.5h3v3H9z" },
   choko: { d: "M4 9h16l-2 8a3 3 0 0 1-3 2.5H9A3 3 0 0 1 6 17zM8 13a4 1.5 0 0 0 8 0" },
   all: { d: "M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8M12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0-5z" },
@@ -49,9 +51,13 @@ const ICONS: Record<string, { d: string; fill?: string }> = {
   bean: { d: "M12 3c4.5 0 7 4 7 9s-2.5 9-7 9-7-4-7-9 2.5-9 7-9zM12 3.5c-2.5 4 2.5 8.5 0 17" },
   "bean-half": { d: "M12 3c4.5 0 7 4 7 9s-2.5 9-7 9-7-4-7-9 2.5-9 7-9zM12 3.5c-2.5 4 2.5 8.5 0 17M7 9h4M6 12h5M7 15h4" },
   "bean-full": { d: "M12 3c4.5 0 7 4 7 9s-2.5 9-7 9-7-4-7-9 2.5-9 7-9zM12 3.5c-2.5 4 2.5 8.5 0 17", fill: "lo" },
-  beans: { d: "M7 4c2.5 0 4 2.2 4 5s-1.5 5-4 5-4-2.2-4-5 1.5-5 4-5zM17 4c2.5 0 4 2.2 4 5s-1.5 5-4 5-4-2.2-4-5 1.5-5 4-5zM12 11c2.5 0 4 2.2 4 5s-1.5 5-4 5-4-2.2-4-5 1.5-5 4-5zM7 4.5c-1 1.5 1 3 0 9M17 4.5c-1 1.5 1 3 0 9M12 11.5c-1 1.5 1 3 0 9" },
+  beans: {
+    d: "M7 4c2.5 0 4 2.2 4 5s-1.5 5-4 5-4-2.2-4-5 1.5-5 4-5zM17 4c2.5 0 4 2.2 4 5s-1.5 5-4 5-4-2.2-4-5 1.5-5 4-5zM12 11c2.5 0 4 2.2 4 5s-1.5 5-4 5-4-2.2-4-5 1.5-5 4-5zM7 4.5c-1 1.5 1 3 0 9M17 4.5c-1 1.5 1 3 0 9M12 11.5c-1 1.5 1 3 0 9",
+  },
   dripper: { d: "M8 3h8M4.5 6h15l-4.5 8H9zM9.5 14v2h5v-2M5 20h14M15 16v4" },
-  cherry: { d: "M8 14.5a3 3 0 1 0 0 6 3 3 0 1 0 0-6zM16.5 13.5a3 3 0 1 0 0 6 3 3 0 1 0 0-6zM8 14.5c1-5 3-8 7-11M16.5 13.5c-1-4-1.5-7-1.5-10M15 3.5c2.5 0 4.5 1 5.5 3-2.5 0-4.5-1-5.5-3z" },
+  cherry: {
+    d: "M8 14.5a3 3 0 1 0 0 6 3 3 0 1 0 0-6zM16.5 13.5a3 3 0 1 0 0 6 3 3 0 1 0 0-6zM8 14.5c1-5 3-8 7-11M16.5 13.5c-1-4-1.5-7-1.5-10M15 3.5c2.5 0 4.5 1 5.5 3-2.5 0-4.5-1-5.5-3z",
+  },
   cup: { d: "M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM16 10h1.5a2.5 2.5 0 0 1 0 5H16M8 3c0 2 2 2 2 4M12 3c0 2 2 2 2 4" },
   sun: { d: "M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8zM12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" },
 };
@@ -93,7 +99,16 @@ export default function Medal({
         opacity={opacity}
       />
     ) : (
-      <text x={50 + dx} y={61 + dx} textAnchor="middle" fontSize={text && text.length > 2 ? 26 : 32} fontWeight={800} fill={color} opacity={opacity} fontFamily="Georgia, 'Times New Roman', serif">
+      <text
+        x={50 + dx}
+        y={61 + dx}
+        textAnchor="middle"
+        fontSize={text && text.length > 2 ? 26 : 32}
+        fontWeight={800}
+        fill={color}
+        opacity={opacity}
+        fontFamily="Georgia, 'Times New Roman', serif"
+      >
         {text}
       </text>
     );
@@ -164,7 +179,19 @@ export default function Medal({
 }
 
 /** 称号の段のメダル（銅→銀→金→白金→古金）。真ん中にアプリのしるしを彫る */
-export function TitleMedal({ tier, emblem, size = 64, locked = false, shine = false }: { tier: number; emblem: string; size?: number; locked?: boolean; shine?: boolean }) {
+export function TitleMedal({
+  tier,
+  emblem,
+  size = 64,
+  locked = false,
+  shine = false,
+}: {
+  tier: number;
+  emblem: string;
+  size?: number;
+  locked?: boolean;
+  shine?: boolean;
+}) {
   return <Medal metal={tier} icon={emblem} size={size} locked={locked} shine={shine} />;
 }
 

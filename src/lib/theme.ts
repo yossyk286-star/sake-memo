@@ -53,9 +53,7 @@ export function applyTheme(theme: Theme) {
   root.dataset.accent = theme.accent;
   if (theme.text === "large") root.dataset.text = "large";
   else delete root.dataset.text;
-  const dark =
-    root.dataset.theme === "dark" ||
-    (theme.appearance === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  const dark = root.dataset.theme === "dark" || (theme.appearance === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
   document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
     m.setAttribute("content", dark ? (ACCENTS.find((a) => a.id === theme.accent) ?? ACCENTS[0]).bgDark : BG_LIGHT);
   });

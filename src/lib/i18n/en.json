@@ -151,7 +151,6 @@
 "合いそうなものを出します。": " that should match.",
 "合言葉（よくある料理なら、なくても使えます）": "Passcode (not needed for common dishes)",
 "料理・食べ物": "Dish or food",
-"料理・食べ物（例：焼き鳥）": "Dish or food (e.g. yakitori)",
 "選び中…": "Choosing…",
 "選ぶ": "Choose",
 "よく食べる料理": "Common dishes",
@@ -496,7 +495,6 @@
 "お酒の名前をタップすると、説明や飲み方が開きます。「＋記録」を押すと、お酒の情報が入った状態で感想を書けます。": "Tap a drink name for its description and serving tips. Tap “+Log” to write your notes with the drink's details already filled in.",
 "お酒のメニューや瓶・缶のラベルを撮るか、名前を入れて調べると、解説とおすすめの飲み方を出して、記録の項目に入れます。": "Snap a drinks menu or a bottle/can label, or search by name, to get an explanation and serving tips, filled into your entry.",
 "撮る": "Snap",
-"メニューやラベルを撮って読み取る": "Snap a menu or label to read it",
 "写真フォルダから選んで読み取る": "Choose from your photos to read",
 "文字で": "Type",
 "撮る・写真から": "Snap / photos",
@@ -1938,7 +1936,6 @@
 "📷 撮って、あとで書く": "📷 Snap, write later",
 "🍶 飲み比べセット": "🍶 Tasting flight",
 "「あとで書く」の写真から記録します。保存すると箱から外れます。": "Recording from a Write-later photo. It leaves the box once saved.",
-"{0} の{1}件を消します": "Delete {1} records: {0}",
 " ほか": " and more",
 "{0}件を削除": "Delete {0}",
 "{0}件に #{1} を付けました": "Tagged {0} with #{1}",
@@ -2065,7 +2062,6 @@
 "麹": "Koji",
 "蒸留": "Distillation",
 "もう1枚": "One more",
-"撮って、あとで書く": "Snap now, write later",
 "撮って入れる": "Take a photo",
 "選択": "Select",
 "円": "yen",
@@ -2166,5 +2162,10 @@
 "「{0}」が一段ピカッとしました": "“{0}” got shinier",
 "あと{0}{1}！": "{0} more! Almost",
 "酒そのもの": "Pure sake",
-"もう、どっちが飲んでいるのかわからない": "Who's drinking whom? Hard to tell."
+"もう、どっちが飲んでいるのかわからない": "Who's drinking whom? Hard to tell.",
+"メニュー・ラベルを撮る": "Snap a menu or label",
+"料理名（例：焼き鳥）": "Dish (e.g. yakitori)",
+"{0} の{1}件を削除しますか？": "Delete {1} records? {0}",
+"未入力": "Not set",
+"／": " / "
 }

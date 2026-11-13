@@ -53,7 +53,15 @@ export function Stars({ n, color, className = "", label }: { n: number; color?: 
 
 /** 一覧や詳細の見出し。銘柄がなければ蔵元、それもなければ種類とタイプ */
 export function drinkTitle(r: Pick<TastingRecord, "name" | "maker" | "kind" | "style">) {
-  return r.name || r.maker || [r.kind, r.style].filter(Boolean).map((s) => tr(s!)).join(" ") || tr("（名前なし）");
+  return (
+    r.name ||
+    r.maker ||
+    [r.kind, r.style]
+      .filter(Boolean)
+      .map((s) => tr(s!))
+      .join(" ") ||
+    tr("（名前なし）")
+  );
 }
 
 export function yen(n: number) {
@@ -90,8 +98,19 @@ function Thumb({ record: r }: { record: TastingRecord }) {
   if (first) {
     // 縮小版ができるまでは同じ大きさの空き枠を出して、行の高さや並びが動かないようにする
     if (!url) return <span className="thumb thumb-wait" style={{ borderColor: kindColor(r.kind) }} aria-hidden="true" />;
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={url} alt="" className="thumb photo-fade" loading="lazy" decoding="async" ref={markIfLoaded} onLoad={markLoaded} style={{ borderColor: kindColor(r.kind) }} />;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt=""
+        className="thumb photo-fade"
+        loading="lazy"
+        decoding="async"
+        ref={markIfLoaded}
+        onLoad={markLoaded}
+        style={{ borderColor: kindColor(r.kind) }}
+      />
+    );
   }
   return (
     <span className="thumb thumb-mark" style={{ "--kc": kindColor(r.kind) } as React.CSSProperties} aria-hidden="true">
@@ -114,13 +133,9 @@ export function RecordPreview({ record }: { record: TastingRecord }) {
 export default function RecordCard({ record: r, showDate = true, nth }: { record: TastingRecord; showDate?: boolean; nth?: number }) {
   const { favorites, repeatTag } = useFeatures();
   // 種類は左のマークでわかるので、タイプから書く（店や値段まで見えるように）
-  const sub = [
-    r.style && trJoin([r.style]),
-    r.serve && tr(r.serve),
-    r.shop && tr(r.shop),
-    r.price && yen(r.price),
-    showDate && shortDate(r.date),
-  ].filter(Boolean);
+  const sub = [r.style && trJoin([r.style]), r.serve && tr(r.serve), r.shop && tr(r.shop), r.price && yen(r.price), showDate && shortDate(r.date)].filter(
+    Boolean,
+  );
   const router = useRouter();
   const href = `/record?id=${r.id}`;
   /** 押した行が上へ広がって詳細になる（使えない端末ではふつうに移る） */
@@ -130,7 +145,11 @@ export default function RecordCard({ record: r, showDate = true, nth }: { record
     const row = e.currentTarget;
     nameForTransition(row, "rec-card");
     nameForTransition(row.querySelector("h2"), "rec-name");
-    transitionTo(() => router.push(href), () => !!document.querySelector(".detail-hero"), "open");
+    transitionTo(
+      () => router.push(href),
+      () => !!document.querySelector(".detail-hero"),
+      "open",
+    );
   }
   return (
     <Link href={href} className="card record-row" data-rid={r.id} onClick={open}>

@@ -82,8 +82,14 @@ export default function WorldMap({
         })}
       </svg>
       <div className="map-legend" aria-hidden="true">
-        <span><i className="wmap-dot on" />{tr("飲んだ")}</span>
-        <span><i className="wmap-dot" />{tr("まだ")}</span>
+        <span>
+          <i className="wmap-dot on" />
+          {tr("飲んだ")}
+        </span>
+        <span>
+          <i className="wmap-dot" />
+          {tr("まだ")}
+        </span>
       </div>
       <div className="row wmap-areas" role="group" aria-label={tr("地域に寄る")}>
         {[null, ...areas].map((a) => (

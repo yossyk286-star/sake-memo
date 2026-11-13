@@ -34,9 +34,6 @@ export const TITLES = [
 /** いちばん上まで来たときのひとこと（称号・しるし） */
 export const TOP_LINES = { title: "もう教えることはありません。お水も飲んでね", badge: "極めた！まだ飲む？" };
 
-/** しるしの段の名前（銅→ダイヤ）。Medal の METALS と同じ並び */
-export const METAL_NAMES = ["銅", "銀", "金", "プラチナ", "ダイヤ"];
-
 /** icon は Medal に彫る絵の名前。「#10」のように # で始まるときは数字を彫る */
 export type Badge = {
   id: string;
@@ -45,9 +42,8 @@ export type Badge = {
   /** いまの段（0 銅〜4 ダイヤ）。まだ取っていなければ -1 */
   tier: number;
   done: boolean;
-  /** 次の段に上がるには（いちばん上なら null） */
-  /** how は「{0}杯記録する」のような文（{0} に need、{1} に arg が入る。tr で訳してから埋める） */
-  next: { how: string; need: number; arg?: string; left: number; unit: string; metal: string } | null;
+  /** 次の段に上がるには（いちばん上なら null）。how は「{0}杯記録する」のような文（{0} に need、{1} に arg が入る。tr で訳してから埋める） */
+  next: { how: string; need: number; arg?: string; left: number; unit: string } | null;
 };
 
 /**
@@ -64,7 +60,7 @@ function tiered(id: string, icon: string, label: string, have: number, steps: nu
     label,
     tier,
     done: tier >= 0,
-    next: need === undefined ? null : { how: how(need), need, arg, left: need - have, unit, metal: METAL_NAMES[tier + 1] },
+    next: need === undefined ? null : { how: how(need), need, arg, left: need - have, unit },
   };
 }
 
@@ -101,13 +97,29 @@ export function badgesOf(records: TastingRecord[]): Badge[] {
     tiered("places", "pin", "産地", places.size, [3, 5, 10, 20, 30], () => "{0}か所の産地を飲む", "か所"),
     tiered("abroad", "globe", "海外のお酒", overseas, [1, 3, 5, 10, 15], () => "海外のお酒を{0}か国ぶん飲む", "か国"),
     ...KINDS.map(([k, icon]) => tiered(`k-${k}`, icon, k, kindCount(k), [1, 3, 5, 10, 20], (x) => (x === 1 ? "{1}を記録する" : "{1}を{0}杯"), "杯", k)),
-    tiered("k-all", "all", "5種類ぜんぶ", Math.min(...KINDS.map(([k]) => kindCount(k))), [1, 2, 3, 5, 10], (x) => (x === 1 ? "日本酒・ワイン・ビール・ウイスキー・焼酎を記録する" : "5種類それぞれ{0}杯"), "杯"),
+    tiered(
+      "k-all",
+      "all",
+      "5種類ぜんぶ",
+      Math.min(...KINDS.map(([k]) => kindCount(k))),
+      [1, 2, 3, 5, 10],
+      (x) => (x === 1 ? "日本酒・ワイン・ビール・ウイスキー・焼酎を記録する" : "5種類それぞれ{0}杯"),
+      "杯",
+    ),
     tiered("star5", "star", "★5の1杯", records.filter((r) => r.overall >= 5).length, [1, 3, 5, 10, 20], (x) => (x === 1 ? "★5をつける" : "★5を{0}回"), "回"),
     tiered("shops", "store", "お店", shops, [3, 5, 10, 20, 30], () => "{0}軒のお店で記録する", "軒"),
     tiered("home", "home", "家飲み", homeCount, [1, 3, 5, 10, 20], (x) => (x === 1 ? "家で飲んで記録する" : "家で{0}杯"), "杯"),
     tiered("photo", "camera", "写真", photoCount, [5, 10, 20, 30, 50], () => "写真つきの記録を{0}つ", "つ"),
     tiered("friday", "moon", "金曜の夜", fridays, [1, 3, 5, 10, 20], (x) => (x === 1 ? "金曜日に記録する" : "金曜日{0}回"), "回"),
-    tiered("three", "cups", "1日に3杯", [...perDay.values()].filter((c) => c >= 3).length, [1, 3, 5, 10, 20], (x) => (x === 1 ? "同じ日に3杯記録する" : "3杯の日を{0}日"), "日"),
+    tiered(
+      "three",
+      "cups",
+      "1日に3杯",
+      [...perDay.values()].filter((c) => c >= 3).length,
+      [1, 3, 5, 10, 20],
+      (x) => (x === 1 ? "同じ日に3杯記録する" : "3杯の日を{0}日"),
+      "日",
+    ),
     tiered("food", "food", "料理と合わせて", records.filter((r) => r.pairing.trim()).length, [5, 10, 20, 30, 50], () => "合わせた料理を{0}回書く", "回"),
   ];
 }

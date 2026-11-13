@@ -109,8 +109,7 @@ export function UseSettings() {
 /** 記録のカード（点数・使う欄・♥・2回目・診断・残りメーター） */
 export function RecordSettings() {
   const f = useFeatures();
-  const toggleField = (id: string) =>
-    saveFeatures({ hidden: f.hidden.includes(id) ? f.hidden.filter((x) => x !== id) : [...f.hidden, id] });
+  const toggleField = (id: string) => saveFeatures({ hidden: f.hidden.includes(id) ? f.hidden.filter((x) => x !== id) : [...f.hidden, id] });
   return (
     <section className="card" style={{ gap: 14 }}>
       <Choice

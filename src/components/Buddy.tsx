@@ -22,10 +22,14 @@ export default function Buddy() {
   // アプリを開いたとき（起動画面が消えたあと）に1回だけ。店員さんに見せている最中は出さない
   useEffect(() => {
     if (path === "/show") return;
-    const t = setTimeout(() => listRecords().then((rs) => {
-      const l = openLine(rs);
-      if (l) announceBuddy(l);
-    }), 1600);
+    const t = setTimeout(
+      () =>
+        listRecords().then((rs) => {
+          const l = openLine(rs);
+          if (l) announceBuddy(l);
+        }),
+      1600,
+    );
     return () => clearTimeout(t);
     // 開いたときの1回だけでよいので path は見ない
     // eslint-disable-next-line react-hooks/exhaustive-deps

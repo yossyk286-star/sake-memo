@@ -12,12 +12,48 @@
   /* ダークの地の色。テーマ色を少しだけ混ぜた黒（藍墨）。src/lib/theme.ts の bgDark と合わせる */
   --bg-d: #11131c;
 }
-[data-accent="blue"] { --accent-l: #0a6cdc; --accent-d: #4a9eff; --compare-l: #e0663a; --compare-d: #ff9f6b; --bg-d: #0b131e; }
-[data-accent="wine"] { --accent-l: #a3264c; --accent-d: #f0708f; --compare-l: #2f6fd0; --compare-d: #6aa8ff; --bg-d: #190f15; }
-[data-accent="amber"] { --accent-l: #ad5f0b; --accent-d: #f5a742; --compare-l: #2f6fd0; --compare-d: #6aa8ff; --bg-d: #19140e; }
-[data-accent="green"] { --accent-l: #2f7d55; --accent-d: #5cc98e; --compare-l: #2f6fd0; --compare-d: #6aa8ff; --bg-d: #0d1715; }
-[data-accent="purple"] { --accent-l: #7344b8; --accent-d: #b494f2; --compare-l: #e0663a; --compare-d: #ff9f6b; --bg-d: #14121d; }
-[data-accent="graphite"] { --accent-l: #3a3d46; --accent-d: #c9ccd6; --compare-l: #2f6fd0; --compare-d: #6aa8ff; --bg-d: #16171a; }
+[data-accent="blue"] {
+  --accent-l: #0a6cdc;
+  --accent-d: #4a9eff;
+  --compare-l: #e0663a;
+  --compare-d: #ff9f6b;
+  --bg-d: #0b131e;
+}
+[data-accent="wine"] {
+  --accent-l: #a3264c;
+  --accent-d: #f0708f;
+  --compare-l: #2f6fd0;
+  --compare-d: #6aa8ff;
+  --bg-d: #190f15;
+}
+[data-accent="amber"] {
+  --accent-l: #ad5f0b;
+  --accent-d: #f5a742;
+  --compare-l: #2f6fd0;
+  --compare-d: #6aa8ff;
+  --bg-d: #19140e;
+}
+[data-accent="green"] {
+  --accent-l: #2f7d55;
+  --accent-d: #5cc98e;
+  --compare-l: #2f6fd0;
+  --compare-d: #6aa8ff;
+  --bg-d: #0d1715;
+}
+[data-accent="purple"] {
+  --accent-l: #7344b8;
+  --accent-d: #b494f2;
+  --compare-l: #e0663a;
+  --compare-d: #ff9f6b;
+  --bg-d: #14121d;
+}
+[data-accent="graphite"] {
+  --accent-l: #3a3d46;
+  --accent-d: #c9ccd6;
+  --compare-l: #2f6fd0;
+  --compare-d: #6aa8ff;
+  --bg-d: #16171a;
+}
 
 :root {
   --bg: #f2f2f7;
@@ -137,7 +173,7 @@
   --line: rgba(84, 84, 88, 0.55);
   --input-line: rgba(84, 84, 88, 0.75);
   --bar-bg: color-mix(in srgb, var(--surface) 80%, transparent);
-    --bar-glow: rgba(255, 255, 255, 0.07);
+  --bar-glow: rgba(255, 255, 255, 0.07);
   /* ダークは影が見えないので、カードの上のふちに細い光の線を1本だけ入れて浮かせる */
   --shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.07);
   /* シート・ポップアップはカードより一段明るい地にして、上のふちの光も強く */
@@ -256,7 +292,7 @@ textarea {
 .page-header h1 {
   margin: 0;
   /* 小さい iPhone で右のボタンと並んでも見出しが2行に割れないように */
-  font-size: clamp(26px, 7vw, 32px);
+  font-size: clamp(24px, 6.8vw, 32px);
   white-space: nowrap;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -412,7 +448,9 @@ textarea {
   font-size: 17px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 0 0 0.5px var(--line);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.14),
+    0 0 0 0.5px var(--line);
   transition: transform 0.15s ease;
 }
 
@@ -445,7 +483,10 @@ textarea {
   background: var(--bar-bg);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   backdrop-filter: saturate(180%) blur(20px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16), 0 0 0 0.5px var(--line), inset 0 0.5px 0 var(--bar-glow);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.16),
+    0 0 0 0.5px var(--line),
+    inset 0 0.5px 0 var(--bar-glow);
   pointer-events: auto;
 }
 .tab {
@@ -537,7 +578,9 @@ textarea {
   background: var(--surface);
   box-shadow: var(--shadow);
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 /* iPhone の日付欄は中身の幅が最小になり、画面からはみ出すので抑える。
    中の日付の文字は上寄せ・中央寄せになるので、他の欄と同じ縦中央・左寄せにそろえる */
@@ -579,7 +622,10 @@ textarea.input {
   background: var(--surface);
   border: 1px solid var(--line);
   white-space: nowrap;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
 }
 /* 選んだチップ：濃い塗りではなく、うすいテーマ色の地＋濃い文字＋✓（色だけに頼らず ✓ でも分かる） */
 .chip[aria-pressed="true"] {
@@ -755,7 +801,9 @@ textarea.input {
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  transition: transform 0.1s ease, opacity 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    opacity 0.15s ease;
 }
 .btn-primary:disabled {
   opacity: 0.6;
@@ -774,7 +822,9 @@ textarea.input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.1s ease, opacity 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    opacity 0.15s ease;
 }
 .btn-danger {
   color: var(--danger);
@@ -1310,11 +1360,23 @@ button.stamp {
   cursor: default;
 }
 /* 総合の平均 ★1〜5 をテーマ色の濃さ5段階で。濃い2段は数字を白（ダークでは黒）にして読めるように */
-.taste-map-cell[data-step="1"] { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
-.taste-map-cell[data-step="2"] { background: color-mix(in srgb, var(--accent) 40%, var(--surface)); }
-.taste-map-cell[data-step="3"] { background: color-mix(in srgb, var(--accent) 58%, var(--surface)); }
-.taste-map-cell[data-step="4"] { background: color-mix(in srgb, var(--accent) 78%, var(--surface)); color: var(--on-accent); }
-.taste-map-cell[data-step="5"] { background: var(--accent); color: var(--on-accent); }
+.taste-map-cell[data-step="1"] {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+}
+.taste-map-cell[data-step="2"] {
+  background: color-mix(in srgb, var(--accent) 40%, var(--surface));
+}
+.taste-map-cell[data-step="3"] {
+  background: color-mix(in srgb, var(--accent) 58%, var(--surface));
+}
+.taste-map-cell[data-step="4"] {
+  background: color-mix(in srgb, var(--accent) 78%, var(--surface));
+  color: var(--on-accent);
+}
+.taste-map-cell[data-step="5"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
 .taste-map-scale {
   display: flex;
   align-items: center;
@@ -1547,7 +1609,9 @@ button.stamp {
 .mode-switch button[aria-pressed="true"] {
   background: var(--surface);
   font-weight: 700;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.12),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04);
 }
 
 /* --- 記録の一覧（2行の小さいカード） --- */
@@ -1659,7 +1723,9 @@ button.stamp {
   border-radius: 999px;
   background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent));
   color: var(--on-accent);
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 40%, rgba(0, 0, 0, 0.2)), inset 0 0.5px 0 rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 8px 22px color-mix(in srgb, var(--accent) 40%, rgba(0, 0, 0, 0.2)),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.35);
 }
 .tab-badge {
   position: absolute;
@@ -2179,7 +2245,9 @@ input[type="search"]::-webkit-search-cancel-button {
   font-weight: 700;
 }
 .swatch[aria-pressed="true"] i {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--sw);
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--sw);
 }
 .swatch[aria-pressed="true"] i::after {
   content: "";
@@ -2444,67 +2512,154 @@ input[type="search"]::-webkit-search-cancel-button {
   stroke-dasharray: 1 1;
 }
 @keyframes ln-draw {
-  from { stroke-dashoffset: 1; }
-  to { stroke-dashoffset: 0; }
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 @keyframes ln-fill {
-  from { fill-opacity: 0; }
-  to { fill-opacity: 1; }
+  from {
+    fill-opacity: 0;
+  }
+  to {
+    fill-opacity: 1;
+  }
 }
 @keyframes ln-fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 @keyframes ln-zoom-out {
-  to { transform: scale(1.35); opacity: 0; }
+  to {
+    transform: scale(1.35);
+    opacity: 0;
+  }
 }
 @keyframes ln-pop {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.25); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 @keyframes ln-pop-in {
-  from { transform: scale(0); }
-  to { transform: none; }
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: none;
+  }
 }
 @keyframes ln-spark-out {
-  to { opacity: 0; transform: scale(1.3); }
+  to {
+    opacity: 0;
+    transform: scale(1.3);
+  }
 }
 @keyframes ln-ring {
-  0% { transform: scale(0.25); opacity: 0; }
-  15% { opacity: 0.9; }
-  100% { transform: scale(1.5); opacity: 0; }
+  0% {
+    transform: scale(0.25);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
 }
 @keyframes ln-drip {
-  0% { opacity: 0; transform: none; }
-  15% { opacity: 1; }
-  100% { opacity: 0; transform: translate(var(--dx), var(--dy)); }
+  0% {
+    opacity: 0;
+    transform: none;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy));
+  }
 }
 @keyframes ln-hop {
-  0% { transform: translateY(-40px); opacity: 0; }
-  50% { transform: translateY(4px); opacity: 1; }
-  75% { transform: translateY(-6px); }
-  100% { transform: none; opacity: 1; }
+  0% {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(4px);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
 }
 @keyframes ln-hole {
-  from { --ln-r: 0px; }
-  to { --ln-r: 900px; }
+  from {
+    --ln-r: 0px;
+  }
+  to {
+    --ln-r: 900px;
+  }
 }
 @keyframes ln-pour {
-  0% { transform: none; }
-  30% { transform: translate(-68px, -227px) rotate(105deg); }
-  72% { transform: translate(-68px, -227px) rotate(110deg); }
-  100% { transform: none; }
+  0% {
+    transform: none;
+  }
+  30% {
+    transform: translate(-68px, -227px) rotate(105deg);
+  }
+  72% {
+    transform: translate(-68px, -227px) rotate(110deg);
+  }
+  100% {
+    transform: none;
+  }
 }
 @keyframes ln-rise-in {
-  0% { transform: translateY(90px); opacity: 0; }
-  60% { transform: translateY(-10px); opacity: 1; }
-  100% { transform: none; opacity: 1; }
+  0% {
+    transform: translateY(90px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
 }
 @keyframes ln-lift {
-  0%, 100% { transform: none; }
-  35%, 62% { transform: translateY(-50px) rotate(-8deg); }
-  48% { transform: translateY(-58px) rotate(-5deg); }
+  0%,
+  100% {
+    transform: none;
+  }
+  35%,
+  62% {
+    transform: translateY(-50px) rotate(-8deg);
+  }
+  48% {
+    transform: translateY(-58px) rotate(-5deg);
+  }
 }
 @keyframes launch-out {
   to {
@@ -2658,7 +2813,9 @@ html[data-launched] .launch {
 }
 .show-card {
   /* 上の縁にテーマ色の帯 */
-  background: linear-gradient(var(--accent), var(--accent)) top / 100% 6px no-repeat, var(--surface);
+  background:
+    linear-gradient(var(--accent), var(--accent)) top / 100% 6px no-repeat,
+    var(--surface);
   border-radius: 24px;
   box-shadow: var(--shadow);
   padding: 26px 20px 22px;
@@ -2774,7 +2931,9 @@ html[data-launched] .launch {
 .show-modes button[aria-pressed="true"] {
   background: var(--surface);
   font-weight: 700;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.12),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .show-modes button[aria-pressed="true"] {
@@ -2839,7 +2998,9 @@ body::before {
   animation: buddy-hop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) backwards;
 }
 .buddy-worried .buddy-face {
-  animation: buddy-hop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) backwards, buddy-wobble 0.5s 0.6s ease-in-out 2;
+  animation:
+    buddy-hop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25) backwards,
+    buddy-wobble 0.5s 0.6s ease-in-out 2;
   transform-origin: 50% 95%;
 }
 .buddy-bubble {
@@ -2849,7 +3010,9 @@ body::before {
   padding: 11px 14px;
   border-radius: 16px;
   background: var(--surface);
-  box-shadow: var(--shadow-lift), 0 0 0 0.5px var(--line);
+  box-shadow:
+    var(--shadow-lift),
+    0 0 0 0.5px var(--line);
   color: var(--text);
   font-size: 15px;
   font-weight: 600;
@@ -2869,7 +3032,9 @@ body::before {
   transform: rotate(45deg);
 }
 .buddy-worried .buddy-bubble {
-  box-shadow: var(--shadow-lift), 0 0 0 1.5px color-mix(in srgb, var(--buddy-spark) 60%, transparent);
+  box-shadow:
+    var(--shadow-lift),
+    0 0 0 1.5px color-mix(in srgb, var(--buddy-spark) 60%, transparent);
 }
 .buddy-spark {
   animation: buddy-twinkle 1.2s 0.4s ease-in-out infinite;
@@ -3154,7 +3319,9 @@ body::before {
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent), var(--shadow-lift);
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent),
+    var(--shadow-lift);
   transition: transform 0.15s ease;
   animation: rise 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) 0.3s backwards;
 }
@@ -3448,9 +3615,15 @@ body::before {
   animation: pair-done-pop 0.5s ease-out;
 }
 @keyframes pair-done-pop {
-  0% { transform: scale(0.3); }
-  70% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.3);
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 /* 「、」のあとで1文字だけ次の行に行かないよう、<wbr> の位置でだけ折り返す */
 .lead-phrases {
@@ -3679,13 +3852,7 @@ body::before {
   display: block;
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(
-      100deg,
-      transparent 20%,
-      var(--skel-shine) 50%,
-      transparent 80%
-    )
-    var(--fill);
+  background: linear-gradient(100deg, transparent 20%, var(--skel-shine) 50%, transparent 80%) var(--fill);
   background-size: 200% 100%;
   background-repeat: no-repeat;
   animation: skel-shine 1.4s ease-in-out infinite;
@@ -3754,7 +3921,9 @@ body::before {
 .mode-switch a[aria-current="page"] {
   background: var(--surface);
   font-weight: 700;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.12),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04);
 }
 /* 暗い画面では白いカードの色だと沈んで見えるので、iPhone と同じく明るい灰色にする */
 @media (prefers-color-scheme: dark) {
@@ -4055,7 +4224,9 @@ html[lang="en"] .diary-note.quote::after {
   content: " ›";
   white-space: pre;
 }
-.welcome:focus { outline: none; }
+.welcome:focus {
+  outline: none;
+}
 
 /* --- 画面の上の案内（矢印と吹き出し） --- */
 .tour {
@@ -4435,7 +4606,9 @@ html[data-text="large"] body {
   border-top: 1px solid var(--line);
   padding-top: 10px;
 }
-.badges summary::-webkit-details-marker { display: none; }
+.badges summary::-webkit-details-marker {
+  display: none;
+}
 .badges summary::after {
   content: "›";
   color: var(--muted);
@@ -4636,19 +4809,34 @@ html[data-text="large"] body {
   animation: medal-in 0.5s ease-out both;
 }
 @keyframes medal-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .medal-glint {
   transform-box: view-box;
   animation: medal-glint 3.2s ease-in-out 0.4s infinite;
 }
 @keyframes medal-glint {
-  0%, 55% { translate: 0 0; }
-  85%, 100% { translate: 150px 0; }
+  0%,
+  55% {
+    translate: 0 0;
+  }
+  85%,
+  100% {
+    translate: 150px 0;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .medal-shine, .medal-glint { animation: none; }
+  .medal-shine,
+  .medal-glint {
+    animation: none;
+  }
 }
 .title-plate {
   justify-self: start;
@@ -5353,13 +5541,27 @@ details > summary::-webkit-details-marker {
   position: relative;
   isolation: isolate;
 }
-.mode-switch:has(> :nth-child(3)) { --n: 3; }
-.mode-switch:has(> :nth-child(4)) { --n: 4; }
-.mode-switch:has(> :nth-child(5)) { --n: 5; }
-.mode-switch:has(> :nth-child(2):is([aria-pressed="true"], [aria-current="page"])) { --i: 1; }
-.mode-switch:has(> :nth-child(3):is([aria-pressed="true"], [aria-current="page"])) { --i: 2; }
-.mode-switch:has(> :nth-child(4):is([aria-pressed="true"], [aria-current="page"])) { --i: 3; }
-.mode-switch:has(> :nth-child(5):is([aria-pressed="true"], [aria-current="page"])) { --i: 4; }
+.mode-switch:has(> :nth-child(3)) {
+  --n: 3;
+}
+.mode-switch:has(> :nth-child(4)) {
+  --n: 4;
+}
+.mode-switch:has(> :nth-child(5)) {
+  --n: 5;
+}
+.mode-switch:has(> :nth-child(2):is([aria-pressed="true"], [aria-current="page"])) {
+  --i: 1;
+}
+.mode-switch:has(> :nth-child(3):is([aria-pressed="true"], [aria-current="page"])) {
+  --i: 2;
+}
+.mode-switch:has(> :nth-child(4):is([aria-pressed="true"], [aria-current="page"])) {
+  --i: 3;
+}
+.mode-switch:has(> :nth-child(5):is([aria-pressed="true"], [aria-current="page"])) {
+  --i: 4;
+}
 .mode-switch::before {
   content: "";
   position: absolute;
@@ -5370,7 +5572,9 @@ details > summary::-webkit-details-marker {
   width: calc((100% - 4px) / var(--n));
   border-radius: 6px;
   background: var(--surface);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.12),
+    0 0 0 0.5px rgba(0, 0, 0, 0.04);
   transform: translateX(calc(100% * var(--i)));
   /* 行き過ぎて戻る動きは端で灰色の枠からはみ出すので付けない */
   transition: transform 0.28s cubic-bezier(0.3, 0.9, 0.3, 1);
@@ -5394,10 +5598,16 @@ details > summary::-webkit-details-marker {
 }
 /* 切り替えた中身は、押した向きから入れ替わる */
 @keyframes swap-from-right {
-  from { opacity: 0; transform: translateX(14px); }
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
 }
 @keyframes swap-from-left {
-  from { opacity: 0; transform: translateX(-14px); }
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
 }
 .swap-next {
   animation: swap-from-right 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
@@ -5408,7 +5618,10 @@ details > summary::-webkit-details-marker {
 
 /* 畳んだ段：開くと中の行が上から順に浮かぶ（高さの動きは SmoothDetails） */
 @keyframes fold-in {
-  from { opacity: 0; transform: translateY(-6px); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 details[open]:not([data-closing]) > :not(summary) {
   animation: fold-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) 0.04s backwards;
@@ -5453,7 +5666,11 @@ details[open]:not([data-closing]) > :not(summary) {
   animation: pill-in 0.35s cubic-bezier(0.3, 0.9, 0.3, 1.1) backwards;
 }
 @keyframes pill-in {
-  from { opacity: 0; transform: scaleX(1.6) scaleY(1.05); border-radius: 12px; }
+  from {
+    opacity: 0;
+    transform: scaleX(1.6) scaleY(1.05);
+    border-radius: 12px;
+  }
 }
 .steps-pill::after {
   content: "";
@@ -5467,8 +5684,12 @@ details[open]:not([data-closing]) > :not(summary) {
   animation: pill-run 1.6s ease-in-out infinite;
 }
 @keyframes pill-run {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(250%); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
 }
 .step-spin {
   flex: none;
@@ -5480,7 +5701,9 @@ details[open]:not([data-closing]) > :not(summary) {
   animation: step-spin 0.8s linear infinite;
 }
 @keyframes step-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .steps-list {
   display: flex;
@@ -5536,7 +5759,9 @@ details[open]:not([data-closing]) > :not(summary) {
   animation: caret-blink 1s steps(1) infinite;
 }
 @keyframes caret-blink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* お知らせ：画面の上のふちから伸びる小さな黒いカプセル */
@@ -5574,11 +5799,20 @@ details[open]:not([data-closing]) > :not(summary) {
   animation: toast-out 0.3s ease-in forwards;
 }
 @keyframes toast-in {
-  from { clip-path: inset(0 calc(50% - 20px) round 20px); transform: translateY(-6px) scale(0.9); }
-  to { clip-path: inset(0 0 round 20px); }
+  from {
+    clip-path: inset(0 calc(50% - 20px) round 20px);
+    transform: translateY(-6px) scale(0.9);
+  }
+  to {
+    clip-path: inset(0 0 round 20px);
+  }
 }
 @keyframes toast-out {
-  to { clip-path: inset(0 calc(50% - 20px) round 20px); opacity: 0; transform: translateY(-6px) scale(0.9); }
+  to {
+    clip-path: inset(0 calc(50% - 20px) round 20px);
+    opacity: 0;
+    transform: translateY(-6px) scale(0.9);
+  }
 }
 .toast-icon {
   flex: none;
@@ -5619,20 +5853,32 @@ details[open]:not([data-closing]) > :not(summary) {
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .toast {
     background: #2c2c2e;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 0.5px rgba(255, 255, 255, 0.14);
   }
 }
 :root[data-theme="dark"] .toast {
   background: #2c2c2e;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.14);
 }
 
 /* タブ：選んだタブのアイコンは塗りの絵にして、ぴょこっと弾ませる */
 @keyframes tab-bounce {
-  0% { transform: scale(0.82); }
-  45% { transform: scale(1.18) translateY(-2px); }
-  75% { transform: scale(0.96); }
-  100% { transform: none; }
+  0% {
+    transform: scale(0.82);
+  }
+  45% {
+    transform: scale(1.18) translateY(-2px);
+  }
+  75% {
+    transform: scale(0.96);
+  }
+  100% {
+    transform: none;
+  }
 }
 .tabbar-pill .tab[aria-current="page"] svg,
 .tab-scan[aria-current="page"] svg {
@@ -5727,7 +5973,9 @@ details[open]:not([data-closing]) > :not(summary) {
   animation: gauge-grow 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) 0.15s backwards;
 }
 @keyframes gauge-grow {
-  from { transform: scaleX(0); }
+  from {
+    transform: scaleX(0);
+  }
 }
 .swap-wrap {
   display: flex;
@@ -5763,7 +6011,9 @@ img.photo-fade:not([data-loaded]) {
 }
 .ai-glow {
   position: relative;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 20px color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 20px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .ai-glow::after {
   content: "";
@@ -5771,16 +6021,14 @@ img.photo-fade:not([data-loaded]) {
   inset: -1.5px;
   border-radius: inherit;
   padding: 1.5px;
-  background: conic-gradient(
-    from var(--glow-a),
-    transparent 0 58%,
-    color-mix(in srgb, var(--accent) 45%, transparent) 70%,
-    var(--accent) 80%,
-    transparent 92%
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  background: conic-gradient(from var(--glow-a), transparent 0 58%, color-mix(in srgb, var(--accent) 45%, transparent) 70%, var(--accent) 80%, transparent 92%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
   animation: glow-spin 2.5s linear infinite;
   pointer-events: none;
 }
@@ -5808,7 +6056,10 @@ img.photo-fade:not([data-loaded]) {
   background: color-mix(in srgb, var(--surface) 62%, transparent);
   -webkit-backdrop-filter: saturate(180%) blur(14px);
   backdrop-filter: saturate(180%) blur(14px);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1), inset 0 0 0 0.5px var(--line), inset 0 1px 0 var(--bar-glow, rgba(255, 255, 255, 0.6));
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 0.5px var(--line),
+    inset 0 1px 0 var(--bar-glow, rgba(255, 255, 255, 0.6));
   margin: 0 4px;
 }
 .back:has(> svg) {
@@ -5922,7 +6173,10 @@ html:has(> body > .sheet-backdrop, > body > .confirm-backdrop) {
 }
 .app {
   transform-origin: 50% var(--sheet-origin-y, 40vh);
-  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), border-radius 0.4s ease, filter 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1),
+    border-radius 0.4s ease,
+    filter 0.4s ease;
 }
 body:has(> .sheet-backdrop, > .confirm-backdrop:not(.is-closing)) .app {
   transform: scale(0.93);
@@ -6020,7 +6274,15 @@ body:has(> .sheet-backdrop, > .confirm-backdrop:not(.is-closing)) .app {
 
 /* 書体（34）。日本語の書体は端末にあるものを使い、読み込みを増やさない */
 html[data-font="round"] body {
-  font-family: "Hiragino Maru Gothic ProN", "Hiragino Maru Gothic Pro", "BIZ UDGothic", "Zen Maru Gothic", "M PLUS Rounded 1c", -apple-system, system-ui, sans-serif;
+  font-family:
+    "Hiragino Maru Gothic ProN",
+    "Hiragino Maru Gothic Pro",
+    "BIZ UDGothic",
+    "Zen Maru Gothic",
+    "M PLUS Rounded 1c",
+    -apple-system,
+    system-ui,
+    sans-serif;
 }
 html[data-font="mincho"] body {
   font-family: "Hiragino Mincho ProN", "Hiragino Mincho Pro", "Yu Mincho", "YuMincho", "Noto Serif JP", "Shippori Mincho", serif;
@@ -6128,7 +6390,7 @@ button.header-pill {
 /* 幅の小さい iPhone（SE 第1世代・320px）で横にはみ出さないように（14） */
 @media (max-width: 359px) {
   .page-header h1 {
-    font-size: 28px;
+    font-size: 24px;
   }
   .page-header .header-pill {
     padding: 7px 10px;
@@ -6314,7 +6576,9 @@ button.header-pill {
   border-radius: 50%;
   background: var(--surface);
   color: var(--accent);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 0 0 0.5px var(--line);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.14),
+    0 0 0 0.5px var(--line);
   cursor: pointer;
   animation: tabbar-pop 0.25s ease;
 }
@@ -6412,7 +6676,10 @@ html[data-fx~="fieldShake"] .field[data-missing] .star-rating {
 
 /* 保存できたら ✓ の丸に縮んでから移る（9）。幅は動かさず、まわりを切り取って丸にする */
 .save-btn {
-  transition: clip-path 0.22s cubic-bezier(0.3, 0.9, 0.3, 1), background-color 0.2s ease, transform 0.1s ease;
+  transition:
+    clip-path 0.22s cubic-bezier(0.3, 0.9, 0.3, 1),
+    background-color 0.2s ease,
+    transform 0.1s ease;
   clip-path: inset(0 0 round 14px);
 }
 .save-btn.is-done {
@@ -7079,7 +7346,9 @@ button.meter-row > .muted {
   padding: 8px;
   border-radius: 24px;
   background: var(--surface-raised, var(--surface));
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18), 0 0 0 0.5px var(--line);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.18),
+    0 0 0 0.5px var(--line);
   display: grid;
   gap: 8px;
   animation: sheet-up 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
@@ -7754,7 +8023,9 @@ html[data-selecting] .bulk-bar {
   font-size: 12px;
 }
 .tally-stop[data-now] {
-  box-shadow: var(--shadow), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 .tally-stop-head {
   display: flex;

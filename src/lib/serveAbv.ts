@@ -5,11 +5,7 @@ import type { Kind } from "./types";
  * 飲み方ごとのおおよその度数。割る飲み方は目安の割合（お酒:割るもの）で計算する。
  * ratio が空なら割らない飲み方（ストレート・ロック・燗など）。わからない飲み方は null
  */
-export function serveAbv(
-  abv: number,
-  serve: string,
-  kind: Kind | null,
-): { abv: number; ratio: string } | null {
+export function serveAbv(abv: number, serve: string, kind: Kind | null): { abv: number; ratio: string } | null {
   const s = serve.normalize("NFKC");
   const shochu = kind === "焼酎";
   // ratio は「お酒1:ソーダ3」のように何で割るかまで書く（何を割るのか迷わないように）

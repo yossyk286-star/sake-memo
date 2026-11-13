@@ -18,7 +18,16 @@ export default function Steps({ title, steps, at }: { title: string; steps: stri
             <li key={s} data-state={state}>
               {state === "done" ? (
                 <span className="step-ok" aria-hidden="true">
-                  <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M2.5 6.2 5 8.5l4.5-5" />
                   </svg>
                 </span>

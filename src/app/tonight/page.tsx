@@ -9,17 +9,7 @@ import { listRecords, peekRecords } from "@/lib/db";
 import { DAY_AMOUNT, guessLike, QUICK_DRINKS } from "@/lib/dayTotal";
 import { today } from "@/lib/lastScan";
 import { loadShopToday } from "@/lib/shopToday";
-import {
-  addCustomDrink,
-  addTally,
-  loadCustomDrinks,
-  loadPrices,
-  removeLastTally,
-  savePrice,
-  todayTallies,
-  usageOf,
-  type Tally,
-} from "@/lib/tally";
+import { addCustomDrink, addTally, loadCustomDrinks, loadPrices, removeLastTally, savePrice, todayTallies, usageOf, type Tally } from "@/lib/tally";
 import { APP, WORDS } from "@/lib/appeal";
 import { tr, trv } from "@/lib/i18n";
 import type { TastingRecord } from "@/lib/types";
@@ -71,9 +61,7 @@ export default function TonightPage() {
 
   // いまいるお店：調べる画面で入れた名前 ＞ 最後に飲んだお店
   const current = shopNow || stops.at(-1)?.shop || "";
-  const shown = stops.some((s) => s.shop === current)
-    ? stops
-    : [...stops, { shop: current, from: Date.now(), records: [], tallies: [] }];
+  const shown = stops.some((s) => s.shop === current) ? stops : [...stops, { shop: current, from: Date.now(), records: [], tallies: [] }];
 
   const itemsOf = (s: Stop): Item[] => {
     const map = new Map<string, Item>();
@@ -85,8 +73,7 @@ export default function TonightPage() {
   // 1杯の値段：記録した値段 ＞ このお店で覚えた値段
   const unitPrice = (shop: string, it: Item) => it.records.find((r) => r.price != null)?.price ?? prices[shop]?.[it.name] ?? 0;
   const priceOf = (shop: string, it: Item) => it.records.reduce((n, r) => n + (r.price ?? 0), 0) + it.tallies.length * unitPrice(shop, it);
-  const amountOfItem = (it: Item) =>
-    it.records.reduce((n, r) => n + DAY_AMOUNT.of(r), 0) + it.tallies.reduce((n, t) => n + DAY_AMOUNT.of(t.like ?? {}), 0);
+  const amountOfItem = (it: Item) => it.records.reduce((n, r) => n + DAY_AMOUNT.of(r), 0) + it.tallies.reduce((n, t) => n + DAY_AMOUNT.of(t.like ?? {}), 0);
   const sum = (s: Stop, f: (it: Item) => number) => itemsOf(s).reduce((n, it) => n + f(it), 0);
   const cups = (s: Stop) => s.records.length + s.tallies.length;
 
@@ -142,9 +129,7 @@ export default function TonightPage() {
             <strong>{totalCups}</strong>
             {tr(WORDS.cup)}
           </p>
-          <p className="tally-sub">
-            {[spent > 0 ? yen(spent) : "", DAY_AMOUNT.text(total)].filter(Boolean).join(tr("・"))}
-          </p>
+          <p className="tally-sub">{[spent > 0 ? yen(spent) : "", DAY_AMOUNT.text(total)].filter(Boolean).join(tr("・"))}</p>
           <div className="tally-gauge" data-over={over || undefined} aria-hidden="true">
             <span style={{ width: `${fill}%` }} />
             <i />
@@ -167,9 +152,7 @@ export default function TonightPage() {
               <p className="tally-count">
                 <strong>{cups(s)}</strong>
                 {tr(WORDS.cup)}
-                <span className="muted">
-                  {[price > 0 ? yen(price) : "", cups(s) > 0 ? DAY_AMOUNT.text(amount) : ""].filter(Boolean).join(tr("・"))}
-                </span>
+                <span className="muted">{[price > 0 ? yen(price) : "", cups(s) > 0 ? DAY_AMOUNT.text(amount) : ""].filter(Boolean).join(tr("・"))}</span>
               </p>
               {items.length > 0 && (
                 <ul className="tally-items">
@@ -222,10 +205,7 @@ export default function TonightPage() {
                               </Link>
                             ) : (
                               it.tallies.length > 0 && (
-                                <Link
-                                  href={`/new?name=${encodeURIComponent(it.name)}&tally=${it.tallies.at(-1)!.id}`}
-                                  className="text-btn"
-                                >
+                                <Link href={`/new?name=${encodeURIComponent(it.name)}&tally=${it.tallies.at(-1)!.id}`} className="text-btn">
                                   {tr("★や感想を書いて記録にする")}
                                 </Link>
                               )

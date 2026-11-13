@@ -73,48 +73,49 @@ export default function WishlistPage() {
         )}
         {wishes?.length === 0 && (
           <div data-tour="wish-item">
-            <EmptyState
-              title={tr("気になるお酒、まだないよ")}
-              actions={[{ href: "/scan", label: tr("メニューを撮って探す") }]}
-            >
+            <EmptyState title={tr("気になるお酒、まだないよ")} actions={[{ href: "/scan", label: tr("メニューを撮って探す") }]}>
               {tr("お店でメニューを撮って「☆ 気になる」を押すと、ここに残るよ。")}
             </EmptyState>
           </div>
         )}
-        {groups.map((g, gi) => g.items.length > 0 && (
-          <section key={g.shop || "none"} className="wish-group">
-            {grouped && <h2 className="date-head">{g.shop ? trv(g.shop) : tr("お店なし")}</h2>}
-          <div className="list-group">
-            {g.items.map((w, i) => (
-              <div key={w.id} className="wish-row" data-tour={gi === 0 && i === 0 ? "wish-item" : undefined}>
-                <details>
-                  <summary>
-                    <strong>{trv(w.name)}</strong>
-                    <span className="muted">
-                      {[w.kind, w.style, w.origin].filter(Boolean).map((t) => trv(t as string)).join("・")}
-                    </span>
-                  </summary>
-                  <div className="fold-body">
-                  {w.menuNote && <p className="muted">{tr("メニューの説明：{0}", w.menuNote)}</p>}
-                  <p className="term-desc">{trv(w.explanation)}</p>
-                  <div className="wish-foot">
-                    <span className="muted">
-                      {w.shop ? tr("{0}で見た・{1}", w.shop, seenOn(w)) : tr("{0}に保存", seenOn(w))}
-                    </span>
-                    <button type="button" className="btn-ghost wish-remove" onClick={() => remove(w.id)}>
-                      {tr("外す")}
-                    </button>
-                  </div>
-                  </div>
-                </details>
-                <Link href={`/new?wish=${w.id}`} className="wish-add" aria-label={tr("「{0}」を記録に追加", w.name)}>
-                  {tr("＋記録")}
-                </Link>
-              </div>
-            ))}
-          </div>
-          </section>
-        ))}
+        {groups.map(
+          (g, gi) =>
+            g.items.length > 0 && (
+              <section key={g.shop || "none"} className="wish-group">
+                {grouped && <h2 className="date-head">{g.shop ? trv(g.shop) : tr("お店なし")}</h2>}
+                <div className="list-group">
+                  {g.items.map((w, i) => (
+                    <div key={w.id} className="wish-row" data-tour={gi === 0 && i === 0 ? "wish-item" : undefined}>
+                      <details>
+                        <summary>
+                          <strong>{trv(w.name)}</strong>
+                          <span className="muted">
+                            {[w.kind, w.style, w.origin]
+                              .filter(Boolean)
+                              .map((t) => trv(t as string))
+                              .join("・")}
+                          </span>
+                        </summary>
+                        <div className="fold-body">
+                          {w.menuNote && <p className="muted">{tr("メニューの説明：{0}", w.menuNote)}</p>}
+                          <p className="term-desc">{trv(w.explanation)}</p>
+                          <div className="wish-foot">
+                            <span className="muted">{w.shop ? tr("{0}で見た・{1}", w.shop, seenOn(w)) : tr("{0}に保存", seenOn(w))}</span>
+                            <button type="button" className="btn-ghost wish-remove" onClick={() => remove(w.id)}>
+                              {tr("外す")}
+                            </button>
+                          </div>
+                        </div>
+                      </details>
+                      <Link href={`/new?wish=${w.id}`} className="wish-add" aria-label={tr("「{0}」を記録に追加", w.name)}>
+                        {tr("＋記録")}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ),
+        )}
       </main>
     </>
   );

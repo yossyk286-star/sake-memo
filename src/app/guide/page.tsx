@@ -2,7 +2,8 @@
 
 import BackLink from "@/components/BackLink";
 import Link from "next/link";
-import { GUIDE, startTour, t, TOURS, type TourId } from "@/lib/guide";
+import { startTour, t, TOURS, type TourId } from "@/lib/guide";
+import { GUIDE } from "./sections";
 import { tr } from "@/lib/i18n";
 
 /** 使い方。設定から開く。項目を押すと手順が開く */

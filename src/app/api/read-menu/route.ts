@@ -4,7 +4,16 @@ import { timingSafeEqual } from "node:crypto";
 import { COCKTAIL_REFERENCE } from "@/lib/cocktails";
 import { CHOOSING_TIPS, TERMS } from "@/lib/glossary";
 import { nameKey } from "@/lib/savedLookups";
-import { FoodMenuSchema, FoodPairingSchema, MenuListSchema, MenuScanResultSchema, PairingResultSchema, DishIdeasSchema, TermLookupSchema, SpecResultSchema } from "@/lib/schemas";
+import {
+  FoodMenuSchema,
+  FoodPairingSchema,
+  MenuListSchema,
+  MenuScanResultSchema,
+  PairingResultSchema,
+  DishIdeasSchema,
+  TermLookupSchema,
+  SpecResultSchema,
+} from "@/lib/schemas";
 
 // 名前で調べてネット検索までしたときや、品の多いメニューを全部読むときは時間がかかるので、待ち時間の上限を長めにする
 export const maxDuration = 120;
@@ -125,6 +134,9 @@ const MAX_ASK = 300;
 const MAX_CONTEXT = 1500;
 const MAX_HISTORY = 4;
 
+/** 料理との相性を見るときの役割（料理の写真・料理名・お酒1杯から・料理や気分との相性で共通） */
+const PAIR_SYSTEM = "あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。";
+
 const ASK_SYSTEM = `あなたはお酒にくわしい、やさしい案内役です。利用者が自分の記録（飲んだお酒の感想）や、メニュー・ラベルで見つけたお酒の情報を見ながら質問します。
 その内容をふまえて、初心者にもわかる日本語で、3〜6文くらいで具体的に答えてください。飲み方の質問には温度や割り方の比率などの数字も入れてください。
 見出しや箇条書きの記号（#、*、-）は使わず、ふつうの文章で答えてください。わからないことは推測だと言ってください。`;
@@ -197,7 +209,12 @@ export async function POST(req: Request) {
     const turns = [...history, { q: ask, a: "" }];
     const messages: Anthropic.MessageParam[] = turns.flatMap((t, i) => {
       const q = i === 0 ? `## 見ているもの\n${context}\n\n## 質問\n${t.q}` : t.q;
-      return t.a ? [{ role: "user" as const, content: q }, { role: "assistant" as const, content: t.a }] : [{ role: "user" as const, content: q }];
+      return t.a
+        ? [
+            { role: "user" as const, content: q },
+            { role: "assistant" as const, content: t.a },
+          ]
+        : [{ role: "user" as const, content: q }];
     });
     // 画面に書かれていくように見せるため、届いた分から少しずつ送る（最初の1つが届くまでの失敗はいつも通り JSON で返す）
     if (body.stream === true) {
@@ -205,8 +222,7 @@ export async function POST(req: Request) {
         const it = client.messages
           .stream({ model: MODEL, max_tokens: 1500, system: sys(ASK_SYSTEM), output_config: { effort: "low" }, messages })
           [Symbol.asyncIterator]();
-        const textOf = (ev: Anthropic.MessageStreamEvent) =>
-          ev.type === "content_block_delta" && ev.delta.type === "text_delta" ? ev.delta.text : "";
+        const textOf = (ev: Anthropic.MessageStreamEvent) => (ev.type === "content_block_delta" && ev.delta.type === "text_delta" ? ev.delta.text : "");
         // 最初の文字が届くまで待つ（ここまでの失敗は apiError で理由を返す）
         let first = "";
         for (let r = await it.next(); !r.done; r = await it.next()) {
@@ -262,9 +278,11 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 2000,
-        system: sys(`あなたはお酒の初心者向け辞典の編集者です。次の用語集と同じ書き方で、やさしい日本語で説明してください。\n\n${TERMS.slice(0, 12)
-          .map((t) => `- ${t.term}（${t.category}）: ${t.description}`)
-          .join("\n")}`),
+        system: sys(
+          `あなたはお酒の初心者向け辞典の編集者です。次の用語集と同じ書き方で、やさしい日本語で説明してください。\n\n${TERMS.slice(0, 12)
+            .map((t) => `- ${t.term}（${t.category}）: ${t.description}`)
+            .join("\n")}`,
+        ),
         output_config: { effort: "low", format: zodOutputFormat(TermLookupSchema) },
         messages: [{ role: "user", content: `「${term}」という言葉を辞典に足したいです。説明してください。` }],
       });
@@ -285,7 +303,9 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: READ_MODEL,
         max_tokens: 1500,
-        system: sys(`あなたはお酒のラベルを読む係です。写真に書いてある項目と値だけを、そのまま書き写してください。書いていないことは推測で足さないでください。${READING_RULES}`),
+        system: sys(
+          `あなたはお酒のラベルを読む係です。写真に書いてある項目と値だけを、そのまま書き写してください。書いていないことは推測で足さないでください。${READING_RULES}`,
+        ),
         output_config: { effort: READ_EFFORT, format: zodOutputFormat(SpecResultSchema) },
         messages: [
           {
@@ -315,7 +335,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: READ_MODEL,
         max_tokens: 16000,
-        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+        system: sys(PAIR_SYSTEM),
         output_config: { effort: READ_EFFORT, format: zodOutputFormat(FoodMenuSchema) },
         messages: [
           {
@@ -348,7 +368,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 2000,
-        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+        system: sys(PAIR_SYSTEM),
         output_config: { effort: "low", format: zodOutputFormat(FoodPairingSchema) },
         messages: [
           {
@@ -369,7 +389,10 @@ export async function POST(req: Request) {
   // 逆向き：1杯のお酒に、読み取った料理メニューのどれが合うか
   if (body?.drink && typeof body.drink === "object" && Array.isArray(body?.dishes)) {
     const d = body.drink as Record<string, unknown>;
-    const name = [d.name, d.kind, d.style].filter((x) => typeof x === "string" && x).join(" / ").slice(0, 120);
+    const name = [d.name, d.kind, d.style]
+      .filter((x) => typeof x === "string" && x)
+      .join(" / ")
+      .slice(0, 120);
     const dishes = (body.dishes as unknown[])
       .filter((x): x is string => typeof x === "string" && !!x.trim())
       .slice(0, MAX_PAIRING_DRINKS)
@@ -380,7 +403,7 @@ export async function POST(req: Request) {
         const response = await client.messages.parse({
           model: MODEL,
           max_tokens: 2000,
-          system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+          system: sys(PAIR_SYSTEM),
           output_config: { effort: "low", format: zodOutputFormat(DishIdeasSchema) },
           messages: [
             {
@@ -396,7 +419,7 @@ export async function POST(req: Request) {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 4000,
-        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+        system: sys(PAIR_SYSTEM),
         output_config: { effort: "low", format: zodOutputFormat(PairingResultSchema) },
         messages: [
           {
@@ -420,16 +443,12 @@ export async function POST(req: Request) {
       : [];
     if (!dish || dish.length > MAX_DISH) return error(400, isMood ? "気分を入れてください" : "料理の名前を入れてください");
     if (drinks.length === 0) return error(400, "お酒がありません");
-    const list = drinks
-      .map((d, i) =>
-        `${i}. ${[d.name, d.kind, d.style].filter((x) => typeof x === "string" && x).join(" / ")}`.slice(0, 120),
-      )
-      .join("\n");
+    const list = drinks.map((d, i) => `${i}. ${[d.name, d.kind, d.style].filter((x) => typeof x === "string" && x).join(" / ")}`.slice(0, 120)).join("\n");
     try {
       const response = await client.messages.parse({
         model: MODEL,
         max_tokens: 4000,
-        system: sys("あなたはお酒と料理の組み合わせにくわしい、やさしい案内役です。初心者にもわかる日本語で答えてください。"),
+        system: sys(PAIR_SYSTEM),
         output_config: { effort: "low", format: zodOutputFormat(PairingResultSchema) },
         messages: [
           {
@@ -524,30 +543,28 @@ export async function POST(req: Request) {
     const explained = await Promise.all([first, ...chunks.slice(1).map(explainChunk)]);
 
     // 写真から読んだこと（名前・度数など）を優先し、解説は2回目の答えから付ける。解説が付かなかったお酒も名前だけは残す
-    const exFor = new Map(
-      chunks.flatMap((chunk, c) => chunk.map((d, i) => [d, explained[c].find((x) => x.name === d.name) ?? explained[c][i]] as const)),
-    );
+    const exFor = new Map(chunks.flatMap((chunk, c) => chunk.map((d, i) => [d, explained[c].find((x) => x.name === d.name) ?? explained[c][i]] as const)));
     const drinks = items.map((d) => {
-        const ex = exFor.get(d);
-        return {
-          ...(isKnown(d) ? { known: true } : {}),
-          name: d.name,
-          reading: d.reading,
-          kind: d.kind ?? ex?.kind ?? null,
-          style: d.style || ex?.style || "",
-          maker: d.maker || ex?.maker || "",
-          origin: d.origin || ex?.origin || "",
-          menuNote: d.menuNote,
-          explanation: ex?.explanation ?? "",
-          recommendedServe: ex?.recommendedServe ?? "",
-          recommendation: ex?.recommendation ?? "",
-          pairing: ex?.pairing ?? "",
-          abv: d.abv ?? ex?.abv ?? null,
-          abvStated: d.abv != null,
-          taste: ex?.taste ?? { sweetness: 3, acidity: 3, body: 3, aroma: 3 },
-          serveNotes: ex?.serveNotes ?? [],
-        };
-      });
+      const ex = exFor.get(d);
+      return {
+        ...(isKnown(d) ? { known: true } : {}),
+        name: d.name,
+        reading: d.reading,
+        kind: d.kind ?? ex?.kind ?? null,
+        style: d.style || ex?.style || "",
+        maker: d.maker || ex?.maker || "",
+        origin: d.origin || ex?.origin || "",
+        menuNote: d.menuNote,
+        explanation: ex?.explanation ?? "",
+        recommendedServe: ex?.recommendedServe ?? "",
+        recommendation: ex?.recommendation ?? "",
+        pairing: ex?.pairing ?? "",
+        abv: d.abv ?? ex?.abv ?? null,
+        abvStated: d.abv != null,
+        taste: ex?.taste ?? { sweetness: 3, acidity: 3, body: 3, aroma: 3 },
+        serveNotes: ex?.serveNotes ?? [],
+      };
+    });
     return { drinks };
   };
 

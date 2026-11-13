@@ -69,7 +69,12 @@ export function recapYear(now = new Date()) {
 }
 
 /** その年の記録を、順にめくるカード5〜6枚にする。titleOf は一覧と同じ名前の出し方 */
-export function yearCards(records: TastingRecord[], year: number, titleOf: (r: TastingRecord) => string, t: (ja: string, ...a: (string | number)[]) => string): YearCard[] | null {
+export function yearCards(
+  records: TastingRecord[],
+  year: number,
+  titleOf: (r: TastingRecord) => string,
+  t: (ja: string, ...a: (string | number)[]) => string,
+): YearCard[] | null {
   const rs = records.filter((r) => r.date.startsWith(`${year}-`));
   if (rs.length < 5) return null;
   const eyebrow = t("{0}年のまとめ", year);
@@ -94,7 +99,9 @@ export function yearCards(records: TastingRecord[], year: number, titleOf: (r: T
     lines: [[best.shop, best.date.replaceAll("-", "/")].filter(Boolean).join("・"), best.memo.slice(0, 40)].filter(Boolean),
     recordId: best.id,
   });
-  const shops = groupByShop(rs).sort((a, b) => b.records.length - a.records.length).slice(0, 3);
+  const shops = groupByShop(rs)
+    .sort((a, b) => b.records.length - a.records.length)
+    .slice(0, 3);
   if (shops.length)
     cards.push({
       eyebrow,
@@ -121,7 +128,10 @@ export function yearCards(records: TastingRecord[], year: number, titleOf: (r: T
     for (const f of r.flavors) words.set(f, (words.get(f) ?? 0) + 1);
   }
   const topKind = [...kinds].sort((a, b) => b[1] - a[1])[0];
-  const topWords = [...words].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([w]) => w);
+  const topWords = [...words]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([w]) => w);
   if (topKind)
     cards.push({
       eyebrow,

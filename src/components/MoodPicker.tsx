@@ -95,20 +95,9 @@ export default function MoodPicker({
             ▾
           </button>
           {open && options.length > 0 && (
-            <ul
-              id="scan-mood-list"
-              role="listbox"
-              aria-multiselectable="true"
-              className="mood-list"
-            >
+            <ul id="scan-mood-list" role="listbox" aria-multiselectable="true" className="mood-list">
               {options.map((l) => (
-                <li
-                  key={l}
-                  role="option"
-                  aria-selected={values.includes(l)}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => toggle(l)}
-                >
+                <li key={l} role="option" aria-selected={values.includes(l)} onMouseDown={(e) => e.preventDefault()} onClick={() => toggle(l)}>
                   {trv(l)}
                 </li>
               ))}
@@ -128,12 +117,7 @@ export default function MoodPicker({
             {tr("戻す")}
           </button>
         ) : (
-          <button
-            type="submit"
-            className="btn-secondary"
-            style={{ flexShrink: 0 }}
-            disabled={!q || busy}
-          >
+          <button type="submit" className="btn-secondary" style={{ flexShrink: 0 }} disabled={!q || busy}>
             {busy ? tr("調べ中…") : values.length > 0 ? tr("足す") : tr("並べる")}
           </button>
         )}
@@ -151,7 +135,9 @@ export default function MoodPicker({
               onClick={() => onChange(values.filter((x) => x !== v))}
             >
               {trv(v)}
-              <span aria-hidden="true" className="mood-x">×</span>
+              <span aria-hidden="true" className="mood-x">
+                ×
+              </span>
             </button>
           ))}
         </div>

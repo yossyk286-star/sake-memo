@@ -39,12 +39,40 @@ export function flavorChoices(kind: Kind | null, past: TastingRecord[]) {
 
 /** 飲んだ量の選び方（32）。種類ごとの言い方と ml */
 export const VOLUMES: Record<Kind, [string, number][]> = {
-  日本酒: [["半合", 90], ["グラス", 120], ["1合", 180], ["2合", 360]],
-  ワイン: [["グラス", 120], ["2杯", 240], ["ハーフ", 375], ["ボトル", 750]],
-  ビール: [["グラス", 200], ["缶", 350], ["中ジョッキ", 400], ["ロング缶", 500], ["大ジョッキ", 700]],
-  ウイスキー: [["シングル", 30], ["ダブル", 60]],
-  焼酎: [["少なめ", 60], ["1杯", 90], ["濃いめ", 120], ["1合", 180]],
-  その他: [["グラス", 120], ["缶", 350], ["ジョッキ", 400]],
+  日本酒: [
+    ["半合", 90],
+    ["グラス", 120],
+    ["1合", 180],
+    ["2合", 360],
+  ],
+  ワイン: [
+    ["グラス", 120],
+    ["2杯", 240],
+    ["ハーフ", 375],
+    ["ボトル", 750],
+  ],
+  ビール: [
+    ["グラス", 200],
+    ["缶", 350],
+    ["中ジョッキ", 400],
+    ["ロング缶", 500],
+    ["大ジョッキ", 700],
+  ],
+  ウイスキー: [
+    ["シングル", 30],
+    ["ダブル", 60],
+  ],
+  焼酎: [
+    ["少なめ", 60],
+    ["1杯", 90],
+    ["濃いめ", 120],
+    ["1合", 180],
+  ],
+  その他: [
+    ["グラス", 120],
+    ["缶", 350],
+    ["ジョッキ", 400],
+  ],
 };
 
 /** 「1合（180ml）」のような量の名前。選択肢にない量は ml だけ */
@@ -67,8 +95,11 @@ export const ABV_PRESETS: Record<Kind, number[]> = {
 export function priceChoices(past: TastingRecord[], shop: string) {
   const count = new Map<number, number>();
   for (const r of past) if (r.price) count.set(r.price, (count.get(r.price) ?? 0) + 1);
-  const often = [...count].sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, 3).map(([p]) => p);
-  const here = shop.trim() ? past.find((r) => r.price && r.shop.trim() === shop.trim())?.price ?? null : null;
+  const often = [...count]
+    .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+    .slice(0, 3)
+    .map(([p]) => p);
+  const here = shop.trim() ? (past.find((r) => r.price && r.shop.trim() === shop.trim())?.price ?? null) : null;
   const out = here ? [here, ...often.filter((p) => p !== here)] : often;
   return out.slice(0, 4).sort((a, b) => a - b);
 }
@@ -82,5 +113,8 @@ export function tagsUsed(records: TastingRecord[]) {
 
 /** 入力されたタグをととのえる（先頭の # と前後の空白を取る） */
 export function cleanTag(t: string) {
-  return t.replace(/^[#＃\s]+/, "").trim().slice(0, 20);
+  return t
+    .replace(/^[#＃\s]+/, "")
+    .trim()
+    .slice(0, 20);
 }

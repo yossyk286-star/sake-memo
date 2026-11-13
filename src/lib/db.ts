@@ -170,7 +170,16 @@ export async function exportJSON(): Promise<string> {
       photos: await Promise.all(photosOf({ ...r, photo: _old }).map(blobToDataURL)),
     })),
   );
-  return JSON.stringify({ app: "sake-memo", version: 2, records: out, wishes: await listWishes(), bottles: await listBottles(), prefs: loadPrefs(), myTerms: loadMyTerms(), lookups: exportSaved() });
+  return JSON.stringify({
+    app: "sake-memo",
+    version: 2,
+    records: out,
+    wishes: await listWishes(),
+    bottles: await listBottles(),
+    prefs: loadPrefs(),
+    myTerms: loadMyTerms(),
+    lookups: exportSaved(),
+  });
 }
 
 /** 同じ id の記録は上書きする。読み込んだ件数を返す */
@@ -189,17 +198,17 @@ export async function importJSON(text: string): Promise<number> {
   // 人から受け取ったファイルかもしれないので、形の違う記録は飛ばし、写真は中に埋め込まれた画像（data:image）だけ読む
   // （よそのサイトの URL を書かれても取りに行かない）
   const records = await Promise.all(
-    (data.records as ExportedRecord[]).filter((r) => isEntry(r) && typeof r.date === "string").map(async ({ photo, photos, ...r }) => ({
-      ...r,
-      photos: await Promise.all(
-        (Array.isArray(photos) ? photos : photo ? [photo] : []).filter(isImageData).map(async (u) => (await fetch(u)).blob()),
-      ),
-    })),
+    (data.records as ExportedRecord[])
+      .filter((r) => isEntry(r) && typeof r.date === "string")
+      .map(async ({ photo, photos, ...r }) => ({
+        ...r,
+        photos: await Promise.all((Array.isArray(photos) ? photos : photo ? [photo] : []).filter(isImageData).map(async (u) => (await fetch(u)).blob())),
+      })),
   );
   const tx = db.transaction(["records", "wishes", "bottles"], "readwrite");
   for (const r of records) await tx.objectStore("records").put(r);
-  for (const w of (Array.isArray(data.wishes) ? (data.wishes as WishDrink[]).filter(isEntry) : [])) await tx.objectStore("wishes").put(w);
-  for (const b of (Array.isArray(data.bottles) ? (data.bottles as Bottle[]).filter(isEntry) : [])) await tx.objectStore("bottles").put(b);
+  for (const w of Array.isArray(data.wishes) ? (data.wishes as WishDrink[]).filter(isEntry) : []) await tx.objectStore("wishes").put(w);
+  for (const b of Array.isArray(data.bottles) ? (data.bottles as Bottle[]).filter(isEntry) : []) await tx.objectStore("bottles").put(b);
   await tx.done;
   recordsMemo = wishesMemo = bottlesMemo = null;
   if (data.prefs) savePrefs({ ...loadPrefs(), ...data.prefs });

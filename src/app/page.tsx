@@ -164,17 +164,9 @@ export default function RecordsPage() {
         (!againOnly || !!r.again) &&
         (!tag || !!r.tags?.includes(tag)) &&
         (!q ||
-          [
-            r.name,
-            r.maker,
-            r.shop,
-            r.origin,
-            r.style ?? "",
-            r.memo,
-            r.reading ?? "",
-            ...r.flavors,
-            ...(r.tags ?? []).map((t) => `#${t}`),
-          ].some((s) => s.toLowerCase().includes(q))),
+          [r.name, r.maker, r.shop, r.origin, r.style ?? "", r.memo, r.reading ?? "", ...r.flavors, ...(r.tags ?? []).map((t) => `#${t}`)].some((s) =>
+            s.toLowerCase().includes(q),
+          )),
     );
     if (sort !== "default") {
       const sorted = sortBy(hit, sort, (r) => ({
@@ -217,7 +209,14 @@ export default function RecordsPage() {
     const n = pickedRecords.length;
     if (!n) return;
     const ok = await askConfirm({
-      message: tr("{0} の{1}件を消します", pickedRecords.slice(0, 3).map((r) => drinkTitle(r)).join(tr("・")) + (n > 3 ? tr(" ほか") : ""), n),
+      message: tr(
+        "{0} の{1}件を削除しますか？",
+        pickedRecords
+          .slice(0, 3)
+          .map((r) => drinkTitle(r))
+          .join(tr("・")) + (n > 3 ? tr(" ほか") : ""),
+        n,
+      ),
       action: tr("{0}件を削除", n),
     });
     if (!ok) return;
@@ -265,62 +264,62 @@ export default function RecordsPage() {
     return out;
   }, [days]);
   const foldMonths = !filtering && sort === "default" && months.length > 1;
-  const genresUsed = useMemo(
-    () => [...new Set((records ?? []).map(genreOf))],
-    [records],
-  );
+  const genresUsed = useMemo(() => [...new Set((records ?? []).map(genreOf))], [records]);
 
   const renderDay = (day: (typeof days)[number], di: number) => (
-          <section key={day.date} className="day" style={{ "--d": Math.min(di, 8) } as React.CSSProperties}>
-            {day.date && (
-              <h2 className="date-head">
-                {dateHead(day.date)}
-                {/* 絞り込み中は一部の記録だけになるので、その日の合計は出さない */}
-                {!filtering && (day.date === today() ? (
-                  /* 今日の合計は押すとカウンターへ */
-                  <Link href="/tonight" className="date-total date-total-link"><NumText text={dayTotal(day.records)} /> ›</Link>
-                ) : (
-                  <span className="date-total"><NumText text={dayTotal(day.records)} /></span>
-                ))}
-              </h2>
-            )}
-            <div className="list-group">
-              {day.records.map((r, i) =>
-                selecting ? (
-                  <div
-                    key={r.id}
-                    className={`select-row${picked.includes(r.id) ? " is-on" : ""}`}
-                    role="checkbox"
-                    aria-checked={picked.includes(r.id)}
-                    tabIndex={0}
-                    onKeyDown={(e) => (e.key === " " || e.key === "Enter") && (e.preventDefault(), toggle(r.id))}
-                    onClickCapture={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggle(r.id);
-                    }}
-                  >
-                    <span className="ck" aria-hidden="true">
-                      {picked.includes(r.id) && "✓"}
-                    </span>
-                    <RecordCard record={r} showDate={!day.date} nth={nthOf.get(r.id)} />
-                  </div>
-                ) : (
-                <SwipeRecord
-                  key={r.id}
-                  index={i}
-                  nth={nthOf.get(r.id)}
-                  record={r}
-                  showDate={!day.date}
-                  onDeleted={(id) =>
-                    setRecords((rs) => rs?.filter((x) => x.id !== id) ?? null)
-                  }
-                  onChanged={(n) => setRecords((rs) => rs?.map((x) => (x.id === n.id ? n : x)) ?? null)}
-                />
-                ),
-              )}
+    <section key={day.date} className="day" style={{ "--d": Math.min(di, 8) } as React.CSSProperties}>
+      {day.date && (
+        <h2 className="date-head">
+          {dateHead(day.date)}
+          {/* 絞り込み中は一部の記録だけになるので、その日の合計は出さない */}
+          {!filtering &&
+            (day.date === today() ? (
+              /* 今日の合計は押すとカウンターへ */
+              <Link href="/tonight" className="date-total date-total-link">
+                <NumText text={dayTotal(day.records)} /> ›
+              </Link>
+            ) : (
+              <span className="date-total">
+                <NumText text={dayTotal(day.records)} />
+              </span>
+            ))}
+        </h2>
+      )}
+      <div className="list-group">
+        {day.records.map((r, i) =>
+          selecting ? (
+            <div
+              key={r.id}
+              className={`select-row${picked.includes(r.id) ? " is-on" : ""}`}
+              role="checkbox"
+              aria-checked={picked.includes(r.id)}
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === " " || e.key === "Enter") && (e.preventDefault(), toggle(r.id))}
+              onClickCapture={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggle(r.id);
+              }}
+            >
+              <span className="ck" aria-hidden="true">
+                {picked.includes(r.id) && "✓"}
+              </span>
+              <RecordCard record={r} showDate={!day.date} nth={nthOf.get(r.id)} />
             </div>
-          </section>
+          ) : (
+            <SwipeRecord
+              key={r.id}
+              index={i}
+              nth={nthOf.get(r.id)}
+              record={r}
+              showDate={!day.date}
+              onDeleted={(id) => setRecords((rs) => rs?.filter((x) => x.id !== id) ?? null)}
+              onChanged={(n) => setRecords((rs) => rs?.map((x) => (x.id === n.id ? n : x)) ?? null)}
+            />
+          ),
+        )}
+      </div>
+    </section>
   );
 
   return (
@@ -329,16 +328,7 @@ export default function RecordsPage() {
       <header className="page-header">
         <h1>{tr("さけメモ")}</h1>
         <Link href="/settings" className="icon-btn" data-tour="settings" aria-label={tr("設定")}>
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
             <circle cx="12" cy="12" r="3" />
           </svg>
@@ -359,7 +349,17 @@ export default function RecordsPage() {
               </svg>
             </button>
             <button type="button" aria-pressed={view === "cal"} aria-label={tr("カレンダー")} onClick={() => pickView("cal")}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
                 <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
                 <path d="M3.5 10h17M8 3v4M16 3v4" />
               </svg>
@@ -379,7 +379,9 @@ export default function RecordsPage() {
             <LineIcon name="camera" size={20} />
             <strong>{tr("あとで書く")}</strong>
             <span className="later-count">{tr("{0}件", later)}</span>
-            <span aria-hidden="true" className="later-go">›</span>
+            <span aria-hidden="true" className="later-go">
+              ›
+            </span>
           </Link>
         )}
         {records && <YearRecapCard records={records} />}
@@ -392,9 +394,7 @@ export default function RecordsPage() {
               {tr("記録を検索")}
             </label>
             <GenreSortBar
-              search={
-                <SearchField id="r-search" name="records" placeholder={tr("名前・店・味で探す")} value={query} onChange={setQuery} />
-              }
+              search={<SearchField id="r-search" name="records" placeholder={tr("名前・店・味で探す")} value={query} onChange={setQuery} />}
               genres={genresUsed}
               genre={genre}
               onGenre={setGenre}
@@ -404,12 +404,7 @@ export default function RecordsPage() {
               defaultLabel={tr("日付順")}
               extra={
                 <>
-                  <button
-                    type="button"
-                    className="chip"
-                    aria-pressed={goodOnly}
-                    onClick={() => setGoodOnly(!goodOnly)}
-                  >
+                  <button type="button" className="chip" aria-pressed={goodOnly} onClick={() => setGoodOnly(!goodOnly)}>
                     {tr("★4以上")}
                   </button>
                   {hasAgain && (
@@ -438,8 +433,11 @@ export default function RecordsPage() {
             {tr("飲んだお酒を残していくと、好みや産地のスタンプがたまっていくよ。")}
           </EmptyState>
         )}
-        {records && records.length > 0 && filtering && days.length === 0 && (
-          query.trim() ? (
+        {records &&
+          records.length > 0 &&
+          filtering &&
+          days.length === 0 &&
+          (query.trim() ? (
             // 見つからないときは、打った名前のまま次の操作へ（62）
             <section className="empty-next">
               <p>{tr("「{0}」はまだ記録していません", query.trim())}</p>
@@ -452,26 +450,22 @@ export default function RecordsPage() {
             </section>
           ) : (
             <p className="empty">{tr("当てはまる記録がありません。")}</p>
-          )
-        )}
+          ))}
         {view === "cal" && records && records.length > 0 && !filtering && sort === "default" ? (
           <RecordCalendar records={records} renderDay={renderDay} />
-        ) : foldMonths
-          ? months.map((m, i) => (
-              <details
-                key={m.month}
-                className="month-fold"
-                open={i === 0}
-                onToggle={(e) => e.currentTarget.open && !allMonths && setAllMonths(true)}
-              >
-                <summary>
-                  <span>{monthHead(m.month)}</span>
-                  <span className="month-fold-count">{tr("{0}杯", m.count)}</span>
-                </summary>
-                <div className="month-body">{(i === 0 || allMonths) && m.days.map(renderDay)}</div>
-              </details>
-            ))
-          : days.map(renderDay)}
+        ) : foldMonths ? (
+          months.map((m, i) => (
+            <details key={m.month} className="month-fold" open={i === 0} onToggle={(e) => e.currentTarget.open && !allMonths && setAllMonths(true)}>
+              <summary>
+                <span>{monthHead(m.month)}</span>
+                <span className="month-fold-count">{tr("{0}杯", m.count)}</span>
+              </summary>
+              <div className="month-body">{(i === 0 || allMonths) && m.days.map(renderDay)}</div>
+            </details>
+          ))
+        ) : (
+          days.map(renderDay)
+        )}
       </main>
 
       {selecting && (
@@ -492,7 +486,14 @@ export default function RecordsPage() {
                 ))}
               </div>
               <div className="row" style={{ flexWrap: "nowrap" }}>
-                <input className="input" autoFocus aria-label={tr("付けるタグ")} placeholder={tr("＃ タグ（例：金沢旅行）")} value={bulkTag} onChange={(e) => setBulkTag(e.target.value)} />
+                <input
+                  className="input"
+                  autoFocus
+                  aria-label={tr("付けるタグ")}
+                  placeholder={tr("＃ タグ（例：金沢旅行）")}
+                  value={bulkTag}
+                  onChange={(e) => setBulkTag(e.target.value)}
+                />
                 <button type="submit" className="btn-secondary" disabled={!cleanTag(bulkTag)}>
                   {tr("付ける")}
                 </button>
@@ -509,7 +510,11 @@ export default function RecordsPage() {
               <LineIcon name="compare" size={22} />
               {tr("くらべる")}
             </Link>
-            <button type="button" disabled={!picked.length} onClick={() => shareRecords(pickedRecords).catch(() => toast("共有できませんでした", { tone: "warn" }))}>
+            <button
+              type="button"
+              disabled={!picked.length}
+              onClick={() => shareRecords(pickedRecords).catch(() => toast("共有できませんでした", { tone: "warn" }))}
+            >
               <LineIcon name="share" size={22} />
               {tr("画像で送る")}
             </button>
@@ -533,21 +538,14 @@ export default function RecordsPage() {
           {tr("記録を探す")}
         </button>
       )}
-      {!selecting && <Link href="/new" className="fab" data-tour="fab" data-mini={mini && features.fabShrink ? "" : undefined} aria-label={tr("記録する")}>
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          aria-hidden="true"
-        >
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        <span className="fab-label">{tr("記録する")}</span>
-      </Link>}
+      {!selecting && (
+        <Link href="/new" className="fab" data-tour="fab" data-mini={mini && features.fabShrink ? "" : undefined} aria-label={tr("記録する")}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span className="fab-label">{tr("記録する")}</span>
+        </Link>
+      )}
     </>
   );
 }

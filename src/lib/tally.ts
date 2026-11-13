@@ -42,7 +42,10 @@ export function loadTallies(): Tally[] {
 
 function save(all: Tally[]) {
   const from = Date.now() - KEEP_DAYS * 86400000;
-  write(KEY, all.filter((t) => t.at >= from));
+  write(
+    KEY,
+    all.filter((t) => t.at >= from),
+  );
   return all.filter((x) => x.date === today());
 }
 

@@ -9,7 +9,8 @@ import { COCKTAIL_LIST, findCocktail } from "@/lib/cocktails";
 import Skeleton from "@/components/Skeleton";
 import { announceBuddy, pick } from "@/lib/buddy";
 import { loadMyTerms, saveMyTerms, type MyTerm } from "@/lib/myTerms";
-import { loadPasscode, normalizePasscode, savePasscode } from "@/lib/passcode";
+import { loadPasscode } from "@/lib/passcode";
+import { sendAI } from "@/lib/askServer";
 import { getLang, tr, trv } from "@/lib/i18n";
 import { askConfirm } from "@/components/ConfirmSheet";
 import Link from "next/link";
@@ -79,15 +80,10 @@ function AddTerm({ query, onAdded }: { query: string; onAdded: (t: MyTerm) => vo
     setBusy(true);
     setError("");
     try {
-      const res = await fetch("/api/read-menu", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ term: query.trim(), passcode: normalizePasscode(passcode), lang: getLang() }),
-      });
+      const res = await sendAI({ term: query.trim() }, passcode);
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) setSaved(false);
       if (!res.ok) throw new Error(data.error ?? "調べられませんでした");
-      savePasscode(normalizePasscode(passcode));
       const t = data as TermLookup;
       onAdded({
         term: t.term,
@@ -155,7 +151,14 @@ export default function GlossaryPage() {
     saveMyTerms(next);
     setJustAdded(t.term);
     setQuery(t.term);
-    announceBuddy({ mood: "wow", text: pick([tr("「{0}」を覚えたね。ひとつ詳しくなった！", t.term), tr("「{0}」をメモしたよ。お店で見かけたら思い出してね", t.term), tr("「{0}」、覚えた！お酒の話がもっと楽しくなるね", t.term)]) });
+    announceBuddy({
+      mood: "wow",
+      text: pick([
+        tr("「{0}」を覚えたね。ひとつ詳しくなった！", t.term),
+        tr("「{0}」をメモしたよ。お店で見かけたら思い出してね", t.term),
+        tr("「{0}」、覚えた！お酒の話がもっと楽しくなるね", t.term),
+      ]),
+    });
     setFilter("すべて");
   }
 
@@ -276,18 +279,18 @@ export default function GlossaryPage() {
                     {t.mine && <span className="muted">{tr(t.category)}</span>}
                   </summary>
                   <div className="fold-body">
-                  <p className="term-desc">{trv(t.description)}</p>
-                  <MyDrinks term={t.term} records={records} />
-                  {t.mine && (
-                    <button
-                      type="button"
-                      className="btn-ghost"
-                      style={{ height: 32, alignSelf: "flex-end", padding: "0 12px", fontSize: 13 }}
-                      onClick={() => remove(t.term)}
-                    >
-                      {tr("辞典から外す")}
-                    </button>
-                  )}
+                    <p className="term-desc">{trv(t.description)}</p>
+                    <MyDrinks term={t.term} records={records} />
+                    {t.mine && (
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        style={{ height: 32, alignSelf: "flex-end", padding: "0 12px", fontSize: 13 }}
+                        onClick={() => remove(t.term)}
+                      >
+                        {tr("辞典から外す")}
+                      </button>
+                    )}
                   </div>
                 </details>
               ))}

@@ -361,7 +361,6 @@ export function loadTodayMenu(): FoodMenu["dishes"] {
   return last?.date === today() ? (last.menu ?? []) : [];
 }
 
-
 const MENU_RANK_KEY = "sake-memo:pair-menu-ranks";
 
 /** 今日の飲み物メニューの中で、この料理に合う順（AI が付けた相性） */

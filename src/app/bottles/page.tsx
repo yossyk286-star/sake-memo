@@ -20,7 +20,20 @@ import { useFeatures } from "@/lib/features";
 import { BOTTLE_SIZES, daysSinceDate, drinkWithin, openedOf, remaining } from "@/lib/bottleLife";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
-  return { name: "", kind: null, style: null, maker: "", origin: "", note: "", price: null, abv: null, boughtAt: today(), finished: false, size: null, openedAt: null };
+  return {
+    name: "",
+    kind: null,
+    style: null,
+    maker: "",
+    origin: "",
+    note: "",
+    price: null,
+    abv: null,
+    boughtAt: today(),
+    finished: false,
+    size: null,
+    openedAt: null,
+  };
 }
 
 /** 買ったお酒を登録するフォーム */
@@ -56,17 +69,13 @@ function AddBottle({ onAdded }: { onAdded: (b: Bottle) => void }) {
     >
       <div className="field">
         <label className="label" htmlFor="b-name">
-          {tr("名前")}{" "}<span className="req">{tr("必須")}</span>
+          {tr("名前")} <span className="req">{tr("必須")}</span>
         </label>
         <input id="b-name" className="input" placeholder={tr("例：獺祭 純米大吟醸45")} value={draft.name} onChange={(e) => set("name", e.target.value)} />
       </div>
       <fieldset className="field">
         <legend className="label">{tr("種類")}</legend>
-        <SingleChips
-          options={KINDS}
-          value={draft.kind}
-          onChange={(k: Kind | null) => setDraft((d) => ({ ...d, kind: k, style: null }))}
-        />
+        <SingleChips options={KINDS} value={draft.kind} onChange={(k: Kind | null) => setDraft((d) => ({ ...d, kind: k, style: null }))} />
       </fieldset>
       {draft.kind && (
         <fieldset className="field">
@@ -176,7 +185,14 @@ function BottleCard({
       </div>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {/* 「1,500/円」のように1つの項目の途中で折り返さないよう、項目ごとにまとめる */}
-        {[trJoin([b.kind, b.style]), b.maker, trv(b.origin), b.abv && abvText(b.abv), b.price && yen(b.price), tr("{0}に購入", b.boughtAt.slice(5).replace("-", "/"))]
+        {[
+          trJoin([b.kind, b.style]),
+          b.maker,
+          trv(b.origin),
+          b.abv && abvText(b.abv),
+          b.price && yen(b.price),
+          tr("{0}に購入", b.boughtAt.slice(5).replace("-", "/")),
+        ]
           .filter(Boolean)
           .map((t, i, all) => (
             // 「・」は行の頭に来られないので、前の項目の後ろに付けて、そこで折り返せるようにする
@@ -186,48 +202,42 @@ function BottleCard({
             </span>
           ))}
       </p>
-      {!b.finished && f.meter && (editPct !== null ? (
-        // 残りを自分で決める。スライダーで5%きざみ、「決める」で保存
-        <div className="meter-row meter-edit">
-          <input
-            type="range"
-            min={0}
-            max={100}
-            step={5}
-            value={editPct}
-            onChange={(e) => setEditPct(Number(e.target.value))}
-            aria-label={tr("残り")}
-          />
-          <b className="meter-edit-num">{editPct}%</b>
-          <button type="button" className="text-btn" onClick={() => setEditPct(null)}>
-            {tr("やめる")}
-          </button>
+      {!b.finished &&
+        f.meter &&
+        (editPct !== null ? (
+          // 残りを自分で決める。スライダーで5%きざみ、「決める」で保存
+          <div className="meter-row meter-edit">
+            <input type="range" min={0} max={100} step={5} value={editPct} onChange={(e) => setEditPct(Number(e.target.value))} aria-label={tr("残り")} />
+            <b className="meter-edit-num">{editPct}%</b>
+            <button type="button" className="text-btn" onClick={() => setEditPct(null)}>
+              {tr("やめる")}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary meter-edit-ok"
+              onClick={() => {
+                onChange({ ...b, leftSet: { ratio: editPct / 100, count: mine.length } });
+                setEditPct(null);
+              }}
+            >
+              {tr("決める")}
+            </button>
+          </div>
+        ) : (
+          // メーターを押すと残りを自分で変えられる
           <button
             type="button"
-            className="btn-secondary meter-edit-ok"
-            onClick={() => {
-              onChange({ ...b, leftSet: { ratio: editPct / 100, count: mine.length } });
-              setEditPct(null);
-            }}
+            className="meter-row"
+            onClick={() => setEditPct(Math.round(left.ratio * 20) * 5)}
+            aria-label={tr("残り約{0}%", Math.round(left.ratio * 100)) + "・" + tr("変える")}
           >
-            {tr("決める")}
+            <span className="bottle-meter" aria-hidden="true">
+              <i style={{ width: `${left.ratio * 100}%`, background: left.ratio < 0.25 ? "var(--danger)" : kindColor(b.kind) }} />
+            </span>
+            <span className="muted">{left.cups > 0 ? tr("残り約{0}%・あと{1}杯くらい", Math.round(left.ratio * 100), left.cups) : tr("そろそろ空きそう")}</span>
+            <span className="meter-change">{tr("変える")}</span>
           </button>
-        </div>
-      ) : (
-        // メーターを押すと残りを自分で変えられる
-        <button
-          type="button"
-          className="meter-row"
-          onClick={() => setEditPct(Math.round(left.ratio * 20) * 5)}
-          aria-label={tr("残り約{0}%", Math.round(left.ratio * 100)) + "・" + tr("変える")}
-        >
-          <span className="bottle-meter" aria-hidden="true">
-            <i style={{ width: `${left.ratio * 100}%`, background: left.ratio < 0.25 ? "var(--danger)" : kindColor(b.kind) }} />
-          </span>
-          <span className="muted">{left.cups > 0 ? tr("残り約{0}%・あと{1}杯くらい", Math.round(left.ratio * 100), left.cups) : tr("そろそろ空きそう")}</span>
-          <span className="meter-change">{tr("変える")}</span>
-        </button>
-      ))}
+        ))}
       {!b.finished && (
         <p className={late ? "open-days is-late" : "open-days muted"}>
           {days === null ? (
@@ -245,7 +255,7 @@ function BottleCard({
       <p style={{ margin: 0, fontSize: 15 }}>
         {mine.length > 0 ? (
           <>
-            {tr("{0}回記録・平均", mine.length)}{" "}<Stars n={Math.round(avg * 2) / 2} />
+            {tr("{0}回記録・平均", mine.length)} <Stars n={Math.round(avg * 2) / 2} />
           </>
         ) : (
           <span className="muted">{tr("まだ記録していません")}</span>
@@ -253,7 +263,8 @@ function BottleCard({
       </p>
       {best?.serveNote && (
         <p className="best-recipe">
-          <strong>{tr("いちばん良かった飲み方")}</strong>{tr("（{0}・{1}）", stars(best.overall), best.serve ?? tr("飲み方未入力"))}
+          <strong>{tr("いちばん良かった飲み方")}</strong>
+          {tr("（{0}・{1}）", stars(best.overall), best.serve ?? tr("飲み方未入力"))}
           <br />
           {serveNoteText(best.serveNote)}
         </p>
@@ -282,7 +293,8 @@ function BottleCard({
             onClick={() => onChange({ ...b, low: !b.low })}
             style={{ flex: 1, whiteSpace: "nowrap" }}
           >
-            {b.low && "✓ "}{tr("残りわずか")}
+            {b.low && "✓ "}
+            {tr("残りわずか")}
           </button>
         )}
         <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => onChange({ ...b, finished: !b.finished })}>
@@ -303,10 +315,7 @@ export default function BottlesPage() {
     listRecords().then(setRecords);
   }, []);
 
-  const [open, done] = useMemo(
-    () => [(bottles ?? []).filter((b) => !b.finished), (bottles ?? []).filter((b) => b.finished)],
-    [bottles],
-  );
+  const [open, done] = useMemo(() => [(bottles ?? []).filter((b) => !b.finished), (bottles ?? []).filter((b) => b.finished)], [bottles]);
 
   async function change(b: Bottle) {
     // 残りわずかにしたら、相棒が次の1本を探すよう声をかける

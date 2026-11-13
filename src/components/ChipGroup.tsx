@@ -2,25 +2,11 @@
 
 import { trv } from "@/lib/i18n";
 /** 1つだけ選べるチップ。選択中をもう一度押すと解除 */
-export function SingleChips<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: readonly T[];
-  value: T | null;
-  onChange: (v: T | null) => void;
-}) {
+export function SingleChips<T extends string>({ options, value, onChange }: { options: readonly T[]; value: T | null; onChange: (v: T | null) => void }) {
   return (
     <div className="row">
       {options.map((o) => (
-        <button
-          type="button"
-          key={o}
-          className="chip"
-          aria-pressed={value === o}
-          onClick={() => onChange(value === o ? null : o)}
-        >
+        <button type="button" key={o} className="chip" aria-pressed={value === o} onClick={() => onChange(value === o ? null : o)}>
           {trv(o)}
         </button>
       ))}
@@ -46,13 +32,7 @@ export function MultiChips({
       {options.map((o) => {
         const on = value.includes(o);
         return (
-          <button
-            type="button"
-            key={o}
-            className="chip"
-            aria-pressed={on}
-            onClick={() => onChange(on ? value.filter((x) => x !== o) : [...value, o])}
-          >
+          <button type="button" key={o} className="chip" aria-pressed={on} onClick={() => onChange(on ? value.filter((x) => x !== o) : [...value, o])}>
             {format ? format(o) : trv(o)}
           </button>
         );

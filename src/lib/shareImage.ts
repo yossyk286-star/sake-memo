@@ -85,14 +85,7 @@ function drawStars(ctx: CanvasRenderingContext2D, n: number, x: number, y: numbe
 }
 
 /** 1〜5 の評価を多角形で描く。いちばん内側の輪が 0（未入力）で、1〜5 はその外側（画面の RadarChart と同じ） */
-function drawRadar(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  radius: number,
-  axes: string[],
-  series: ShareSeries[],
-) {
+function drawRadar(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number, axes: string[], series: ShareSeries[]) {
   const n = axes.length;
   const at = (i: number, v: number) => {
     const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
@@ -191,9 +184,7 @@ async function drawPhoto(ctx: CanvasRenderingContext2D, photo: Blob, x: number, 
 }
 
 function toBlob(canvas: HTMLCanvasElement) {
-  return new Promise<Blob>((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("画像を作れませんでした"))), "image/png"),
-  );
+  return new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("画像を作れませんでした"))), "image/png"));
 }
 
 /** 1杯の記録の画像 */

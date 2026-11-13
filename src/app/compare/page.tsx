@@ -29,21 +29,11 @@ const ROWS: [string, (r: TastingRecord) => string][] = [
   ["合わせた料理", (r) => tr(r.pairing)],
 ];
 
-function Picker({
-  records,
-  exclude,
-  onPick,
-}: {
-  records: TastingRecord[];
-  exclude: string;
-  onPick: (id: string) => void;
-}) {
+function Picker({ records, exclude, onPick }: { records: TastingRecord[]; exclude: string; onPick: (id: string) => void }) {
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const list = records.filter(
-    (r) =>
-      r.id !== exclude &&
-      (!q || [r.name, r.maker, r.shop, r.kind ?? "", r.style ?? ""].some((s) => s.toLowerCase().includes(q))),
+    (r) => r.id !== exclude && (!q || [r.name, r.maker, r.shop, r.kind ?? "", r.style ?? ""].some((s) => s.toLowerCase().includes(q))),
   );
   return (
     <>
@@ -108,11 +98,7 @@ function CompareBody() {
         {a && !b && (
           <>
             <p style={{ margin: 0, padding: "0 4px", fontSize: 15 }}>{tr("「{0}」と比べる記録を選んでください。", drinkTitle(a))}</p>
-            <Picker
-              records={records ?? []}
-              exclude={a.id}
-              onPick={(id) => router.replace(`/compare?a=${a.id}&b=${id}`)}
-            />
+            <Picker records={records ?? []} exclude={a.id} onPick={(id) => router.replace(`/compare?a=${a.id}&b=${id}`)} />
           </>
         )}
         {pair && (
@@ -155,7 +141,9 @@ function CompareBody() {
                         {same ? (
                           <p className="compare-val is-same">
                             <span className="compare-dots" aria-hidden="true">
-                              {vals.map((_, i) => <i key={i} style={{ background: SERIES_COLORS[i] }} />)}
+                              {vals.map((_, i) => (
+                                <i key={i} style={{ background: SERIES_COLORS[i] }} />
+                              ))}
                             </span>
                             <span>{vals[0]}</span>
                             <small>{tr("どれも同じ")}</small>

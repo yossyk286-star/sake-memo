@@ -10,9 +10,7 @@ export async function shrinkPhoto(file: Blob, maxSide = 1280, quality = 0.82, ma
   canvas.height = Math.round(bitmap.height * scale);
   canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
-  return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("写真を変換できませんでした"))), "image/jpeg", quality),
-  );
+  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("写真を変換できませんでした"))), "image/jpeg", quality));
 }
 
 /**
@@ -115,7 +113,7 @@ function remember(key: string, url: string) {
 function thumbURL(key: string, blob: Blob): Promise<string> {
   const p =
     making.get(key) ??
-    (line = line.then(async () => {
+    ((line = line.then(async () => {
       await new Promise((r) => setTimeout(r, 0));
       try {
         return remember(key, URL.createObjectURL(await makeThumb(blob)));
@@ -125,7 +123,7 @@ function thumbURL(key: string, blob: Blob): Promise<string> {
       } finally {
         making.delete(key);
       }
-    })) as Promise<string>;
+    })) as Promise<string>);
   making.set(key, p);
   return p;
 }

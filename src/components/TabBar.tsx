@@ -177,9 +177,26 @@ export default function TabBar() {
           ))}
         </div>
         {/* 「調べる」はお店で片手で押しやすいよう、帯の外の大きな丸ボタンにする */}
-        <Link href={scan.href} className="tab-scan" data-tour="tab-scan" aria-label={trv(scan.label)} aria-current={scanActive ? "page" : undefined} onClick={(e) => go(e, scan.href)}>
+        <Link
+          href={scan.href}
+          className="tab-scan"
+          data-tour="tab-scan"
+          aria-label={trv(scan.label)}
+          aria-current={scanActive ? "page" : undefined}
+          onClick={(e) => go(e, scan.href)}
+        >
           <span className="tab-scan-btn">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               {scanActive ? scan.solid : scan.icon}
             </svg>
             {scanned > 0 && (

@@ -14,15 +14,7 @@ function seen(): string[] {
 }
 
 /** 使い方の説明。「わかった」を押したら、次からは出さない */
-export default function Hint({
-  id,
-  className,
-  children,
-}: {
-  id: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
+export default function Hint({ id, className, children }: { id: string; className?: string; children: React.ReactNode }) {
   // 読み込むまでは出さない（一瞬出て消えるのを防ぐ）
   const [hidden, setHidden] = useState(true);
   useEffect(() => setHidden(seen().includes(id)), [id]);
