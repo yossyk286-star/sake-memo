@@ -86,10 +86,25 @@ const EVENT = "sake-memo:features";
 
 let cache: Features | null = null;
 
+/** 動きのスイッチは設定から外したので、前にオフにしていても全部オンに戻す */
+const MOTION_ON = {
+  listStagger: true,
+  starWave: true,
+  numRoll: true,
+  barGrow: true,
+  radarMorph: true,
+  fabShrink: true,
+  rowCollapse: true,
+  fieldShake: true,
+  parallax: true,
+  photoTint: true,
+  shopCapsule: true,
+} satisfies Partial<Features>;
+
 export function loadFeatures(): Features {
   if (cache) return cache;
   try {
-    cache = { ...DEFAULT_FEATURES, ...JSON.parse(localStorage.getItem(KEY) ?? "{}") };
+    cache = { ...DEFAULT_FEATURES, ...JSON.parse(localStorage.getItem(KEY) ?? "{}"), ...MOTION_ON };
   } catch {
     cache = DEFAULT_FEATURES;
   }

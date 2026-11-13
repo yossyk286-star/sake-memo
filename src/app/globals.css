@@ -7406,13 +7406,16 @@ html[data-selecting] .bulk-bar {
 .select-row.is-on {
   background: color-mix(in srgb, var(--accent) 7%, var(--surface));
 }
-/* 「もう1枚・文字で」は下に帯をしいて、下の結果と重ならないように */
+/* 「もう1枚・文字で」はボタンだけを浮かせる（後ろに帯はしかない。下の余白 .scan-float-space で結果と重ならない） */
 .scan-float {
   left: 0;
   right: 0;
   padding: 10px max(16px, calc(50% - 280px + 16px)) 12px;
   bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-  background: linear-gradient(to bottom, transparent, var(--bg) 22%);
+  pointer-events: none;
+}
+.scan-float > * {
+  pointer-events: auto;
 }
 .scan-float > * {
   min-width: 0;
