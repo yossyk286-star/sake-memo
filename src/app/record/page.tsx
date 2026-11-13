@@ -149,6 +149,13 @@ function DetailBody() {
     setR(next);
   }
 
+  async function deleteQA(ats: number[]) {
+    if (!r) return;
+    const next = { ...r, qa: (r.qa ?? []).filter((h) => !ats.includes(h.at)) };
+    await putRecord(next);
+    setR(next);
+  }
+
   /** 一覧へ戻るとき、詳細が縮んで元の行へ帰る。行が見つからなければふつうに重ねて切り替える */
   function back(e: React.MouseEvent) {
     if (!isPlainClick(e)) return;
@@ -372,6 +379,7 @@ function DetailBody() {
             suggestions={SUGGESTIONS.map((s) => tr(s))}
             history={r.qa ?? []}
             onAnswered={addQA}
+            onDeleted={deleteQA}
           />
           <button type="button" className="btn-secondary btn-main" onClick={share}>
             {tr("画像にして送る")}

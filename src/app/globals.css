@@ -1750,6 +1750,29 @@ button.stamp {
   line-height: 1.7;
   white-space: pre-wrap;
 }
+/* 答えの下の小さな「消す」。目立たせず、押せる大きさは保つ */
+.ask-del {
+  align-self: flex-start;
+  min-height: 32px;
+  margin: -4px 0 0 4px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.ask-del:active {
+  color: var(--danger);
+}
+.ask-del:disabled {
+  opacity: 0.5;
+}
+.ask-del-all {
+  align-self: center;
+  margin: -6px 0 0;
+  color: var(--danger);
+}
 .ask-ai-bare {
   margin-top: 8px;
   display: flex;
