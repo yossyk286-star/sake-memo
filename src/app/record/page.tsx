@@ -38,12 +38,14 @@ type Row = [string, string];
 const NUMERIC = new Set(["度数", "値段"]);
 
 /** 見出しと、入っている欄だけの表。1つも入っていなければ何も出さない */
-function DetailSection({ title, rows }: { title: string; rows: Row[] }) {
+function DetailSection({ title, en, rows }: { title: string; en: string; rows: Row[] }) {
   const filled = rows.filter(([, v]) => v.trim());
   if (filled.length === 0) return null;
   return (
     <>
-      <h2 className="section-title">{trv(title)}</h2>
+      <h2 className="section-title" data-en={en}>
+        {trv(title)}
+      </h2>
       <dl className="card detail-list">
         {filled.map(([k, v]) => (
           <div key={k} style={{ display: "contents" }}>
@@ -313,7 +315,9 @@ function DetailBody() {
 
           {(filledScores.length > 0 || r.flavors.length > 0) && (
             <>
-              <h2 className="section-title">{tr("味")}</h2>
+              <h2 className="section-title" data-en="TASTE">
+                {tr("味")}
+              </h2>
               <div className="card detail-taste">
                 {filledScores.length >= 3 && (
                   <div className="detail-radar">
@@ -356,12 +360,14 @@ function DetailBody() {
             </>
           )}
 
-          <DetailSection title={tr("飲んだとき")} rows={servedRows} />
-          <DetailSection title={tr("お酒のこと")} rows={drinkRows} />
+          <DetailSection title={tr("飲んだとき")} en="SERVING" rows={servedRows} />
+          <DetailSection title={tr("お酒のこと")} en="ABOUT" rows={drinkRows} />
 
           {r.specs && r.specs.length > 0 && (
             <>
-              <h2 className="section-title">{tr("スペック")}</h2>
+              <h2 className="section-title" data-en="SPECS">
+                {tr("スペック")}
+              </h2>
               <ul className="card spec-grid">
                 {r.specs.map((s) => (
                   <li key={s.label}>
@@ -384,7 +390,9 @@ function DetailBody() {
 
           {r.memo.trim() && (
             <>
-              <h2 className="section-title">{tr("メモ")}</h2>
+              <h2 className="section-title" data-en="NOTES">
+                {tr("メモ")}
+              </h2>
               <div className="card detail-memo">{trv(r.memo)}</div>
             </>
           )}

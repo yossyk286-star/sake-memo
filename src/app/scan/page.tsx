@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import Hint from "@/components/Hint";
 import MenuScan from "@/components/MenuScan";
 import ScanTabs from "@/components/ScanTabs";
+import SeasonCard from "@/components/SeasonCard";
 import ShopBar from "@/components/ShopBar";
 import { loadTodayMenu, resetShop } from "@/lib/foodPairing";
 import { LAST_SCAN_EVENT, loadLastScan, saveLastScan } from "@/lib/lastScan";
@@ -27,6 +28,8 @@ export default function ScanPage() {
   const [shop, setShop] = useState(0);
   // 辞典・蔵元のページ・記録の検索から「この名前で調べる」で来たときの名前（?q=）
   const [q, setQ] = useState("");
+  // 「いまが旬」から来たときは、押したらすぐ調べる
+  const [auto, setAuto] = useState(false);
   useEffect(() => {
     const v = new URLSearchParams(location.search).get("q");
     if (v) {
@@ -53,6 +56,16 @@ export default function ScanPage() {
       </header>
 
       <ScanTabs current="drink" />
+      {/* 今日まだ何も調べていないあいだだけ、季節のお酒をすすめる */}
+      {drinks && counts.drinks === 0 && (
+        <SeasonCard
+          onPick={(name) => {
+            setQ(name);
+            setAuto(true);
+            setShop((n) => n + 1);
+          }}
+        />
+      )}
       <ShopBar
         drinks={counts.drinks}
         dishes={counts.dishes}
@@ -69,7 +82,7 @@ export default function ScanPage() {
         {tr("に残せます。")}
       </Hint>
 
-      {drinks && <MenuScan key={shop} initialQuery={q} initialDrinks={drinks} onPick={(d) => router.push(`/new?drink=${encodeURIComponent(d.name)}`)} />}
+      {drinks && <MenuScan key={shop} initialQuery={q} autoSearch={auto} initialDrinks={drinks} onPick={(d) => router.push(`/new?drink=${encodeURIComponent(d.name)}`)} />}
 
       {/* 今日まだ何も調べていないときだけ、前に調べたものを下に出す */}
       {drinks && counts.drinks === 0 && (

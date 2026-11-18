@@ -13,6 +13,7 @@ import { groupByShop } from "@/lib/shops";
 import type { TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import TitleCard from "@/components/TitleCard";
+import TypeBook from "@/components/TypeBook";
 import { ordered, ReorderList, type Section } from "@/components/Reorder";
 import TasteQuiz from "@/components/TasteQuiz";
 import { useFeatures } from "@/lib/features";
@@ -263,6 +264,7 @@ export default function TastePage() {
   const titleSections = (
     [
       records && records.length > 0 && { id: "title", label: "称号としるし", node: <TitleCard records={records} /> },
+      records && records.length > 0 && { id: "types", label: "タイプ図鑑", node: <TypeBook records={records} /> },
       {
         id: "list",
         label: "スタンプ帳・お店・気になる・家のお酒",

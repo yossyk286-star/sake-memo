@@ -436,6 +436,7 @@ export default function RecordForm({
     setMissing(null);
     setError("");
     setSaving(true);
+    const t0 = Date.now();
     const now = Date.now();
     const record: TastingRecord = {
       ...draft,
@@ -455,8 +456,10 @@ export default function RecordForm({
     // 新しい記録のときだけ、相棒がひとこと言う
     if (!initial) listRecords().then((all) => announceBuddy(buddyLine(record, all, { fromWish })));
     if (!reducedMotion()) {
+      // ボタンの中がお酒を注ぐように満ちきってから「保存しました」を見せる（43）
+      await new Promise((r) => setTimeout(r, Math.max(0, 400 - (Date.now() - t0))));
       setDone(true);
-      await new Promise((r) => setTimeout(r, 280));
+      await new Promise((r) => setTimeout(r, 320));
     }
     if (onSaved) {
       setDone(false);
@@ -945,8 +948,13 @@ export default function RecordForm({
         )}
 
         <div className="save-bar">
-          <button type="submit" className={`btn-primary save-btn${done ? " is-done" : ""}`} disabled={saving} aria-live="polite">
-            {done ? <span aria-label={tr("保存しました")}>✓</span> : saving ? tr("保存中…") : tr("保存する")}
+          <button
+            type="submit"
+            className={`btn-primary save-btn${done ? " is-done" : saving ? " is-pouring" : ""}`}
+            disabled={saving}
+            aria-live="polite"
+          >
+            <span className="save-label">{done ? `✓ ${tr("保存しました")}` : saving ? tr("保存中…") : tr("保存する")}</span>
           </button>
         </div>
       </form>
