@@ -158,7 +158,10 @@ export default function MenuScan({
   onScanned,
   extra,
   initialQuery = "",
+  autoSearch = false,
 }: {
+  /** true なら開いてすぐ、initialQuery の名前で調べる（「いまが旬」カードから） */
+  autoSearch?: boolean;
   /** 辞典・蔵元のページなどから「調べる」で来たときの名前。名前の欄に入れて開いておく（調べるのは押してから） */
   initialQuery?: string;
   onPick: (drink: ScannedDrink) => void;
@@ -557,6 +560,15 @@ export default function MenuScan({
     setLocalHit({ name: d.name, how, query: q });
     setOpenCard(d.name);
   }
+
+  // 「いまが旬」カードから来たら、押さなくてもすぐ調べる（開き直しで二重に調べない）
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (!autoSearch || !initialQuery || autoRan.current) return;
+    autoRan.current = true;
+    void lookup(false, initialQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function lookup(fresh = false, text = query) {
     const q = text.trim();

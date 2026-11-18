@@ -9,13 +9,13 @@ export function isNight(d = new Date()) {
 }
 
 export const ACCENTS = [
-  { id: "indigo", label: "藍", light: "#3d4fa8", dark: "#8c9cf0", bgDark: "#11131c" },
-  { id: "blue", label: "青", light: "#0a6cdc", dark: "#4a9eff", bgDark: "#0b131e" },
-  { id: "wine", label: "葡萄", light: "#a3264c", dark: "#f0708f", bgDark: "#190f15" },
-  { id: "amber", label: "琥珀", light: "#ad5f0b", dark: "#f5a742", bgDark: "#19140e" },
-  { id: "green", label: "若竹", light: "#2f7d55", dark: "#5cc98e", bgDark: "#0d1715" },
-  { id: "purple", label: "藤", light: "#7344b8", dark: "#b494f2", bgDark: "#14121d" },
-  { id: "graphite", label: "墨", light: "#3a3d46", dark: "#c9ccd6", bgDark: "#16171a" },
+  { id: "indigo", label: "藍", reading: "あい", light: "#2a4a8c", dark: "#8da4e8", bgDark: "#11131c" },
+  { id: "blue", label: "縹", reading: "はなだ", light: "#2f6a9e", dark: "#6fb0e6", bgDark: "#0c141c" },
+  { id: "wine", label: "蘇芳", reading: "すおう", light: "#9a3a4a", dark: "#e08a96", bgDark: "#1a1013" },
+  { id: "amber", label: "琥珀", reading: "こはく", light: "#a86a1c", dark: "#e6a64f", bgDark: "#19140e" },
+  { id: "green", label: "若竹", reading: "わかたけ", light: "#3c7a5a", dark: "#7cc79c", bgDark: "#0e1714" },
+  { id: "purple", label: "江戸紫", reading: "えどむらさき", light: "#66429a", dark: "#ae96dc", bgDark: "#14121d" },
+  { id: "graphite", label: "墨", reading: "すみ", light: "#3a3d46", dark: "#c9ccd6", bgDark: "#16171a" },
 ] as const;
 
 export type AccentId = (typeof ACCENTS)[number]["id"];

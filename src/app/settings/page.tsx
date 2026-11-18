@@ -8,7 +8,7 @@ import { announceBuddy, buddyOn, pick, setBuddyOn } from "@/lib/buddy";
 import { importJSON } from "@/lib/db";
 import { daysSince, lastBackup, saveBackup } from "@/lib/backup";
 import { ACCENTS, DEFAULT_THEME, loadTheme, saveTheme, type Appearance, type Theme } from "@/lib/theme";
-import { loadLangSetting, saveLangSetting, tr, trv, type LangSetting } from "@/lib/i18n";
+import { getLang, loadLangSetting, saveLangSetting, tr, trv, type LangSetting } from "@/lib/i18n";
 import { askConfirm } from "@/components/ConfirmSheet";
 import { LimitSetting, LookExtras, RecordSettings, UseSettings } from "@/components/FeatureSettings";
 
@@ -109,9 +109,20 @@ export default function SettingsPage() {
             <span>{tr("テーマ色")}</span>
             <div className="swatches" role="group" aria-label={tr("テーマ色")}>
               {ACCENTS.map((a) => (
-                <button key={a.id} type="button" className="swatch" aria-pressed={theme.accent === a.id} onClick={() => changeTheme({ accent: a.id })}>
-                  <i style={{ "--sw": a.light } as React.CSSProperties} />
-                  {trv(a.label)}
+                <button
+                  key={a.id}
+                  type="button"
+                  className="swatch"
+                  style={{ "--sw": a.light } as React.CSSProperties}
+                  aria-pressed={theme.accent === a.id}
+                  onClick={() => changeTheme({ accent: a.id })}
+                >
+                  <i />
+                  <span>
+                    <b>{trv(a.label)}</b>
+                    {/* 読みは日本語のときだけ */}
+                    {getLang() === "ja" && <small>{a.reading}</small>}
+                  </span>
                 </button>
               ))}
             </div>

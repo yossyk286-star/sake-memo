@@ -4,8 +4,8 @@
  * - テーマ色：<html data-accent="…">（src/lib/theme.ts の ACCENTS と合わせる）。ライト用・ダーク用の2色を持つ
  */
 :root {
-  --accent-l: #3d4fa8;
-  --accent-d: #8c9cf0;
+  --accent-l: #2a4a8c;
+  --accent-d: #8da4e8;
   /* くらべるの2つ目の色。テーマ色と見分けやすい反対寄りの色（寒色のテーマ色には橙、暖色・灰色には青） */
   --compare-l: #e0663a;
   --compare-d: #ff9f6b;
@@ -13,36 +13,36 @@
   --bg-d: #11131c;
 }
 [data-accent="blue"] {
-  --accent-l: #0a6cdc;
-  --accent-d: #4a9eff;
+  --accent-l: #2f6a9e;
+  --accent-d: #6fb0e6;
   --compare-l: #e0663a;
   --compare-d: #ff9f6b;
-  --bg-d: #0b131e;
+  --bg-d: #0c141c;
 }
 [data-accent="wine"] {
-  --accent-l: #a3264c;
-  --accent-d: #f0708f;
+  --accent-l: #9a3a4a;
+  --accent-d: #e08a96;
   --compare-l: #2f6fd0;
   --compare-d: #6aa8ff;
-  --bg-d: #190f15;
+  --bg-d: #1a1013;
 }
 [data-accent="amber"] {
-  --accent-l: #ad5f0b;
-  --accent-d: #f5a742;
+  --accent-l: #a86a1c;
+  --accent-d: #e6a64f;
   --compare-l: #2f6fd0;
   --compare-d: #6aa8ff;
   --bg-d: #19140e;
 }
 [data-accent="green"] {
-  --accent-l: #2f7d55;
-  --accent-d: #5cc98e;
+  --accent-l: #3c7a5a;
+  --accent-d: #7cc79c;
   --compare-l: #2f6fd0;
   --compare-d: #6aa8ff;
-  --bg-d: #0d1715;
+  --bg-d: #0e1714;
 }
 [data-accent="purple"] {
-  --accent-l: #7344b8;
-  --accent-d: #b494f2;
+  --accent-l: #66429a;
+  --accent-d: #ae96dc;
   --compare-l: #e0663a;
   --compare-d: #ff9f6b;
   --bg-d: #14121d;
@@ -2214,25 +2214,41 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 .swatches {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 .swatch {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 4px;
-  border: none;
-  background: none;
-  padding: 0;
-  font-size: 11px;
-  color: var(--muted);
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--fill);
+  padding: 7px 10px;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--text);
+  text-align: left;
   cursor: pointer;
 }
+/* 色の名前と、小さな読み */
+.swatch b {
+  font-weight: 600;
+}
+.swatch small {
+  display: block;
+  margin-top: 1px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+}
 .swatch i {
-  width: 34px;
-  height: 34px;
-  border-radius: 16px;
+  flex: none;
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
   background: var(--sw);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
   display: flex;
@@ -2241,13 +2257,11 @@ input[type="search"]::-webkit-search-cancel-button {
   transition: transform 0.15s ease;
 }
 .swatch[aria-pressed="true"] {
-  color: var(--text);
-  font-weight: 700;
+  border-color: var(--sw);
+  background: var(--surface);
 }
 .swatch[aria-pressed="true"] i {
-  box-shadow:
-    0 0 0 2px var(--surface),
-    0 0 0 4px var(--sw);
+  box-shadow: none;
 }
 .swatch[aria-pressed="true"] i::after {
   content: "";
@@ -5456,6 +5470,23 @@ details > summary::-webkit-details-marker {
   height: 300px;
   background: linear-gradient(color-mix(in srgb, var(--kind) var(--tint-mix), var(--bg)), var(--bg));
   pointer-events: none;
+  /* 開いたとき、右上から色がじわっとにじんで広がる（45） */
+  animation: tint-bloom 0.9s cubic-bezier(0.25, 0.6, 0.3, 1) 0.08s backwards;
+}
+@keyframes tint-bloom {
+  from {
+    clip-path: circle(0 at 100% 0);
+    opacity: 0.4;
+  }
+  to {
+    clip-path: circle(160% at 100% 0);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail-tint {
+    animation: none;
+  }
 }
 /* 名前と点数は色の上にじかに置く（白いカードにしない） */
 .detail-page .detail-hero {
@@ -6674,19 +6705,51 @@ html[data-fx~="fieldShake"] .field[data-missing] .star-rating {
   font-size: 15px;
 }
 
-/* 保存できたら ✓ の丸に縮んでから移る（9）。幅は動かさず、まわりを切り取って丸にする */
+/* 保存するとボタンの中が下から満ちて（お酒を注ぐように）、「✓ 保存しました」になる（43） */
 .save-btn {
-  transition:
-    clip-path 0.22s cubic-bezier(0.3, 0.9, 0.3, 1),
-    background-color 0.2s ease,
-    transform 0.1s ease;
-  clip-path: inset(0 0 round 14px);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
 }
+.save-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: translateY(101%);
+}
+.save-btn.is-pouring,
 .save-btn.is-done {
-  clip-path: inset(0 calc(50% - 26px) round 26px);
-  background: #34c759;
   opacity: 1;
-  font-size: 28px;
+}
+.save-btn.is-pouring {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  color: var(--accent);
+}
+.save-btn.is-pouring::before {
+  animation: save-pour 0.4s cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+}
+.save-btn.is-pouring .save-label {
+  color: var(--accent);
+  animation: save-label-flip 0.4s step-end forwards;
+}
+.save-btn.is-done::before {
+  transform: none;
+}
+@keyframes save-label-flip {
+  45% {
+    color: var(--accent);
+  }
+  46%,
+  100% {
+    color: var(--on-accent);
+  }
+}
+@keyframes save-pour {
+  to {
+    transform: translateY(0);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .roll[data-roll],
@@ -7046,8 +7109,38 @@ button.meter-row {
   cursor: pointer;
 }
 /* 「変える」を足しても1行に収まるよう、押せる形のときはメーターを少し短く・文字は折り返さない */
-button.meter-row .bottle-meter {
-  flex-basis: 72px;
+.bottle-glass {
+  flex: none;
+  color: var(--muted);
+  transform-origin: 50% 100%;
+  overflow: visible;
+}
+.bottle-glass-liquid {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+/* 押すと瓶がゆらっと揺れて、液面がたぷんと動く */
+.bottle-glass.is-sloshing {
+  animation: bottle-tilt 0.42s ease-in-out;
+}
+.bottle-glass.is-sloshing .bottle-glass-liquid {
+  animation: bottle-wave 0.42s ease-in-out;
+}
+@keyframes bottle-tilt {
+  25% {
+    transform: rotate(-9deg);
+  }
+  60% {
+    transform: rotate(6deg);
+  }
+}
+@keyframes bottle-wave {
+  30% {
+    transform: translateY(2px) rotate(3deg);
+  }
+  65% {
+    transform: translateY(-1px) rotate(-3deg);
+  }
 }
 button.meter-row > .muted {
   white-space: nowrap;
@@ -8307,4 +8400,106 @@ html:not([data-hand="left"]):has(.tabbar[data-mini]) .fab {
 }
 .tally-more {
   padding-bottom: 4px;
+}
+
+/* いまが旬カード（調べる画面の上） */
+.season-card {
+  margin: 10px 16px 0;
+  gap: 4px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.season-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.season-card h2 {
+  margin: 0;
+  font-size: 17px;
+}
+.season-card p {
+  margin: 0;
+  font-size: 13px;
+}
+.season-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* タイプ図鑑（好み・マイコレクション） */
+.type-book {
+  gap: 10px;
+}
+.type-book-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.type-book-head h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.type-book-kinds {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.type-book-kinds .chip {
+  flex: none;
+}
+.type-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.type-grid li > * {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 38px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--fill);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.2;
+  opacity: 0.75;
+}
+.type-grid li[data-got] > * {
+  opacity: 1;
+  font-weight: 600;
+  color: var(--text);
+  background: color-mix(in srgb, var(--kind) 20%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kind) 45%, transparent);
+}
+.type-grid small {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--kind);
+}
+.type-book-kinds .chip::before {
+  display: none;
+}
+
+/* 見出しの上に小さな英字（68）。英語表示のときは出さない */
+.section-title[data-en]::before {
+  content: attr(data-en);
+  display: block;
+  margin-bottom: 1px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+html[lang="en"] .section-title[data-en]::before {
+  display: none;
 }

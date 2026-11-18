@@ -9,6 +9,7 @@ import { announceBuddy, pick } from "@/lib/buddy";
 import { deleteBottle, listBottles, listRecords, peekBottles, peekRecords, putBottle } from "@/lib/db";
 import { KINDS, STYLES_BY_KIND } from "@/lib/glossary";
 import AbvInput from "@/components/AbvInput";
+import BottleGlass from "@/components/BottleGlass";
 import { abvText } from "@/lib/abv";
 import { today } from "@/lib/lastScan";
 import { bestServeNote, serveNoteText } from "@/lib/serveNote";
@@ -16,7 +17,7 @@ import type { Bottle, Kind, TastingRecord } from "@/lib/types";
 import EmptyState from "@/components/EmptyState";
 import { tr, trJoin, trv } from "@/lib/i18n";
 import { askConfirm } from "@/components/ConfirmSheet";
-import { useFeatures } from "@/lib/features";
+import { reducedMotion, useFeatures } from "@/lib/features";
 import { BOTTLE_SIZES, daysSinceDate, drinkWithin, openedOf, remaining } from "@/lib/bottleLife";
 
 function emptyBottle(): Omit<Bottle, "id" | "createdAt"> {
@@ -163,6 +164,8 @@ function BottleCard({
   const left = remaining(b, mine, f.pour);
   // 残りを変えているときのスライダーの値（%）。閉じているときは null
   const [editPct, setEditPct] = useState<number | null>(null);
+  // 押した瞬間に瓶がゆらっと揺れる間（そのあとで残りの変更に移る）
+  const [slosh, setSlosh] = useState(false);
   const opened = openedOf(b, mine);
   const days = opened ? daysSinceDate(opened) : null;
   const within = drinkWithin(b);
@@ -228,12 +231,18 @@ function BottleCard({
           <button
             type="button"
             className="meter-row"
-            onClick={() => setEditPct(Math.round(left.ratio * 20) * 5)}
+            onClick={() => {
+              const open = () => {
+                setSlosh(false);
+                setEditPct(Math.round(left.ratio * 20) * 5);
+              };
+              if (reducedMotion()) return open();
+              setSlosh(true);
+              setTimeout(open, 420);
+            }}
             aria-label={tr("残り約{0}%", Math.round(left.ratio * 100)) + "・" + tr("変える")}
           >
-            <span className="bottle-meter" aria-hidden="true">
-              <i style={{ width: `${left.ratio * 100}%`, background: left.ratio < 0.25 ? "var(--danger)" : kindColor(b.kind) }} />
-            </span>
+            <BottleGlass ratio={left.ratio} color={left.ratio < 0.25 ? "var(--danger)" : kindColor(b.kind)} sloshing={slosh} />
             <span className="muted">{left.cups > 0 ? tr("残り約{0}%・あと{1}杯くらい", Math.round(left.ratio * 100), left.cups) : tr("そろそろ空きそう")}</span>
             <span className="meter-change">{tr("変える")}</span>
           </button>
